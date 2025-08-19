@@ -25,9 +25,9 @@ INSERT INTO category (name) VALUES
 -- flashcard Bash one-liner (category_id = 1)
 INSERT INTO flashcard (question, answer, category_id) VALUES
 ('Version of redhat used', 'cat /etc/redhat-release', 1),
-('See the File System info', 'df -h .', 1),
+('See the File System info', 'df -h .\n Filesystem      Size  Used Avail Use% Mounted on\nE:      120G   73G   48G  61%   /e', 1),
 ('See which users is on vm', 'cat /etc/passwd', 1),
-('Tar gz a file', 'tar -czvf archive.tar.gz nom_du_fichier.log', 1),
+('Tar a gz file', 'tar -czvf archive.tar.gz nom_du_fichier.log', 1),
 ('Stop a service', 'pid=$(ps -ef | grep app_name | grep -v grep | awk ''{print $2}'')\nkill $pid', 1);
 
 -- flashcard Kubernetes one-liner (category_id = 2)
@@ -35,7 +35,7 @@ INSERT INTO flashcard (question, answer, category_id) VALUES
 ('View pod and node info', 'kubectl <context_or_namespace> get pods -o wide', 2),
 ('View the size of logs', 'ls -lh service_name.log', 2),
 ('View n lines into the log', 'kubectl <context_or_namespace> logs pod_name  | grep -C 5 "error"', 2),
-('Use the container name defined in the Pod or Deployment YAML', 'kubectl logs <pod_name> -c <container_name>', 2);
+('Use the container name defined into the the Pod or Deployment file', 'kubectl logs <pod_name> -c <container_name>', 2);
 
 -- flashcard Git short-liner (category_id = 3)
 INSERT INTO flashcard (question, answer, category_id) VALUES
@@ -50,13 +50,13 @@ INSERT INTO flashcard (question, answer, category_id) VALUES
 ('Create a Private/Public Key Pair with Keytool', 'keytool -genkey -alias <alias_name> -keyalg RSA -validity 365 -keystore server.keystore -storetype JKS', 4),
 ('Generate the certificate', 'keytool -genkeypair -alias <alias_name> -keypass <keypass> -validity <validity> -storepass <storepass>', 4),
 ('Listing Certificates in the Keystore', 'keytool -list -storepass <storepass>', 4),
-('change the alias of a certificate:', 'keytool -changealias -alias <alias> -destalias <new_alias> -keypass <keypass> -storepass <storepass>', 4),
+('Change the alias of a certificate', 'keytool -changealias -alias <alias> -destalias <new_alias> -keypass <keypass> -storepass <storepass>', 4),
 ('Add a Certificate to a Truststore', 'keytool -import -alias <alias_name> -file public.cert -storetype JKS -keystore server.truststore', 4);
 
 -- flashcard Vagrant one-liner (category_id = 5)
 INSERT INTO flashcard (question, answer, category_id) VALUES
-('Initialise un nouveau projet Vagrant avec l''image Ubuntu 18.04', 'vagrant init hashicorp/bionic64', 5),
-('Start VMs', 'vagrant up', 5),
+('Initialize a new Vagrant project with the image bionic64 (Ubuntu 18.04)', 'vagrant init hashicorp/bionic64', 5),
+('Start VM(s)', 'vagrant up', 5),
 ('Stop properly the VM', 'vagrant halt', 5),
-('Restart the vm', 'vagrant reload', 5),
-('Remove all the vm', 'vagrant destroy -f', 5);
+('Restart the VM', 'vagrant reload', 5),
+('Remove all the VM(s)', 'vagrant destroy -f', 5);
