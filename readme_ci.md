@@ -3,24 +3,16 @@ This folder contains the files and scripts related to the CI/CD pipelines for th
 
 ### structure folder: 
 
+```
 flashcards/
-│
-├── src/                          # source code (Spring Boot)
-├── pom.xml                       # Build Maven
-├── Dockerfile                    # Image Docker Build
-│
-├── ci-scripts/                   # common scripts pipelines
-│ ├── build.sh
-│ ├── test.sh
-│ └── docker-build.sh
-│
-├── .github/
-│ └── workflows/
-│ └── main.yml                    # GitHub Actions
-│
-├── readme.md
-└── readme_ci.md                  # actual file
-
+├── src/                  # source code
+├── pom.xml               # Maven configuration
+├── Dockerfile            # Docker image build
+├── ci-scripts/           # scripts used by pipelines
+├── .github/workflows/    # GitHub Actions pipelines
+├── readme.md             # project description
+└── readme_ci.md          # CI/CD documentation
+```
 
 ### Factored scripts in ci-scripts/
 
