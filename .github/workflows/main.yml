@@ -26,6 +26,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Make scripts executable
+        run: chmod +x ci-scripts/*.sh
+
       - name: Build
         run: ci-scripts/build.sh
 
