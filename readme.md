@@ -1,5 +1,8 @@
 # Flashcards Application
 
+[![CI/CD](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
+[![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards)
+
 ## Description
 
 Flashcards is a Java Spring Boot application for managing flashcards and their categories based on DevOps technologies and one-liner scripts.

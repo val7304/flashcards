@@ -1,6 +1,15 @@
 # CICD deployments
 This folder contains the files and scripts related to the CI/CD pipelines for the **Flashcards** project.
 
+# Flashcards App - CI/CD Status
+
+[![CI/CD](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
+[![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards)
+[![Docker Pulls](https://img.shields.io/docker/pulls/valeriejeanne/flashcards)](https://hub.docker.com/r/valeriejeanne/flashcards)
+[![Docker Image Size](https://img.shields.io/docker/image-size/valeriejeanne/flashcards/latest)](https://hub.docker.com/r/valeriejeanne/flashcards)
+
+These badges show the current CI/CD status, Docker image version, and pull statistics.
+
 ### structure folder: 
 
 ```
