@@ -1,0 +1,30 @@
+# === System && IDE ===
+.git
+.gitignore
+.vscode/
+.idea/
+*.iml
+
+# === Build local Maven ===
+target/
+!target/*.jar   
+
+# ===temp files ===
+*.log
+*.tmp
+*.swp
+*.bak
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === CI/CD & external config ===
+.github/
+ci-scripts/
+readme*.md
+
+# === other ===
+docker-compose.yml
+*.env
+*.sh
