@@ -9,33 +9,65 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-
+/**
+ * Service gérant la logique métier liée aux flashcards.
+ */
 @Service
 @RequiredArgsConstructor
 public class FlashcardService {
-
+    /**
+     * Repository permettant d'accéder aux données des flashcards.
+     */
     private final FlashcardRepository flashcardRepository;
 
+    /**
+     * Récupère toutes les flashcards disponibles.
+     *
+     * @return liste de toutes les flashcards
+     */
     public List<Flashcard> getAllFlashcards() {
         return flashcardRepository.findAll();
     }
-
-    public Optional<Flashcard> getFlashcardById(Long id) {
+    /**
+     * Récupère une flashcard selon son identifiant.
+     *
+     * @param id identifiant de la flashcard
+     * @return un {@link Optional} contenant la flashcard si elle existe
+     */
+    public Optional<Flashcard> getFlashcardById(final Long id) {
         return flashcardRepository.findById(id);
     }
-
-    public List<FlashcardDTO> searchByQuestion(String question) {
+    /**
+     * Recherche les flashcards dont la question contient une chaîne donnée
+     * (insensible à la casse).
+     *
+     * @param question partie de la question à rechercher
+     * @return liste de {@link FlashcardDTO} correspondant au critère
+     */
+    public List<FlashcardDTO> searchByQuestion(final String question) {
         return flashcardRepository.findByQuestionContainingIgnoreCase(question)
                 .stream()
                 .map(FlashcardMapper::toDTO)
                 .toList();
     }
-
-    public Flashcard createFlashcard(Flashcard flashcard) {
+    /**
+     * Crée une nouvelle flashcard.
+     *
+     * @param flashcard flashcard à enregistrer
+     * @return la flashcard créée
+     */
+    public Flashcard createFlashcard(final Flashcard flashcard) {
         return flashcardRepository.save(flashcard);
     }
-
-    public Flashcard updateFlashcard(Long id, Flashcard flashcard) {
+    /**
+     * Met à jour une flashcard existante.
+     *
+     * @param id identifiant de la flashcard à mettre à jour
+     * @param flashcard nouvelles informations à appliquer
+     * @return la flashcard mise à jour
+     * @throws RuntimeException si la flashcard n'existe pas
+     */
+    public Flashcard updateFlashcard(final Long id, final Flashcard flashcard) {
         return flashcardRepository.findById(id).map(f -> {
             f.setQuestion(flashcard.getQuestion());
             f.setAnswer(flashcard.getAnswer());
@@ -43,8 +75,12 @@ public class FlashcardService {
             return flashcardRepository.save(f);
         }).orElseThrow(() -> new RuntimeException("Flashcard not found"));
     }
-
-    public void deleteFlashcard(Long id) {
+    /**
+     * Supprime une flashcard selon son identifiant.
+     *
+     * @param id identifiant de la flashcard à supprimer
+     */
+    public void deleteFlashcard(final Long id) {
         flashcardRepository.deleteById(id);
     }
 }
