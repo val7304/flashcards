@@ -47,16 +47,22 @@ git clone https://github.com/val7304/flashcards.git
 cd flashcards
 ```
 
-#### 2. Change password for user in postgres: 
-a. Rename src/main/resources/application-example.properties to application.properties  
-b. Modify user and password in application.properties; user must be “postgres”:
+#### 2. Database configuration: 
+- The app connects automatically to a local PostgreSQL instance via environment variables, or defaults to user postgres and password pswd.
+- No manual edition of application.properties is required.
 ```sh
-spring.datasource.url=jdbc:postgresql://localhost:5432/flashcardsdb
-spring.datasource.username=postgres
-spring.datasource.password=secret
+spring.datasource.username=${DB_USER:postgres}
+spring.datasource.password=${DB_PASSWORD:pswd}
 ```
 
-#### 3. Create the flashcardsdb database as mentionned in application.properties
+If you prefer different credentials, export them before launching:
+```sh
+export DB_USER=myuser
+export DB_PASSWORD=mypassword
+```
+
+#### 3. Create the database (first time only)
+This script checks if flashcardsdb exists; if not, it creates it automatically.
 ```sh
 ./init-db.sh
 ```
@@ -66,6 +72,16 @@ spring.datasource.password=secret
 ./mvnw clean package
 ./mvnw test
 ```
+#### 3.1 Run Checkstyle
+```bash
+./mvnw checkstyle:check
+```
+Goal: maintain clean, standardized, and CI/CD–ready Java code.
+Checkstyle ensures:
+- No unused imports
+- Correct spacing and indentation
+- Proper Javadoc comments
+- Consistent naming and formatting
 
 ### Tests
 - Unit services and controllers: ./mvn test or ./mvnw test
@@ -75,11 +91,31 @@ spring.datasource.password=secret
 integration test:
 Expected status 204 for a deletion but code 200 returned → adjust the controller or tests.
 
+#### Objective:
+- Facilitate integration into CI/CD (Jenkins, GitLab CI, etc.)
+- Ensure code quality in future developments.
+
 #### 4. Launch the application
 ```sh
 ./mvnw clean install
+```
+##### Default (Dev Profile)
+```sh
 ./mvnw spring-boot:run
 ```
+The dev profile is activated automatically (see application.properties):
+```properties
+spring.profiles.active=dev
+```
+#### ➡ On each run:
+- The schema is recreated (spring.jpa.hibernate.ddl-auto=create-drop)
+- data.sql reloads initial categories and flashcards
+
+##### Production profile
+```sh
+./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
+```
+Data is preserved between runs.
 
 ### Access the application via browser or Postman or curl - your choice
 ```sh
@@ -87,83 +123,59 @@ http://localhost:8080/api/categories
 http://localhost:8080/api/flashcards
 ```
 
-### data.sql
-The data.sql file creates and injects data automatically when the application starts to run.
-Located file:  flashcards\src\main\resources\data.sql
-
-It contains: 
-#### 5 categories: 
-	* ('Bash one-liner'),
-	* ('Kubernetes one-liner'),
-	* ('Git short-liner'),
-	* ('Keytool one-liner'),
-	* ('Vagrant one-liner');
-
-#### 5x5 flashcards covering the categories: 
-example: 
-```sh
-	* -- flashcard Bash one-liner (category_id = 1)
-	INSERT INTO flashcard (question, answer, category_id) VALUES
-	('Version of redhat used', 'cat /etc/redhat-release', 1),
-	('See the File System info', 'df -h .', 1),
-```
-
 ### endpoints available:
-```sh
-# get all flashcards
-GET     /api/flashcards
-# search a word (branch) in question
-GET     /api/flashcards/search?question={branch}
-# get flashcard by id
-GET     /api/flashcards/{id}
-# add flashcard
-POST    /api/flashcards
-# modify flashcards by id
-PUT     /api/flashcards/{id}
-# delete flashcards by id
-DELETE  /api/flashcards/{id}
 
-# get all category
-GET     /api/categories
-# get category by a part of word located in name field
-GET     /api/categories/search?name={Bash}
-# get category by id
-GET     /api/categories/{id}
-# add category (id auto)
-POST    /api/categories
-# modify category by id
-PUT     /api/categories/{id}
-# delete category by id
-DELETE  /api/categories/{id}
+| Type   | Endpoint                                 | Description                  |
+| ------ | ---------------------------------------- | ---------------------------- |
+| GET    | `/api/categories`                        | List all categories          |
+| GET    | `/api/categories/search?name=Bash`       | Search category by name      |
+| GET    | `/api/categories/{id}`                   | Get category by ID           |
+| POST   | `/api/categories`                        | Add new category             |
+| PUT    | `/api/categories/{id}`                   | Update category              |
+| DELETE | `/api/categories/{id}`                   | Delete category              |
+| GET    | `/api/flashcards`                        | List all flashcards          |
+| GET    | `/api/flashcards/search?question=branch` | Search flashcards by keyword |
+| GET    | `/api/flashcards/{id}`                   | Get flashcard by ID          |
+| POST   | `/api/flashcards`                        | Add new flashcard            |
+| PUT    | `/api/flashcards/{id}`                   | Update flashcard             |
+| DELETE | `/api/flashcards/{id}`                   | Delete flashcard             |
+
+
+### Data initialization
+src/main/resources/data.sql contains:
+- 5 categories
+- 25 flashcards (5 per category)
+
+```sh
+INSERT INTO category (name) VALUES ('Bash one-liner');
+INSERT INTO flashcard (question, answer, category_id)
+VALUES ('Version of redhat used', 'cat /etc/redhat-release', 1);
 ```
 
-### Scenario:
+### Example usage (via curl)
 
-#### Test all the endpoints for flashcards
 ```sh
-# get all flashcards
-GET     /api/flashcards
+# Get all categories
+curl -s http://localhost:8080/api/categories | jq
 
-# add flashcard
-POST    /api/flashcards
-body: 
-{
-  "question": "test ADD flashcard",
-  "answer": "ADD test flashcard",
-  "category": {
-    "id": 1
-  }
-}
-
-# search a word (test ADD flashcard) in question to get the new_ID created
-GET     /api/flashcards/search?question={test}
-
-# or get flashcard by id OR get all flashcards
-GET     /api/flashcards/{new_ID}
-
-# delete flashcards by id
-DELETE  /api/flashcards/{new_ID}
-
-# get all flashcards to check 
-
+# Add a new flashcard
+curl -X POST http://localhost:8080/api/flashcards \
+     -H "Content-Type: application/json" \
+     -d '{
+           "question": "test ADD flashcard",
+           "answer": "ADD test flashcard",
+           "category": { "id": 1 }
+         }'
 ```
+
+#### Notes for Developers
+
+* Dev profile: resets DB at each run, for isolated tests.
+* Prod profile: keeps DB persistent (used for CI/CD or Docker).
+* Checkstyle: all code is compliant; run it locally before commit.
+* Tests: ./mvnw test must pass without error before merge.
+
+### Access:
+http://localhost:8080/api/categories
+
+http://localhost:8080/api/flashcards
