@@ -1,6 +1,6 @@
 package com.example.flashcards.integration;
 
-import com.example.flashcards.dto.CategoryDTO;
+import com.example.flashcards.dto.CategoryDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ class CategoryIntegrationTest {
     @Test
     void testCRUDCategory() throws Exception {
         // 1. Create Category
-        CategoryDTO newCategory = new CategoryDTO(null, "Science");
+        CategoryDto newCategory = new CategoryDto(null, "Science");
         String categoryJson = objectMapper.writeValueAsString(newCategory);
 
         String response = mockMvc.perform(post("/api/categories")
@@ -36,7 +36,7 @@ class CategoryIntegrationTest {
                 .andExpect(jsonPath("$.name").value("Science"))
                 .andReturn().getResponse().getContentAsString();
 
-        CategoryDTO created = objectMapper.readValue(response, CategoryDTO.class);
+        CategoryDto created = objectMapper.readValue(response, CategoryDto.class);
 
         // 2. Read Category
         mockMvc.perform(get("/api/categories/" + created.getId()))
@@ -44,7 +44,7 @@ class CategoryIntegrationTest {
                 .andExpect(jsonPath("$.name").value("Science"));
 
         // 3. Update Category
-        CategoryDTO updatedCategory = new CategoryDTO(created.getId(), "Biology");
+        CategoryDto updatedCategory = new CategoryDto(created.getId(), "Biology");
         String updatedJson = objectMapper.writeValueAsString(updatedCategory);
 
         mockMvc.perform(put("/api/categories/" + created.getId())

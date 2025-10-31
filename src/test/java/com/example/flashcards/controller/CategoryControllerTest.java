@@ -1,6 +1,6 @@
 package com.example.flashcards.controller;
 
-import com.example.flashcards.dto.CategoryDTO;
+import com.example.flashcards.dto.CategoryDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,7 @@ class CategoryControllerTest {
 
     @Test
     void shouldCreateCategory() throws Exception {
-        CategoryDTO newCategory = new CategoryDTO();
+        CategoryDto newCategory = new CategoryDto();
         newCategory.setName("Test Category");
 
         mockMvc.perform(post("/api/categories")

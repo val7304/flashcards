@@ -1,6 +1,6 @@
 package com.example.flashcards.service;
 
-import com.example.flashcards.dto.CategoryDTO;
+import com.example.flashcards.dto.CategoryDto;
 import com.example.flashcards.entity.Category;
 import com.example.flashcards.mapper.CategoryMapper;
 import com.example.flashcards.repository.CategoryRepository;
@@ -38,8 +38,8 @@ class CategoryServiceTest {
         when(categoryRepository.findAll()).thenReturn(Arrays.asList(cat1, cat2));
 
         List<Category> categories = categoryService.getAllCategories();
-        List<CategoryDTO> dtoList = categories.stream()
-                .map(CategoryMapper::toDTO)
+        List<CategoryDto> dtoList = categories.stream()
+                .map(CategoryMapper::toDto)
                 .toList();
 
         assertEquals(2, dtoList.size());
@@ -54,13 +54,13 @@ class CategoryServiceTest {
         Optional<Category> found = categoryService.getCategoryById(1L);
 
         assertTrue(found.isPresent());
-        CategoryDTO dto = CategoryMapper.toDTO(found.get());
+        CategoryDto dto = CategoryMapper.toDto(found.get());
         assertEquals("History", dto.getName());
     }
 
     @Test
     void testCreateCategory() {
-        CategoryDTO dto = new CategoryDTO(null, "Histoire");
+        CategoryDto dto = new CategoryDto(null, "Histoire");
         Category entity = CategoryMapper.toEntity(dto);
 
         when(categoryRepository.save(any(Category.class))).thenAnswer(inv -> {
@@ -70,7 +70,7 @@ class CategoryServiceTest {
         });
 
         Category saved = categoryService.createCategory(entity);
-        CategoryDTO savedDTO = CategoryMapper.toDTO(saved);
+        CategoryDto savedDTO = CategoryMapper.toDto(saved);
 
         assertNotNull(savedDTO.getId());
         assertEquals("Histoire", savedDTO.getName());
@@ -81,13 +81,13 @@ class CategoryServiceTest {
         Category existing = new Category(1L, "Math", null);
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(existing));
 
-        CategoryDTO updateDTO = new CategoryDTO(1L, "Physique");
+        CategoryDto updateDTO = new CategoryDto(1L, "Physique");
         Category toUpdate = CategoryMapper.toEntity(updateDTO);
 
         when(categoryRepository.save(any(Category.class))).thenReturn(toUpdate);
 
         Category updated = categoryService.updateCategory(1L, toUpdate);
-        CategoryDTO updatedDTO = CategoryMapper.toDTO(updated);
+        CategoryDto updatedDTO = CategoryMapper.toDto(updated);
 
         assertEquals("Physique", updatedDTO.getName());
     }

@@ -1,26 +1,35 @@
 # Flashcards Application
 
 [![CI/CD](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
-[![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards)
+[![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards/tags)
+![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen)
+![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
 
-## Description
+---
 
-Flashcards is a Java Spring Boot application for managing flashcards and their categories based on DevOps technologies and one-liner scripts.
-It was designed as a demonstration project to practise and illustrate DevOps concepts:
+## Overview
 
-## Features:
+**Flashcards** is a Java Spring Boot application designed to manage flashcards and their categories.  
+It serves as a learning and demonstration project to practice **DevOps**, **clean code**, and **automation** concepts.
 
-* Full CRUD on Categories and Flashcards
-* Simple, extensible and testable REST API
-* Automatic data injection via data.sql
-* Unit and integration tests
+### Features
 
-## Technologies used
-* Java 17
-* Spring Boot 3
-* Maven
-* PostgreSQL 
-* Tests: JUnit 5, Mockito, Spring Test
+- Full CRUD on Categories and Flashcards  
+- Extensible REST API  
+- Automatic data loading via `data.sql`  
+- Unit and integration tests using Spring Boo
+
+### Technologies 
+
+| Layer         | Technology                       |
+|---------------|----------------------------------|
+| Backend       | Java 17, Spring Boot 3           |
+| Build         | Maven Wrapper (`./mvnw`)         |
+| Database      | PostgreSQL                       |
+| Testing       | JUnit 5, Mockito                 |
+| Code Quality  | Checkstyle, SpotBugs             |
+| Packaging     | Docker                           |
+| CI/CD         | GitHub Actions, Docker Hub       |
 
 ## Project structure
 ```text
@@ -39,91 +48,90 @@ src/
      ├─ service/              # Unit tests for services
      └─ integration/          # Integration tests
 ```
+---
 
-## Installation
-#### 1. Clone the project
+## Installation & Setup
+
+###  1. Clone the project
+
 ```sh
 git clone https://github.com/val7304/flashcards.git
 cd flashcards
 ```
 
-#### 2. Database configuration: 
-- The app connects automatically to a local PostgreSQL instance via environment variables, or defaults to user postgres and password pswd.
-- No manual edition of application.properties is required.
+### 2. Database configuration: 
+The app connects automatically to a local PostgreSQL instance via environments variables.  
+
+Default credentials are:
 ```sh
 spring.datasource.username=${DB_USER:postgres}
 spring.datasource.password=${DB_PASSWORD:pswd}
 ```
 
-If you prefer different credentials, export them before launching:
+To override:
 ```sh
 export DB_USER=myuser
 export DB_PASSWORD=mypassword
 ```
 
-#### 3. Create the database (first time only)
-This script checks if flashcardsdb exists; if not, it creates it automatically.
+### 3. Initialize the Database (first time only)
+This script checks for `flashcardsdb`, creating it if missing.
+
 ```sh
 ./init-db.sh
 ```
 
-#### 3. Build & Tests
-```sh
-./mvnw clean package
-./mvnw test
-```
-#### 3.1 Run Checkstyle
-```bash
-./mvnw checkstyle:check
-```
-Goal: maintain clean, standardized, and CI/CD–ready Java code.
-Checkstyle ensures:
-- No unused imports
-- Correct spacing and indentation
-- Proper Javadoc comments
-- Consistent naming and formatting
+---
 
-### Tests
-- Unit services and controllers: ./mvn test or ./mvnw test
-- REST API integration: tests with MockMvc and Spring Boot Test
+If you are interested to run some tests about Code Quality & Static Analysis, go to https://github.com/val7304/flashcards/blob/main/readme_ci.md for more explanations.
+ 
+- Build and Run Unit Tests 
+- Checkstyle
+- SpotBugs
 
-### Example of a common error:
-integration test:
-Expected status 204 for a deletion but code 200 returned → adjust the controller or tests.
+---
 
-#### Objective:
-- Facilitate integration into CI/CD (Jenkins, GitLab CI, etc.)
-- Ensure code quality in future developments.
+### 4. Run the application
 
-#### 4. Launch the application
+#### 4.1 Default (Development Profile)
+
 ```sh
 ./mvnw clean install
-```
-##### Default (Dev Profile)
-```sh
 ./mvnw spring-boot:run
 ```
 The dev profile is activated automatically (see application.properties):
+
 ```properties
 spring.profiles.active=dev
 ```
-#### ➡ On each run:
-- The schema is recreated (spring.jpa.hibernate.ddl-auto=create-drop)
-- data.sql reloads initial categories and flashcards
 
-##### Production profile
+#### Behavior:
+- Schema recreated on startup  
+- Data reloaded from `data.sql`
+
+---
+#### 4.2 Production profile
+
 ```sh
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
 ```
-Data is preserved between runs.
 
-### Access the application via browser or Postman or curl - your choice
+#### Behavior:
+- Persistent data between runs (no automatic drop)
+- Ideal for Docker and CI/CD environments
+
+---
+
+### 5. Access the Application
+Base URLs:
+
 ```sh
 http://localhost:8080/api/categories
 http://localhost:8080/api/flashcards
+
 ```
 
-### endpoints available:
+### 6. API Endpoints
 
 | Type   | Endpoint                                 | Description                  |
 | ------ | ---------------------------------------- | ---------------------------- |
@@ -141,18 +149,17 @@ http://localhost:8080/api/flashcards
 | DELETE | `/api/flashcards/{id}`                   | Delete flashcard             |
 
 
-### Data initialization
-src/main/resources/data.sql contains:
+---
+
+### 7. Data Initialization
+
+src/main/resources/data.sql loads initial demo content automatically:
 - 5 categories
-- 25 flashcards (5 per category)
+- 25 flashcards (5 each)
 
-```sh
-INSERT INTO category (name) VALUES ('Bash one-liner');
-INSERT INTO flashcard (question, answer, category_id)
-VALUES ('Version of redhat used', 'cat /etc/redhat-release', 1);
-```
+---
 
-### Example usage (via curl)
+### 8. Example Usage (via cURL)
 
 ```sh
 # Get all categories
@@ -167,15 +174,23 @@ curl -X POST http://localhost:8080/api/flashcards \
            "category": { "id": 1 }
          }'
 ```
+---
 
-#### Notes for Developers
+### 9. Developer Notes
 
-* Dev profile: resets DB at each run, for isolated tests.
-* Prod profile: keeps DB persistent (used for CI/CD or Docker).
-* Checkstyle: all code is compliant; run it locally before commit.
-* Tests: ./mvnw test must pass without error before merge.
+- **Dev profile**: resets the DB each run (for isolated tests)
+- **Prod profile**: persistent data 
+- **Code quality**: Checkstyle and SpotBugs must both pass with 0 issues before commit
+- **Tests**: All tests must succeed before merge or release  
+- **CI/CD-ready**: Compatible with CI/CD tools (GitHub Actions, Jenkins, GitLab CI)
 
-### Access:
-http://localhost:8080/api/categories
+---
 
-http://localhost:8080/api/flashcards
+**Build:** SUCCESS  
+**Code Quality:** 0 violations  0 Checkstyle violations, 0 SpotBugs warnings 
+**Validation:** All tests passed  
+
+---
+**Maintainer:** Valérie Hermans  
+[valerie_hermans@outlook.com](mailto:valerie_hermans@outlook.com)  
+[GitHub Profile](https://github.com/val7304)
