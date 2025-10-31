@@ -9,40 +9,78 @@ import com.example.flashcards.mapper.CategoryMapper;
 
 import java.util.List;
 import java.util.Optional;
-
+/**
+ * Service gérant la logique métier liée aux catégories de flashcards.
+ */
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
 
+    /**
+     * Repository permettant d'accéder aux données des catégories.
+     */
     private final CategoryRepository categoryRepository;
 
+    /**
+     * Récupère toutes les catégories disponibles.
+     *
+     * @return liste de toutes les catégories
+     */
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
     }
 
-    public List<CategoryDTO> searchByName(String name) {
+    /**
+     * Recherche les catégories dont le nom contient une chaîne donnée
+     * (sans sensibilité à la casse).
+     *
+     * @param name partie du nom à rechercher
+     * @return liste de {@link CategoryDTO} correspondant à la recherche
+     */
+    public List<CategoryDTO> searchByName(final String name) {
         return categoryRepository.findByNameContainingIgnoreCase(name)
                 .stream()
                 .map(CategoryMapper::toDTO)
                 .toList();
-    }
-
-    public Optional<Category> getCategoryById(Long id) {
+                }
+    /**
+     * Récupère une catégorie par son identifiant.
+     *
+     * @param id identifiant de la catégorie
+     * @return un {@link Optional} contenant la catégorie si elle existe
+     */
+    public Optional<Category> getCategoryById(final Long id) {
         return categoryRepository.findById(id);
-    }
-
-    public Category createCategory(Category category) {
+        }
+    /**
+     * Crée une nouvelle catégorie.
+     *
+     * @param category catégorie à créer
+     * @return la catégorie enregistrée
+     */
+    public Category createCategory(final Category category) {
         return categoryRepository.save(category);
-    }
-
-    public Category updateCategory(Long id, Category category) {
+        }
+    /**
+     * Met à jour une catégorie existante.
+     *
+     * @param id identifiant de la catégorie à mettre à jour
+     * @param category nouvelles informations de la catégorie
+     * @return la catégorie mise à jour
+     * @throws RuntimeException si la catégorie n'existe pas
+     */
+    public Category updateCategory(final Long id, final Category category) {
         return categoryRepository.findById(id).map(c -> {
             c.setName(category.getName());
             return categoryRepository.save(c);
         }).orElseThrow(() -> new RuntimeException("Category not found"));
-    }
-
-    public void deleteCategory(Long id) {
+        }
+    /**
+     * Supprime une catégorie selon son identifiant.
+     *
+     * @param id identifiant de la catégorie à supprimer
+     */
+    public void deleteCategory(final Long id) {
         categoryRepository.deleteById(id);
-    }
+        }
 }
