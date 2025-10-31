@@ -1,6 +1,6 @@
 package com.example.flashcards.controller;
 
-import com.example.flashcards.dto.FlashcardDTO;
+import com.example.flashcards.dto.FlashcardDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,7 @@ class FlashcardControllerTest {
 
     @Test
     void shouldCreateFlashcard() throws Exception {
-        FlashcardDTO newFlashcard = new FlashcardDTO();
+        FlashcardDto newFlashcard = new FlashcardDto();
         newFlashcard.setQuestion("Quelle est la capitale de la France ?");
         newFlashcard.setAnswer("Paris");
         newFlashcard.setCategoryId(1L); // ⚠️ doit exister en base !

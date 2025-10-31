@@ -1,7 +1,7 @@
 package com.example.flashcards.integration;
 
-import com.example.flashcards.dto.CategoryDTO;
-import com.example.flashcards.dto.FlashcardDTO;
+import com.example.flashcards.dto.CategoryDto;
+import com.example.flashcards.dto.FlashcardDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ class FlashcardControllerIT {
     @Test
     void testCreateAndGetFlashcard() throws Exception {
         // 1. Créer une catégorie d'abord
-        CategoryDTO category = new CategoryDTO(null, "ITCategory");
+        CategoryDto category = new CategoryDto(null, "ITCategory");
         String categoryJson = objectMapper.writeValueAsString(category);
 
         String categoryResponse = mockMvc.perform(post("/api/categories")
@@ -35,10 +35,10 @@ class FlashcardControllerIT {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        CategoryDTO savedCategory = objectMapper.readValue(categoryResponse, CategoryDTO.class);
+        CategoryDto savedCategory = objectMapper.readValue(categoryResponse, CategoryDto.class);
 
         // 2. Créer une flashcard liée à cette catégorie
-        FlashcardDTO flashcard = new FlashcardDTO(null, "What is Java?", "A programming language", savedCategory.getId());
+        FlashcardDto flashcard = new FlashcardDto(null, "What is Java?", "A programming language", savedCategory.getId());
         String flashcardJson = objectMapper.writeValueAsString(flashcard);
 
         mockMvc.perform(post("/api/flashcards")

@@ -1,6 +1,6 @@
 package com.example.flashcards.service;
 
-import com.example.flashcards.dto.FlashcardDTO;
+import com.example.flashcards.dto.FlashcardDto;
 import com.example.flashcards.entity.Category;
 import com.example.flashcards.entity.Flashcard;
 import com.example.flashcards.mapper.FlashcardMapper;
@@ -42,8 +42,8 @@ class FlashcardServiceTest {
         when(flashcardRepository.findAll()).thenReturn(Arrays.asList(f1, f2));
 
         List<Flashcard> flashcards = flashcardService.getAllFlashcards();
-        List<FlashcardDTO> dtoList = flashcards.stream()
-                .map(FlashcardMapper::toDTO)
+        List<FlashcardDto> dtoList = flashcards.stream()
+                .map(FlashcardMapper::toDto)
                 .toList();
 
         assertEquals(2, dtoList.size());
@@ -58,13 +58,13 @@ class FlashcardServiceTest {
         Optional<Flashcard> found = flashcardService.getFlashcardById(1L);
 
         assertTrue(found.isPresent());
-        FlashcardDTO dto = FlashcardMapper.toDTO(found.get());
+        FlashcardDto dto = FlashcardMapper.toDto(found.get());
         assertEquals("What?", dto.getQuestion());
     }
 
     @Test
     void testCreateFlashcard() {
-        FlashcardDTO dto = new FlashcardDTO(null, "Q?", "A", category.getId());
+        FlashcardDto dto = new FlashcardDto(null, "Q?", "A", category.getId());
         Flashcard entity = FlashcardMapper.toEntity(dto, category);
 
         when(flashcardRepository.save(any(Flashcard.class))).thenAnswer(inv -> {
@@ -74,7 +74,7 @@ class FlashcardServiceTest {
         });
 
         Flashcard saved = flashcardService.createFlashcard(entity);
-        FlashcardDTO savedDTO = FlashcardMapper.toDTO(saved);
+        FlashcardDto savedDTO = FlashcardMapper.toDto(saved);
 
         assertNotNull(savedDTO.getId());
         assertEquals("Q?", savedDTO.getQuestion());
@@ -85,13 +85,13 @@ class FlashcardServiceTest {
         Flashcard existing = new Flashcard(1L, "Old Q", "Old A", category);
         when(flashcardRepository.findById(1L)).thenReturn(Optional.of(existing));
 
-        FlashcardDTO dto = new FlashcardDTO(1L, "New Q", "New A", category.getId());
+        FlashcardDto dto = new FlashcardDto(1L, "New Q", "New A", category.getId());
         Flashcard toUpdate = FlashcardMapper.toEntity(dto, category);
 
         when(flashcardRepository.save(any(Flashcard.class))).thenReturn(toUpdate);
 
         Flashcard updated = flashcardService.updateFlashcard(1L, toUpdate);
-        FlashcardDTO updatedDTO = FlashcardMapper.toDTO(updated);
+        FlashcardDto updatedDTO = FlashcardMapper.toDto(updated);
 
         assertEquals("New Q", updatedDTO.getQuestion());
         assertEquals("New A", updatedDTO.getAnswer());

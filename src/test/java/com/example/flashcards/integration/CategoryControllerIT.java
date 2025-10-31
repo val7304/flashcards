@@ -1,6 +1,6 @@
 package com.example.flashcards.integration;
 
-import com.example.flashcards.dto.CategoryDTO;
+import com.example.flashcards.dto.CategoryDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ class CategoryControllerIT {
     @Test
     void testCreateAndGetCategory() throws Exception {
         // 1. Créer une catégorie
-        CategoryDTO category = new CategoryDTO(null, "IntegrationTestCategory");
+        CategoryDto category = new CategoryDto(null, "IntegrationTestCategory");
         String json = objectMapper.writeValueAsString(category);
 
         mockMvc.perform(post("/api/categories")

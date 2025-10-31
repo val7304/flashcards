@@ -4,52 +4,78 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Column;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
-
-import lombok.Data;
+import jakarta.persistence.ManyToOne;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.Setter;
 
 /**
- * Entité représentant une carte mémoire (flashcard).
- * <p>
- * Une flashcard contient une question, une réponse et
- * est associée à une catégorie.
- * </p>
+ * Représente une carte mémoire (flashcard).
+ * Chaque flashcard appartient à une {@link Category}.
  */
 @Entity
-@Table(name = "flashcard")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Flashcard {
 
-    /**
-     * Identifiant unique de la flashcard (clé primaire).
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  /** Identifiant unique de la flashcard. */
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    /**
-     * Question affichée sur la flashcard.
-     */
-    @Column(nullable = false)
-    private String question;
+  /** Question de la flashcard. */
+  private String question;
 
-    /**
-     * Réponse associée à la question.
-     */
-    @Column(nullable = false)
-    private String answer;
+  /** Réponse de la flashcard. */
+  private String answer;
 
-    /**
-     * Catégorie à laquelle cette flashcard appartient.
-     */
-    @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
+  /** Catégorie associée à la flashcard. */
+  @ManyToOne
+  @JoinColumn(name = "category_id")
+  private Category category;
+
+  /**
+   * Constructeur sécurisé avec gestion de la nullité.
+   *
+   * @param id identifiant de la flashcard
+   * @param question question posée
+   * @param answer réponse attendue
+   * @param category catégorie associée (une copie défensive est créée si nécessaire)
+   */
+  public Flashcard(Long id, String question, String answer, Category category) {
+    this.id = id;
+    this.question = question;
+    this.answer = answer;
+    this.category =
+        (category != null)
+            ? new Category(category.getId(), category.getName(), category.getFlashcards())
+            : new Category();
+  }
+
+  /**
+   * Retourne une copie défensive de la catégorie associée
+   * pour éviter l’exposition interne (EI_EXPOSE_REP).
+   *
+   * @return une copie de la catégorie associée
+   */
+  public Category getCategory() {
+    return (category != null)
+        ? new Category(category.getId(), category.getName(), category.getFlashcards())
+        : null;
+  }
+
+  /**
+   * Définit la catégorie associée en créant une copie défensive
+   * afin d’éviter toute modification externe indésirable.
+   *
+   * @param category la nouvelle catégorie
+   */
+  public void setCategory(Category category) {
+    this.category =
+        (category != null)
+            ? new Category(category.getId(), category.getName(), category.getFlashcards())
+            : null;
+  }
 }
