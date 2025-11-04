@@ -17,17 +17,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 // CHECKSTYLE:OFF: AbbreviationAsWordInName
 public class FlashcardDto {
-  // CHECKSTYLE:ON: AbbreviationAsWordInName
+    // CHECKSTYLE:ON: AbbreviationAsWordInName
 
-  /** Identifiant unique de la flashcard. */
-  private Long id;
+    /** Identifiant unique de la flashcard. */
+    private Long id;
 
-  /** Question de la flashcard. */
-  private String question;
+    /** Question de la flashcard. */
+    private String question;
 
-  /** Réponse associée à la question. */
-  private String answer;
+    /** Réponse associée à la question. */
+    private String answer;
 
-  /** Identifiant de la catégorie à laquelle appartient la flashcard. */
-  private Long categoryId;
+    /** Identifiant de la catégorie à laquelle appartient la flashcard. */
+    private Long categoryId;
 }

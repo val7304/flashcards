@@ -17,11 +17,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 // CHECKSTYLE:OFF: AbbreviationAsWordInName
 public class CategoryDto {
-  // CHECKSTYLE:ON: AbbreviationAsWordInName
+    // CHECKSTYLE:ON: AbbreviationAsWordInName
 
-  /** Identifiant unique de la catégorie. */
-  private Long id;
+    /** Identifiant unique de la catégorie. */
+    private Long id;
 
-  /** Nom de la catégorie. */
-  private String name;
+    /** Nom de la catégorie. */
+    private String name;
 }
