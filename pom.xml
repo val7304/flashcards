@@ -9,7 +9,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.5.4</version>
-        <relativePath/>
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <groupId>com.example</groupId>
@@ -24,7 +24,7 @@
     </properties>
 
     <dependencies>
-        <!-- Spring Boot starters -->
+        <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -63,11 +63,10 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- SpotBugs annotations -->
+        <!-- SpotBugs annotations (version managed by plugin) -->
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>4.8.6</version>
             <scope>provided</scope>
         </dependency>
 
@@ -81,13 +80,28 @@
 
     <build>
         <plugins>
-            <!-- ✅ Checkstyle -->
+            <!-- Compiler (avec Lombok) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <!-- Checkstyle -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>3.3.1</version>
                 <configuration>
-                    <configLocation>google_checks.xml</configLocation>
+                    <configLocation>config/checkstyle/checkstyle.xml</configLocation>
+                    <suppressionsLocation>config/checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
                     <linkXRef>false</linkXRef>
@@ -102,7 +116,7 @@
                 </executions>
             </plugin>
 
-            <!-- ✅ SpotBugs -->
+            <!-- SpotBugs -->
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
@@ -110,8 +124,8 @@
                 <configuration>
                     <effort>Max</effort>
                     <threshold>Low</threshold>
-                    <xmlOutput>false</xmlOutput>
                     <failOnError>true</failOnError>
+                    <xmlOutput>false</xmlOutput>
                 </configuration>
                 <executions>
                     <execution>
@@ -123,7 +137,7 @@
                 </executions>
             </plugin>
 
-            <!-- ✅ Spring Boot -->
+            <!-- Spring Boot -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
