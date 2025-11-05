@@ -99,7 +99,7 @@ If you are interested to run some tests about Code Quality & Static Analysis, go
 ./mvnw clean install
 ./mvnw spring-boot:run
 ```
-The dev profile is activated automatically (see application.properties):
+The dev profile is activated automatically (see application.properties): 
 
 ```properties
 spring.profiles.active=dev
@@ -107,10 +107,29 @@ spring.profiles.active=dev
 
 #### Behavior:
 - Schema recreated on startup  
-- Data reloaded from `data.sql`
+- Create-drop → schema recreated and data reloaded from `data.sql`
+- Port: 8080
+---
+
+#### 4.1 Staging Profile
+
+Used for integration & performance testing before production.
+Mirrors production with test data
+
+```sh
+./mvnw clean install
+./mvnw spring-boot:run -Dspring-boot.run.profiles=staging
+```
+
+#### Behavior:
+- Mirrors production with test data 
+- Update → schema updated, not dropped. Executes data.sql once.
+- Port: 8081
 
 ---
+
 #### 4.2 Production profile
+Used for live deployments. Data and schema preserved across restarts.
 
 ```sh
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
@@ -119,17 +138,27 @@ spring.profiles.active=dev
 #### Behavior:
 - Persistent data between runs (no automatic drop)
 - Ideal for Docker and CI/CD environments
+- Port: 8080
 
 ---
 
 ### 5. Access the Application
 Base URLs:
 
+dev & prod
 ```sh
 http://localhost:8080/api/categories
 http://localhost:8080/api/flashcards
 
 ```
+
+staging
+```sh
+http://localhost:8081/api/categories
+http://localhost:8081/api/flashcards
+
+```
+---
 
 ### 6. API Endpoints
 
@@ -179,9 +208,10 @@ curl -X POST http://localhost:8080/api/flashcards \
 ### 9. Developer Notes
 
 - **Dev profile**: resets the DB each run (for isolated tests)
+- **Dev profile**: keeps schema, loads test data once (ideal for integration)
 - **Prod profile**: persistent data 
 - **Code quality**: Checkstyle and SpotBugs must both pass with 0 issues before commit
-- **Tests**: All tests must succeed before merge or release  
+- **Tests**: all unit/integration tests must succeed before merge
 - **CI/CD-ready**: Compatible with CI/CD tools (GitHub Actions, Jenkins, GitLab CI)
 
 ---
