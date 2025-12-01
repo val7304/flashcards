@@ -1,4 +1,5 @@
 name: Build and Test Flashcards App
+
 on:
   push:
     branches: [ main ]
@@ -8,6 +9,21 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: flashcardsdb
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pswd
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     env:
       IMAGE_NAME: flashcards
@@ -35,12 +51,22 @@ jobs:
         run: |
           chmod +x mvnw
           chmod +x ci-scripts/*.sh
+      
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..15}; do
+            nc -z localhost 5432 && echo "PostgreSQL is up" && break
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
 
       - name: Build
         run: ci-scripts/build.sh
 
-      - name: Run tests
-        run: ci-scripts/test.sh
+      - name: Run tests (force profile prod)
+        run: |
+          export SPRING_PROFILES_ACTIVE=prod
+          ci-scripts/test.sh
 
       - name: Build Docker image with version tag
         run: |
