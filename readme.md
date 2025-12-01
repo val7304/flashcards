@@ -55,7 +55,7 @@ src/
 ###  1. Clone the project
 
 ```sh
-git clone https://github.com/val7304/flashcards.git
+git clone https://gitlab.com/val7304/flashcards.git
 cd flashcards
 ```
 
