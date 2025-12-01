@@ -51,6 +51,12 @@ jobs:
         run: |
           chmod +x mvnw
           chmod +x ci-scripts/*.sh
+
+      - name: Run Checkstyle
+        run: ./mvnw checkstyle:check
+
+      - name: Run SpotBugs
+        run: ./mvnw spotbugs:check
       
       - name: Wait for PostgreSQL
         run: |

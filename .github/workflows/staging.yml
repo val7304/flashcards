@@ -1,13 +1,13 @@
-name: CI - Develop
+name: CI - Staging
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ staging ]
   pull_request:
-    branches: [ develop ]
+    branches: [ staging ]
 
 jobs:
-  build-and-test:
+  build-test-static-analysis:
     runs-on: ubuntu-latest
 
     services:
@@ -26,7 +26,7 @@ jobs:
           --health-retries 5
 
     env:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: staging
 
     steps:
       - name: Checkout code
