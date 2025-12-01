@@ -62,9 +62,9 @@ jobs:
             echo "Waiting for PostgreSQL..."
             sleep 2
           done
+      
+      - name: Run JUnit tests
+        run: ./mvnw -B clean test
 
       - name: Build project
         run: ./mvnw -B -DskipTests clean package
-
-      - name: Run tests
-        run: ./mvnw test
