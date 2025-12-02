@@ -86,7 +86,7 @@ jobs:
           done
 
           echo "---- Spring Boot Logs ----"
-          cat nohup.out
+          cat spring.log || echo "spring.log introuvable"
 
       - name: Install Node.js
         uses: actions/setup-node@v4
