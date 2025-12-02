@@ -8,6 +8,7 @@ This folder contains the files and scripts related to the CI/CD pipelines for th
 [![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards/tags)
 [![Docker Pulls](https://img.shields.io/docker/pulls/valeriejeanne/flashcards)](https://hub.docker.com/r/valeriejeanne/flashcards)
 [![Docker Image Size](https://img.shields.io/docker/image-size/valeriejeanne/flashcards/latest)](https://hub.docker.com/r/valeriejeanne/flashcards)
+![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/staging.yml/badge.svg?branch=staging)
 
 ![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen)
 ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)

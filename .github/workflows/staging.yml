@@ -68,3 +68,18 @@ jobs:
 
       - name: Build project
         run: ./mvnw -B -DskipTests clean package
+
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: [build-test-static-analysis]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Cleanup Maven workspace
+        run: ./mvnw clean
+              
