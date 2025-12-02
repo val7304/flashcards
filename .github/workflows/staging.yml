@@ -66,6 +66,30 @@ jobs:
       - name: Run JUnit tests
         run: ./mvnw -B clean test
 
+      - name: Start Spring Boot application
+        run: |
+          nohup ./mvnw spring-boot:run -Dspring-boot.run.profiles=staging &
+          echo "Waiting for Spring Boot to start..."
+          for i in {1..20}; do
+            nc -z localhost 8080 && echo "Spring Boot is up" && break
+            echo "Waiting..."
+            sleep 3
+          done
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Newman
+        run: npm install -g newman newman-reporter-cli
+
+      - name: Run API Tests (Postman / Newman)
+        run: |
+          newman run postman/flashcards.postman_collection.json \
+            --reporters cli \
+            --env-var baseUrl=http://localhost:8080
+
       - name: Build project
         run: ./mvnw -B -DskipTests clean package
 
