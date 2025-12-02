@@ -68,13 +68,25 @@ jobs:
 
       - name: Start Spring Boot application
         run: |
-          nohup ./mvnw spring-boot:run -Dspring-boot.run.profiles=staging &
+          ./mvnw clean package -DskipTests
+          nohup java \
+            -Dspring.profiles.active=staging \
+            -Dserver.port=8081 \
+            -jar target/*.jar > spring.log 2>&1 &
+          
+          sleep 1
           echo "Waiting for Spring Boot to start..."
-          for i in {1..20}; do
-            nc -z localhost 8080 && echo "Spring Boot is up" && break
-            echo "Waiting..."
-            sleep 3
+          for i in {1..40}; do
+            if nc -z localhost 8081; then
+              echo "Spring Boot is up!"
+              break
+            fi
+            echo "Waiting for Spring Boot to start...($i)"
+            sleep 2
           done
+
+          echo "---- Spring Boot Logs ----"
+          cat nohup.out
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -88,7 +100,7 @@ jobs:
         run: |
           newman run postman/flashcards.postman_collection.json \
             --reporters cli \
-            --env-var baseUrl=http://localhost:8080
+            --env-var baseUrl=http://localhost:8081
 
       - name: Build project
         run: ./mvnw -B -DskipTests clean package
@@ -106,4 +118,4 @@ jobs:
 
       - name: Cleanup Maven workspace
         run: ./mvnw clean
-              
+                 
