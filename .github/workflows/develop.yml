@@ -77,3 +77,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
+    - name: Make mvnw executable
+      run: chmod +x mvnw
+
+    - name: Cleanup Maven workspace
+      run: ./mvnw clean
+      

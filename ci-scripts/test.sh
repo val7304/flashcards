@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 echo "=== Running tests ==="
-./mvnw test
+./mvnw -B -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:-prod} test
