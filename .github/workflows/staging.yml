@@ -82,7 +82,7 @@ jobs:
           node-version: '20'
 
       - name: Install Newman
-        run: npm install -g newman newman-reporter-cli
+        run: npm install -g newman
 
       - name: Run API Tests (Postman / Newman)
         run: |
