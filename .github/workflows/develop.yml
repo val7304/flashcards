@@ -86,9 +86,6 @@ jobs:
           format: table
           severity: HIGH,CRITICAL
 
-      - name: Build project
-        run: ./mvnw -B -DskipTests clean package
-
   cleanup:
     runs-on: ubuntu-latest
     needs: [build-and-test]
