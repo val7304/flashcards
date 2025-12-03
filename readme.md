@@ -1,8 +1,12 @@
 # Flashcards Application
 
-[![CI/CD](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
-[![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards/tags)
 ![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/develop.yml/badge.svg?branch=develop)
+[![CI - Main](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
+
+> **Note:**  
+> The `develop` branch is dedicated to development.  
+> Advanced pipelines (Docker build, image publishing, SonarCloud) are only executed on the `main` branch.  
+> `develop` only executes: Build, Tests, Checkstyle, SpotBugs, Coverage.
 
 ![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen)
 ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
@@ -151,14 +155,12 @@ dev & prod
 ```sh
 http://localhost:8080/api/categories
 http://localhost:8080/api/flashcards
-
 ```
 
 staging
 ```sh
 http://localhost:8081/api/categories
 http://localhost:8081/api/flashcards
-
 ```
 ---
 
