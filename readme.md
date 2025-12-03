@@ -89,7 +89,7 @@ This script checks for `flashcardsdb`, creating it if missing.
 
 ---
 
-If you are interested to run some tests about Code Quality & Static Analysis, go to https://github.com/val7304/flashcards/blob/main/readme_ci.md for more explanations.
+If you are interested to run some tests about Code Quality & Static Analysis, go to https://github.com/val7304/flashcards/blob/develop/readme_ci.md for more explanations.
  
 - Build and Run Unit Tests 
 - Checkstyle
