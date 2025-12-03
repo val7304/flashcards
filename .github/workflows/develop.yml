@@ -63,8 +63,28 @@ jobs:
             sleep 2
           done
 
-      - name: Run JUnit tests
-        run: ./mvnw -B clean test
+      - name: Run JUnit tests + Jacoco coverage
+        run: ./mvnw -B clean test jacoco:report
+
+      - name: Upload JaCoCo report (HTML + XML)
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
+
+      - name: Upload JaCoCo XML for future SonarCloud
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-xml
+          path: target/site/jacoco/jacoco.xml
+
+      - name: Scan Maven dependencies with Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          severity: HIGH,CRITICAL
 
       - name: Build project
         run: ./mvnw -B -DskipTests clean package

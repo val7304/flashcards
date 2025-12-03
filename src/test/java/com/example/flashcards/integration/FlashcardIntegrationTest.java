@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -14,6 +15,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 class FlashcardIntegrationTest {
 
@@ -30,8 +32,8 @@ class FlashcardIntegrationTest {
         String categoryJson = objectMapper.writeValueAsString(category);
 
         String categoryResponse = mockMvc.perform(post("/api/categories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(categoryJson))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(categoryJson))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
@@ -42,8 +44,8 @@ class FlashcardIntegrationTest {
         String flashcardJson = objectMapper.writeValueAsString(newFlashcard);
 
         String flashcardResponse = mockMvc.perform(post("/api/flashcards")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(flashcardJson))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(flashcardJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.question").value("2+2?"))
                 .andExpect(jsonPath("$.answer").value("4"))
@@ -57,12 +59,13 @@ class FlashcardIntegrationTest {
                 .andExpect(jsonPath("$.question").value("2+2?"));
 
         // 4. Update Flashcard
-        FlashcardDto updatedFlashcard = new FlashcardDto(createdFlashcard.getId(), "3+3?", "6", createdCategory.getId());
+        FlashcardDto updatedFlashcard = new FlashcardDto(createdFlashcard.getId(), "3+3?", "6",
+                createdCategory.getId());
         String updatedJson = objectMapper.writeValueAsString(updatedFlashcard);
 
         mockMvc.perform(put("/api/flashcards/" + createdFlashcard.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(updatedJson))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updatedJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.question").value("3+3?"))
                 .andExpect(jsonPath("$.answer").value("6"));

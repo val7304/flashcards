@@ -1,5 +1,6 @@
 package com.example.flashcards.integration;
 
+import org.springframework.test.context.ActiveProfiles;
 import com.example.flashcards.dto.CategoryDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 class CategoryIntegrationTest {
 
@@ -29,8 +31,8 @@ class CategoryIntegrationTest {
         String categoryJson = objectMapper.writeValueAsString(newCategory);
 
         String response = mockMvc.perform(post("/api/categories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(categoryJson))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(categoryJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.name").value("Science"))
@@ -48,8 +50,8 @@ class CategoryIntegrationTest {
         String updatedJson = objectMapper.writeValueAsString(updatedCategory);
 
         mockMvc.perform(put("/api/categories/" + created.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(updatedJson))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updatedJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Biology"));
 

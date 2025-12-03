@@ -1,5 +1,6 @@
 package com.example.flashcards.integration;
 
+import org.springframework.test.context.ActiveProfiles;
 import com.example.flashcards.dto.CategoryDto;
 import com.example.flashcards.dto.FlashcardDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +15,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 class FlashcardControllerIT {
 
@@ -30,20 +32,21 @@ class FlashcardControllerIT {
         String categoryJson = objectMapper.writeValueAsString(category);
 
         String categoryResponse = mockMvc.perform(post("/api/categories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(categoryJson))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(categoryJson))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         CategoryDto savedCategory = objectMapper.readValue(categoryResponse, CategoryDto.class);
 
         // 2. Créer une flashcard liée à cette catégorie
-        FlashcardDto flashcard = new FlashcardDto(null, "What is Java?", "A programming language", savedCategory.getId());
+        FlashcardDto flashcard = new FlashcardDto(null, "What is Java?", "A programming language",
+                savedCategory.getId());
         String flashcardJson = objectMapper.writeValueAsString(flashcard);
 
         mockMvc.perform(post("/api/flashcards")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(flashcardJson))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(flashcardJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.question").value("What is Java?"))
