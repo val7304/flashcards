@@ -63,8 +63,28 @@ jobs:
             sleep 2
           done
       
-      - name: Run JUnit tests
-        run: ./mvnw -B clean test
+      - name: Run JUnit tests  + Jacoco coverage
+        run: ./mvnw -B clean test jacoco:report
+
+      - name: Upload JaCoCo report (HTML + XML)
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
+
+      - name: Upload JaCoCo XML (future SonarCloud compatibility)
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-xml
+          path: target/site/jacoco/jacoco.xml
+
+      - name: Scan filesystem with Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          severity: HIGH,CRITICAL
 
       - name: Start Spring Boot application
         run: |
@@ -73,20 +93,33 @@ jobs:
             -Dspring.profiles.active=staging \
             -Dserver.port=8081 \
             -jar target/*.jar > spring.log 2>&1 &
-          
-          sleep 1
+
           echo "Waiting for Spring Boot to start..."
-          for i in {1..40}; do
+          STARTED=0
+          for i in {1..30}; do
             if nc -z localhost 8081; then
               echo "Spring Boot is up!"
+              STARTED=1
               break
             fi
-            echo "Waiting for Spring Boot to start...($i)"
+            echo "Waiting for Spring Boot to start... ($i)"
             sleep 2
           done
 
           echo "---- Spring Boot Logs ----"
           cat spring.log || echo "spring.log introuvable"
+
+          if [ "$STARTED" -ne 1 ]; then
+            echo "Spring Boot failed to start"
+            exit 1
+          fi
+
+      - name: Upload Spring Boot logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spring-boot-logs
+          path: spring.log
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -102,9 +135,6 @@ jobs:
             --reporters cli \
             --env-var baseUrl=http://localhost:8081
 
-      - name: Build project
-        run: ./mvnw -B -DskipTests clean package
-
   cleanup:
     runs-on: ubuntu-latest
     needs: [build-test-static-analysis]
@@ -118,4 +148,3 @@ jobs:
 
       - name: Cleanup Maven workspace
         run: ./mvnw clean
-                 
