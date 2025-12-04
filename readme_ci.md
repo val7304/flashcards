@@ -36,7 +36,7 @@ flashcards/
 #### The pipeline uses the project's dedicated Checkstyle configuration
 These rules are enforced automatically during the CI pipeline stages.
 
-A **Postman collection *** is included and can be used manually or within CI:
+A **Postman collection** is included and can be used manually or within CI:
 ```sh
 newman run postman/flashcards.postman_collection.json
 ```

@@ -78,7 +78,7 @@ config/checkstyle/
 ---
 
 ## Installation & Setup (Staging)
-###  1. Clone the project
+###  Clone the project
 
 ```sh
 git clone -b staging https://github.com/val7304/flashcards.git
@@ -86,7 +86,7 @@ cd flashcards
 ```
 ---
 
-### 2. Database configuration: 
+### Database configuration: 
 The app connects automatically to a local PostgreSQL instance via environments variables.  
 
 Default credentials are:
@@ -102,7 +102,7 @@ export DB_PASSWORD=mypassword
 ```
 ---
 
-### 3. Initialize the Database (Optional)
+### Initialize the Database (Optional)
 
 ```sh
 ./init-db.sh
@@ -110,9 +110,9 @@ export DB_PASSWORD=mypassword
 
 ---
 
-### 4. Run the application
+### Run the application
 
-#### 4.1 Default (Staging Profile)
+#### Default (Staging Profile)
 
 ```sh
 ./mvnw clean install
@@ -133,7 +133,7 @@ spring.profiles.active=staging
 
 ---
 
-### 5. Access the API (staging)
+### Access the API (staging)
 
 ```sh
 http://localhost:8081/api/categories
@@ -141,7 +141,7 @@ http://localhost:8081/api/flashcards
 ```
 ---
 
-### 6. API Endpoints
+### API Endpoints
 
 | Method | Endpoint                                 | Description              |
 | ------ | ---------------------------------------- | ------------------------ |
@@ -160,7 +160,7 @@ http://localhost:8081/api/flashcards
 
 ---
 
-### 7. Data Initialization
+### Data Initialization
 
 `data.sql` loads:
 - 5 categories
@@ -168,7 +168,7 @@ http://localhost:8081/api/flashcards
 
 ---
 
-### 8. Example Usage (via cURL)
+### Example Usage (via cURL)
 
 ```sh
 # Get all categories
@@ -181,7 +181,7 @@ curl -X POST http://localhost:8081/api/flashcards \
 ```
 ---
 
-### 10. Developer Notes (Staging)
+### Developer Notes (Staging)
 
 > This branch is used for integration tests  
 > It is not intended for production
