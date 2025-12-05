@@ -63,21 +63,16 @@ src/
      └─ integration/          # Integration tests
 ```
 
-At the root, you will find also: 
-- A postman collection: 
-```text
-postman/
- └─ flashcards.postman_collection.json   # Postman collection used for CI (Newman tests)
-```
-- The Checkstyle config :
-```text
-config/checkstyle/
- └─ checkstyle-suppressions.xml
- └─ checkstyle.xml
-```
 ---
 
 ## Installation & Setup (Staging)
+
+## Requirements
+- Java 17+
+- Maven Wrapper (included)
+- PostgreSQL 16 
+- Git
+
 ###  Clone the project
 
 ```sh
@@ -87,7 +82,10 @@ cd flashcards
 ---
 
 ### Database configuration: 
-The app connects automatically to a local PostgreSQL instance via environments variables.  
+
+> The application requires a running local PostgreSQL instance when using the `staging` profile. 
+
+> The app connects automatically to a local PostgreSQL instance via environments variables.
 
 Default credentials are:
 ```sh
@@ -100,13 +98,17 @@ To override:
 export DB_USER=myuser
 export DB_PASSWORD=mypassword
 ```
----
 
 ### Initialize the Database (Optional)
 
 ```sh
 ./init-db.sh
 ```
+
+> `init-db.sh` is required only for local development, when PostgreSQL run manually
+
+> This script is not used by CI.
+
 
 ---
 
@@ -125,7 +127,7 @@ The active profile is defined in `application.properties`:
 spring.profiles.active=staging
 ```
 
-#### Behavior in staging profile:
+#### Behavior:
 - Database schema is updated, never dropped 
 - `data.sql` executed only on first startup
 - Application runs on port 8081
@@ -133,7 +135,8 @@ spring.profiles.active=staging
 
 ---
 
-### Access the API (staging)
+### Access the Application
+Base URLs:
 
 ```sh
 http://localhost:8081/api/categories
@@ -164,43 +167,81 @@ http://localhost:8081/api/flashcards
 
 `data.sql` loads:
 - 5 categories
-- 25 flashcards (5 per category)
+- 25 flashcards (5 by categories)
 
 ---
 
-### Example Usage (via cURL)
+### Usage Scenario (via cURL)
+
+#### 1. Get all categories
+```sh 
+curl -s http://localhost:8081/api/categories | jq
+```
+
+#### 2. Create a new category
+> returns: new ID (example: 6)
+```sh
+curl -X POST http://localhost:8081/api/categories \
+     -H "Content-Type: application/json" \
+     -d '{
+           "name": "new category"
+         }'
+```
+
+#### 3. Create a flashcard inside this new category
+> returns: new flashcard ID (example: 26)
+```sh
+curl -X POST http://localhost:8081/api/flashcards \
+     -H "Content-Type: application/json" \
+     -d '{
+           "question": "My question",
+           "answer": "My answer",
+           "category": { "id": 6 }
+         }'
+```
+
+#### 4. List all flashcards
+```sh
+curl -s http://localhost:8081/api/flashcards | jq 
+```
+
+#### 5. Update flashcard 26
+```sh
+curl -X PUT http://localhost:8081/api/flashcards/26 \
+     -H "Content-Type: application/json" \
+     -d '{
+           "question": "My corrected question",
+           "answer": "My corrected answer",
+           "category": { "id": 6 }
+         }'
+```
+
+#### 6. Delete flashcard 26
+```sh
+curl -X DELETE http://localhost:8081/api/flashcards/26 
+```
+
+#### 7. Delete category 6
+```sh
+curl -X DELETE http://localhost:8081/api/categories/6 
+```
+
+---
+
+## Local Pre-Commit Validation
+Before pushing:
 
 ```sh
-# Get all categories
-curl -s http://localhost:8081/api/categories | jq
-
-# Add a new flashcard
-curl -X POST http://localhost:8081/api/flashcards \
-  -H "Content-Type: application/json" \
-  -d '{"question": "test to add a new card", "answer": "added or not", "category": { "id": 1 }}'
+./mvnw clean verify   # full validation
 ```
----
+Ensure:
 
-### Developer Notes (Staging)
+✔ All tests pass  
+✔ Checkstyle = 0 errors   
+✔ SpotBugs = 0 issues   
+✔ Coverage OK   
 
-> This branch is used for integration tests  
-> It is not intended for production
-
-The `staging` branch runs **the complete QA pipeline**:
-
-| Phase                        | Status |
-| ---------------------------- | ------ |
-| Build                        | ✔     |
-| Checkstyle                   | ✔     |
-| SpotBugs                     | ✔     |
-| Integration tests PostgreSQL | ✔     |
-| Unit tests                   | ✔     |
-| JaCoCo coverage              | ✔     |
-| Trivy filesystem scan        | ✔     |
-| Newman API tests             | ✔     |
-| Clean workspace              | ✔     |
-
-**No Docker image and no SonarCloud scan are executed on this branch.**
+> Ensures that the `staging` branch remains reliable for integration and API testing.
 
 ---
 

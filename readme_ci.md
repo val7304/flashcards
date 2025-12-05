@@ -1,16 +1,29 @@
 # Flashcards CI Pipeline Documentation (Branch: `staging`)
 
-[![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/staging.yml)
-[![CI/CD - Main](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
-
 The `staging` CI pipeline is dedicated to **code quality**, **testing**, **coverage**, **static analysis**, and **security scanning**.  
 It replicates a realistic enterprise-level integration pipeline.
 
+[![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/staging.yml)
+[![CI/CD - Main](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
+
 > **Note**  
-> Docker build/publish and SonarCloud analysis are executed **only on the `main` branch**.
+> Docker build/publish and SonarCloud analysis are executed, **only on the `main` branch**.
 
 ![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen)
 ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
+
+---
+
+## Overview
+
+The CI pipeline on `staging` automates:
+- Build & packaging (Maven)
+- Static code quality scanning (Checkstyle, SpotBugs)
+- Unit & integration tests (JUnit 5)
+- Coverage analysis (JaCoCo)
+- Run Test/API's collection (Postman/Newman)
+- Security scanning (Trivy)
+- Artifact publishing (JaCoCo reports)
 
 ---
 
@@ -133,12 +146,34 @@ Individual checks:
 
 JaCoCo XML is uploaded for SonarCloud usage (on `main` only).
 
-A **Trivy** report checks is included on `actions/runs/`, job name: `Scan filesystem with Trivy` 
-where you will see the   `Library  │ Vulnerability  │ Severity │ Status │ Installed Version │ Fixed Version │ `  recommended to use from your analyzed pom.xml
+A **Trivy** report checks is included on `actions/runs`  job name: `Scan filesystem with Trivy` 
+
+where you will see the: `Library │ Vulnerability │ Severity │ Status │ Installed Version │ Fixed Version │ `  
+
+> The report highlights vulnerable dependencies detected from your `pom.xml`
 
 ---
 
-#### Notes for Staging CI
+### Notes for Staging CI  (Staging)
+
+> This branch is used for integration tests  
+> It is not intended for production
+
+The `staging` branch runs **the complete QA pipeline**:
+
+| Phase                        | Status |
+| ---------------------------- | ------ |
+| Build                        | ✔     |
+| Checkstyle                   | ✔     |
+| SpotBugs                     | ✔     |
+| Integration tests PostgreSQL | ✔     |
+| Unit tests                   | ✔     |
+| JaCoCo coverage              | ✔     |
+| Trivy filesystem scan        | ✔     |
+| Newman API tests             | ✔     |
+| Clean workspace              | ✔     |
+
+**No Docker image and no SonarCloud scan are executed on this branch.**
 
 - No Docker image is built
 - No SonarCloud analysis (only on `main`)
