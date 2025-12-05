@@ -87,8 +87,10 @@ cd flashcards
 ```
 
 ### Database configuration: 
-The application requires a running local PostgreSQL instance when using the `dev` profile.
-The app connects automatically to a local PostgreSQL instance via environments variables.  
+
+> The application requires a running local PostgreSQL instance when using the `dev` profile.
+
+> The app connects automatically to a local PostgreSQL instance via environments variables.  
 
 Default credentials are:
 ```sh
@@ -112,7 +114,6 @@ export DB_PASSWORD=mypassword
 
 > `init-db.sh` is required only for local development, when PostgreSQL run manually
 > This script is not used by CI.
-
 
 ---
 
@@ -223,27 +224,23 @@ curl -X DELETE http://localhost:8080/api/categories/6
 
 ---
 
-### Developer Notes
+## Local Pre-Commit Validation
+Before pushing:
 
-**`test` profile**: 
-- JUnit tests run on H2 in test profile (default during Maven test phase).
-- The file is located at: `\src\test\resources\application-test.properties` and 
-  uses the standard configuration for an H2 database.
-- This file was not mandatory, but is used to isolate the tests from the PostgreSQL service.
+```sh
+./mvnw clean verify   # full validation
+```
+Ensure:
 
-**`dev` profile**: 
-- `dev` profile is activated automatically, it is used only when running the application manually.
-- The file is located at: `\src\main\resources\application.properties` and 
-  use `spring.profiles.active=dev` as default profile
+✔ All tests pass  
+✔ Checkstyle = 0 errors   
+✔ SpotBugs = 0 issues   
+✔ Coverage OK   
 
-- Recreates the schema on each startup (`create-drop`)
-- Reloads demo data from `data.sql`
-
-- Checkstyle and SpotBugs must both pass with 0 issues before commit.
-- Run tests: all unit/integration tests must succeed before merge
-- Compatible with CI/CD tools (GitHub Actions, Jenkins, GitLab CI)
+This guarantees that `develop` branch remains stable.
 
 ---
+
 **Maintainer:** Valérie Hermans  
 [valerie_hermans@outlook.com](mailto:valerie_hermans@outlook.com)  
 [GitHub Profile](https://github.com/val7304)

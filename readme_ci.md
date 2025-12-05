@@ -1,13 +1,10 @@
-# Flashcards CI Pipeline Documentation (Branch: `develop`)
+# Flashcards CI Pipeline (Branch: `develop`)
 
 This document describes the **CI pipeline dedicated to the `develop` branch**.  
 It focuses entirely on **code quality**, **tests**, **coverage**, **static analysis**, and **security scanning**.  
 
 **No Docker image is built or published on this branch.**  
 **This pipeline mirrors what is commonly used in enterprise environments for feature/integration development.**
-
----
-# Flashcards CI Documentation
 
 ![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/develop.yml/badge.svg?branch=develop)
 [![CI - Main](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
@@ -30,7 +27,7 @@ The CI pipeline on `develop` automates:
 - Security scanning (Trivy)
 - Artifact publishing (JaCoCo reports)
 
-It serves as the **quality gate** before merging into *staging* or *main*.
+It serves as the **quality gate** before merging into `staging` or `main`.
 
 ---
 ## Structure
@@ -98,10 +95,14 @@ No deployment or publishing occurs on this branch.
 - **SonarCloud (Free Plan)** 
 
 SonarCloud can analyze this project, but:
+
 ⚠  The free plan only provides full branch analysis for main.
+
 ⚠  develop and other branches receive limited or no Quality Gate.
+
 ⚠  PR decoration works, but coverage and issues may be incomplete.
-This is normal and expected for free-tier SonarCloud usage.
+
+> This is normal and expected for free-tier SonarCloud usage.
 
 --- 
 
@@ -117,21 +118,15 @@ This is normal and expected for free-tier SonarCloud usage.
 
 ---
 
-### Tests Instructions
+### Run CI Locally (Develop equivalent)
 
-#### Run everything locally:
+#### Full pipeline equivalent:
 
 ```sh
 ./mvnw clean verify
 ```
-Equivalent to CI:
-- Build
-- Tests
-- Coverage
-- Checkstyle
-- SpotBugs
 
-#### Run individually:
+#### Individual checks:
 
 ```sh
 ./mvnw test
@@ -156,27 +151,33 @@ Equivalent to CI:
 
 JaCoCo XML is uploaded for SonarCloud usage (on `main` only).
 
-A **Trivy** report checks is included on `actions/runs/`, job name: `Scan filesystem with Trivy` 
+A **Trivy** report checks is included on `actions/runs`  job name: `Scan filesystem with Trivy` 
+
 where you will see the:  `Library  │ Vulnerability  │ Severity │ Status │ Installed Version │ Fixed Version │ `  
 
 > The report highlights vulnerable dependencies detected from your `pom.xml`
 
 ---
 
-## Local Pre-Commit Validation
-Before pushing:
+### Notes for Develop CI 
 
-```sh
-./mvnw clean verify   # full validation
-```
-Ensure:
+**`test` profile**: 
+- JUnit tests run on H2 in test profile (default during Maven test phase).
+- The file is located at: `\src\test\resources\application-test.properties` and 
+  uses the standard configuration for an H2 database.
+- This file was not mandatory, but is used to isolate the tests from the PostgreSQL service.
 
-✔ All tests pass  
-✔ Checkstyle = 0 errors   
-✔ SpotBugs = 0 issues   
-✔ Coverage OK   
+**`dev` profile**: 
+- `dev` profile is activated automatically, it is used only when running the application manually.
+- The file is located at: `\src\main\resources\application.properties` and 
+  use `spring.profiles.active=dev` as default profile
 
-This guarantees that `develop` branch remains stable.
+- Recreates the schema on each startup (`create-drop`)
+- Reloads demo data from `data.sql`
+
+- Checkstyle and SpotBugs must both pass with 0 issues before commit.
+- Run tests: all unit/integration tests must succeed before merge
+- Compatible with CI/CD tools (GitHub Actions, Jenkins, GitLab CI)
 
 ---
 
