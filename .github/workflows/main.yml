@@ -80,12 +80,6 @@ jobs:
           name: jacoco-xml
           path: target/site/jacoco/jacoco.xml
 
-      - name: Upload JaCoCo XML for future SonarCloud
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-xml
-          path: target/site/jacoco/jacoco.xml
-		  	     
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
