@@ -1,21 +1,30 @@
-# Flashcards CI/CD Documentation
+# Flashcards CI/CD Pipeline Documentation
 
 This folder contains the files and scripts related to the CI/CD pipelines for the **Flashcards** project.
 
 ## Flashcards CI/CD Status
 
+#### Continuous Deployment  
+
 [![CI/CD](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
+
+#### Docker Hub Registry 
+
 [![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards/tags)
 [![Docker Pulls](https://img.shields.io/docker/pulls/valeriejeanne/flashcards)](https://hub.docker.com/r/valeriejeanne/flashcards)
 [![Docker Image Size](https://img.shields.io/docker/image-size/valeriejeanne/flashcards/latest)](https://hub.docker.com/r/valeriejeanne/flashcards)
+
+#### Continuous Integration (Branch) 
 ![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/develop.yml/badge.svg?branch=develop)
 [![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/staging.yml)
 
+#### Actions Runs Badges
 ![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen)
 ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
 ![Build](https://img.shields.io/badge/Build-success-brightgreen)
 
-These badges show the current CI/CD pipeline status, Docker image version, usage statistics, result scan of CheckStyle and Spotbugs.
+
+> These badges display the current CI/CD status, Docker image information, and code quality results.
 
 ---
 
@@ -23,155 +32,192 @@ These badges show the current CI/CD pipeline status, Docker image version, usage
 
 This document describes the **CI/CD pipelines** and validation processes of the Flashcards application.
 
-The pipelines automate:
+#### The CD pipeline on `main` automates:
 - Build & packaging (Maven)
 - Static analysis (Checkstyle, SpotBugs)
-- Unit and integration tests
-- Docker build & publishing
-- Deployment preparation (GitHub Actions, Jenkins, GitLab CI)
+- Unit & integration tests (JUnit 5)
+- Coverage analysis (JaCoCo) 
+- Security scanning (Trivy)
+- Docker build & publishing on Docker Hub Registry
+- Connect and send JaCoCo report to SonarQube Cloud
+- Ready to Deploy 
 
 ---
 
-## Structure
+## Project structure
 
 ```text
 flashcards/
-├── src/                  # Application source code
-├── pom.xml               # Maven configuration and dependencies
-├── Dockerfile            # Docker image build instructions
-├── ci-scripts/           # Helper scripts for CI/CD (build/test/deploy)
-├── .github/workflows/    # GitHub Actions CI/CD definitions
-├── readme.md             # Main project documentation
-└── readme_ci.md          # CI/CD documentation (this file)
+ ├─ .github/workflows/main.yml       # main CD pipeline
+ ├─ src/test/java/                   # Unit & integration tests
+ ├─ src/main/java/                   # Application source code
+ ├─ src/main/resources/
+ │   ├─ application.properties
+ │   └─ application-prod.properties
+ │   └─ data.sql
+ ├─ config/checkstyle/                  
+ │   ├─ checkstyle.xml
+ │   └─ checkstyle-suppressions.xml
+ ├─ Dockerfile
+ ├─ pom.xml
+ └─ sonar-project.properties
 ```
 
+#### The pipeline uses the project's dedicated Checkstyle configuration
+These rules are enforced automatically during the CI pipeline stages.
+
+> Note: The file `sonar-project.properties` is only required on branches scanned by SonarCloud 
+
+> Only `main` branch when using the free plan
+
 --- 
+
+### Branch profile
+
+The project uses three Spring Boot profiles:
+
+| Branch     | Profile   | Purpose                                 |
+|------------|-----------|-----------------------------------------|
+| develop    | `dev`     | Daily development + auto reset database |
+| staging    | `staging` | Close-to-production integration tests   |
+| main       | `prod`    | Production-like, persistent data        |
+
+Each branch automatically loads the matching profile in CI/CD.
+
+<!-- ### Environments & Profiles
+
+| Profile   | Purpose                  | Database   | Reset Behavior   |
+| --------- | ------------------------ | ---------- | ---------------- |
+| `test`    | Unit + integration tests | H2         | Always clean     |
+| `dev`     | Local development        | PostgreSQL | create / drop    |
+| `staging` | CI / QA                  | PostgreSQL | update           |
+| `prod`    | (future)                 | PostgreSQL | validated schema | -->
+
+
+----
+
+## CI Workflow
+
+location: `.github/workflows/main.yml`
+
+The following workflow is triggered on `push` targeting the `main` branch:
+
+```text
+.github/workflows/main.yml
+├─ Checkout & Maven cache                : Clone repo / restore dependencies
+├─ Static analysis                       : Checkstyle + SpotBugs
+├─ Build & Tests                         : Unit + integration tests
+├─ Coverage (JaCoCo)                     : Generate XML + HTML reports
+├─ Security scan (Trivy filesystem)      : CVE detection on project directory
+├─ Upload artifacts                      : Checkstyle, SpotBugs, logs, coverage
+├─ Build Docker image                    : with version tag and Latest
+├─ Security scan (Trivy Docker image)
+├─ Push Docker image to Docker Hub (version + latest tags)
+├─ SonarQube Cloud                       : Push the JaCoCo report on SonarQube Cloud
+└─ Workspace cleanup                     : Final cleanup
+```
+
+Trivy is used to detect vulnerabilities both in:
+- project dependencies (filesystem scan)
+- the final Docker image (image scan)
+
+It ensures that produced artifacts are secure before being deployed or published.
+
+---
+
+## SonarCloud Integration
+
+This project uses SonarCloud to analyze code quality on the `main` branch.
+
+The workflow:
+1. Generates JaCoCo XML coverage report
+2. Uploads it to the pipeline
+3. Runs `SonarSource/sonarqube-scan-action`
+4. SonarCloud reads `sonar-project.properties`
+5. Displays results (Bugs, Code Smells, Coverage, Duplications)
+
+SonarCloud is triggered only on the `main` branch because the free plan supports a single branch.
+
+---
+
+## Quality Gates Summary (all branches)
+
+| Branch  | Build/Test | Checkstyle | SpotBugs | Coverage | Trivy | Newman | Docker | SonarCloud |
+| ------- | ---------- | ---------- | -------- | -------- | ----- | ------ | ------ | ---------- |
+| develop | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ❌     | ❌        |
+| staging | ✔         | ✔          | ✔        | ✔       | ✔     | ✔     | ❌     | ❌        |
+| main    | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ✔      | ✔         |
+
+> **JaCoCo Coverage** reports are generated on all branches.
+
+---
 
 ## CI/CD Platforms
 
 ### GitHub Actions: 
-- **GitHub Actions** — Automated build and Docker publishing  
-- **Docker Hub** — Stores ready-to-deploy images  
-- **ci-scripts/** — Standardized shell scripts reusable across CI platforms  
-Reusable in Jenkins or GitLab CI with minimal adaptations.
+- **GitHub Actions**  — Automated build and Docker publishing  
+- **Docker Hub**      — Stores ready-to-deploy images  
+- **ci-scripts/**     — Standardized shell scripts reusable across CI platforms  
 
-**The next lab will involve deploying to GitLab.**
-
---- 
-
-## Build and Quality Stages
-
-| Stage                | Tool / Action                | Description |
-|----------------------|------------------------------|--------------|
-| **Build**            | `./mvnw clean package`       | Compiles and packages the Spring Boot application |
-| **Tests**            | `./mvnw test`                | Runs unit and integration tests using JUnit and Mockito |
-| **Checkstyle**       | `./mvnw checkstyle:check`    | Enforces Java code style and formatting rules |
-| **SpotBugs**         | `./mvnw spotbugs:check`      | Performs static bytecode analysis to detect potential bugs |
-| **Docker Build**     | `docker build .`             | Builds and tags the Docker image for deployment |
-| **Publish**          | `docker push`                | Pushes the built image to Docker Hub for distribution |
+> Reusable in Jenkins or GitLab CI with minimal adaptations.
 
 ---
-## Tests & Code Quality
 
-### Build and Tests
+## Tests Instructions & Code Quality
+
+#### Run everything locally:
 
 ```sh
 ./mvnw clean verify
+```
+Equivalent to CI:
+- Build
+- Tests
+- Coverage
+- Checkstyle
+- SpotBugs
 
-# or
-./mvnw clean package
+#### Run individually:
+
+```sh
 ./mvnw test
-```
-
-Integration tests use `MockMvc` and `SpringBootTest`.
-
-Common example:
-> Integration test failure: expected HTTP 204 but got 200 → adjust controller or test case.
-
----
-
-## Code Quality & Static Analysis
-
-Code quality is continuously checked using Maven plugins integrated into the build lifecycle. These tools enforce best practices, prevent common bugs, and ensure the project remains production-ready.
-
-### 1. Checkstyle
-
-Checkstyle enforces consistent code style, ensuring readability and long-term maintainability.
-
-```sh
 ./mvnw checkstyle:check
+./mvnw spotbugs:check
+./mvnw jacoco:report
 ```
-
-#### Ensures:
-- No unused imports
-- Proper spacing and comments  
-- Consistent naming conventions  
-
-#### Reports generated:
-- XML: `target/checkstyle-result.xml`
-- HTML: `target/site/checkstyle.html`
-
-**Latest status**: No Checkstyle violations (0 errors)
 
 ---
 
-### 2. SpotBugs
+## Run CI/CD on Github Actions
 
-SpotBugs performs bytecode analysis to detect potential logic errors or resource issues.
+#### Reports Generated:
 
-```sh
-./mvnw spotbugs:check
-```
+| Report           | Path                            |
+| ---------------- | ------------------------------- |
+| Checkstyle HTML  | `target/site/checkstyle.html`   |
+| SpotBugs HTML    | `target/site/spotbugs.html`     |
+| JaCoCo HTML      | `target/site/jacoco/`           |
+| JaCoCo XML       | `target/site/jacoco/jacoco.xml` |
+| Application logs | `spring.log` (CI artifact)      |
 
-Detects: null-pointer risks, synchronization errors, unused fields.  
-
-#### Reports:
-- XML: `target/spotbugsXml.xml`
-- HTML: `target/site/spotbugs.html`
-
-- Configuration defined in: `spotbugs.xml`
+JaCoCo XML is uploaded for SonarCloud usage (on `main` only).
  
-**Latest status**: 0 SpotBugs issues detected
+A **Trivy** report is available in the GitHub Actions logs under the job `Scan filesystem with Trivy` 
+where you will see the:  `Library  │ Vulnerability  │ Severity │ Status │ Installed Version │ Fixed Version │ `  
 
-#### Notes:
-- Framework dependencies like ResponseEntity and JpaRepository are safely ignored
-- No null-pointer, unused field, or synchronization issues detected
-
----
-
-### Validation and Build Consistency
-- ./mvnw clean verify passes successfully
-- Validity checks confirm consistency between mappers, DTOs, and entities
-- Project compiles cleanly on Java 17 with Spring Boot 3
-
-```sh
-./mvnw clean verify
-
-```
-#### Ensures:
-- Mappers, DTOs, and entities are consistent
-- Application compiles cleanly under Java 17 / Spring Boot 3
-- Code passes all Checkstyle, SpotBugs, and test phases
+> The report highlights vulnerable dependencies detected from your `pom.xml`
 
 ---
 
-## Local Pre-Commit Validation
-To ensure the same quality gates as CI/CD before pushing changes:
+### Developer Notes
 
-```sh
-# Clean and rebuild
-./mvnw clean verify
+- **Dev profile** (develop branch): drops and recreates schema at each run
+- **Staging profile** (staging branch): keeps schema and loads test data once
+- **Prod profile** (main branch): persistent data
 
-# Run static code analysis
-./mvnw checkstyle:check
-./mvnw spotbugs:check
-
-# Run tests
-./mvnw test
-
-```
-
-If all commands pass successfully, your code is production-ready and can be safely committed and pushed.
+- **Code quality**: 	Checkstyle and SpotBugs must both pass with 0 issues before commit
+- **Tests**:        	All unit/integration tests must succeed before merge
+- **CI/CD-ready**:  	Compatible with CI/CD tools (GitHub Actions, Jenkins, GitLab CI)
 
 ---
 

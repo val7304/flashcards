@@ -1,4 +1,4 @@
-name: Build and Test Flashcards App
+name: Prod Build, Analyze and Deploy Flashcards App
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
+
   build:
     runs-on: ubuntu-latest
 
@@ -32,6 +33,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -44,8 +47,7 @@ jobs:
         with:
           path: ~/.m2
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          restore-keys: ${{ runner.os }}-maven-
 
       - name: Make scripts and mvnw executable
         run: |
@@ -57,7 +59,7 @@ jobs:
 
       - name: Run SpotBugs
         run: ./mvnw spotbugs:check
-      
+
       - name: Wait for PostgreSQL
         run: |
           for i in {1..15}; do
@@ -66,18 +68,60 @@ jobs:
             sleep 2
           done
 
+      - name: Run JUnit tests ++ Jacoco coverage
+        run: ./mvnw -B clean test jacoco:report
+
+      - name: Upload JaCoCo report (HTML + XML)
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
+
+      - name: Upload JaCoCo XML for future SonarCloud
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-xml
+          path: target/site/jacoco/jacoco.xml
+
+      - name: Scan Maven dependencies with Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          severity: HIGH,CRITICAL
+
       - name: Build
         run: ci-scripts/build.sh
 
-      - name: Run tests (force profile prod)
+      - name: Run tests (prod profile)
         run: |
           export SPRING_PROFILES_ACTIVE=prod
           ci-scripts/test.sh
 
-      - name: Build Docker image with version tag
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Install Trivy
+        uses: aquasecurity/trivy-action@v0.28.0
+        with:
+          version: latest
+
+      - name: Build Docker image
         run: |
           chmod +x ci-scripts/docker-build.sh
           ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
+          format: table
+          vuln-type: 'os,library'
+          severity: CRITICAL,HIGH
+          exit-code: 0
 
       - name: Show built image
         run: docker images | grep flashcards
@@ -90,18 +134,18 @@ jobs:
           docker tag $IMAGE_NAME:$IMAGE_TAG ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
           docker tag $IMAGE_NAME:$IMAGE_TAG ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest 
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
 
   cleanup:
     runs-on: ubuntu-latest
     needs: [build]
     if: always()
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Make mvnw executable
-      run: chmod +x mvnw
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Cleanup Maven workspace
-      run: ./mvnw clean
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Cleanup Maven workspace
+        run: ./mvnw clean
