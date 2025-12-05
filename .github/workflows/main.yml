@@ -41,6 +41,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+            
+      - name: Build with Maven
+        run: mvn -B clean verify
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4
@@ -82,6 +85,12 @@ jobs:
         with:
           name: jacoco-xml
           path: target/site/jacoco/jacoco.xml
+		  	     
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Scan Maven dependencies with Trivy
         uses: aquasecurity/trivy-action@0.28.0
@@ -98,11 +107,6 @@ jobs:
         run: |
           export SPRING_PROFILES_ACTIVE=prod
           ci-scripts/test.sh
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v6
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Install Trivy
         uses: aquasecurity/trivy-action@0.28.0
