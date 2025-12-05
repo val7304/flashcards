@@ -1,4 +1,4 @@
-# Flashcards CI Pipeline (Branch: develop)
+# Flashcards CI Pipeline Documentation (Branch: `develop`)
 
 This document describes the **CI pipeline dedicated to the `develop` branch**.  
 It focuses entirely on **code quality**, **tests**, **coverage**, **static analysis**, and **security scanning**.  
@@ -12,29 +12,21 @@ It focuses entirely on **code quality**, **tests**, **coverage**, **static analy
 ![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/develop.yml/badge.svg?branch=develop)
 [![CI - Main](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
 
-
-> **Note :**  
-> The `develop` branch runs a limited CI pipeline: Build, Tests, Checkstyle, SpotBugs, and Jacoco generation.  
-> Full pipelines including Docker build/push and SonarCloud are only run on `main`.
+> **Note**  
+> Docker build/publish and SonarCloud analysis are executed **only on the `main` branch**.
 
 ![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen)
 ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
 
 ---
-## CI/CD Differences: develop vs main
 
-| Branch   | Build/Test | Checkstyle | SpotBugs | Coverage | Docker build/push | SonarCloud |
-|----------|------------|------------|----------|----------|--------------------|------------|
-| develop  | ✔          | ✔          | ✔        | ✔ Jacoco | ❌                | ❌         |
-| main     | ✔          | ✔          | ✔        | ✔ Jacoco | ✔                | ✔         |
-
----
 ## Overview
+
 The CI pipeline on `develop` automates:
 - Build & packaging (Maven)
+- Static code quality scanning (Checkstyle, SpotBugs)
 - Unit & integration tests (JUnit 5)
 - Coverage analysis (JaCoCo)
-- Static code quality scanning (Checkstyle, SpotBugs)
 - Security scanning (Trivy)
 - Artifact publishing (JaCoCo reports)
 
@@ -42,26 +34,64 @@ It serves as the **quality gate** before merging into *staging* or *main*.
 
 ---
 ## Structure
+
 ```text
 flashcards/
-├── src/                  # Application source code
-├── pom.xml               # Maven configuration and dependencies
-├── Dockerfile            # Docker image build instructions (used only on main)
-├── ci-scripts/           # Helper scripts for CI/CD (used only in main)
-├── .github/workflows/    # GitHub Actions workflows
-│     ├─ main.yml         # Production pipeline (Docker + publish)
-│     └─ develop.yml      # Developer CI pipeline (this pipeline)
-├── readme.md             # Main project documentation
-└── readme_ci.md          # CI documentation (this file)
+ ├─ .github/workflows/develop.yml       # develop CI pipeline
+ ├─ src/test/java/                      # Unit & integration tests
+ ├─ src/test/resources/                 # test profile
+ │   └─ application-test.properties     # running test on H2
+ ├─ src/main/java/                      # Application source code
+ ├─ src/main/resources/
+ │   ├─ application.properties
+ │   └─ application-dev.properties
+ │   └─ data.sql
+ ├─ config/checkstyle/                  
+ │   ├─ checkstyle.xml
+ │   └─ checkstyle-suppressions.xml
+ ├─ Dockerfile
+ └─ pom.xml
 ```
+#### The pipeline uses the project's dedicated Checkstyle configuration
+These rules are enforced automatically during the CI pipeline stages.
+
 ---
+
+## CI Workflow
+
+location: `.github/workflows/develop.yml`
+
+The following workflow is triggered on `push` targeting the `develop` branch:
+
+
+```text
+.github/workflows/develop.yml
+├─ Checkout & Maven cache                : Clone repo / restore dependencies
+├─ Static analysis                       : Checkstyle + SpotBugs
+├─ Build & Tests                         : Unit + integration tests
+├─ Coverage (JaCoCo)                     : Generate XML + HTML reports
+├─ Security scan (Trivy filesystem)      : CVE detection on project directory
+├─ Upload artifacts                      : Checkstyle, SpotBugs, logs, coverage
+└─ Workspace cleanup                     : Final cleanup
+```
+
+Tests run on H2 automatically using the `test` profile
+
+---
+
 ## CI Platform
 
 ### GitHub Actions: 
-The develop branch uses:
-- **GitHub Actions Runners** 
-- **PostgreSQL service container**  
-- **Artifacts storage for JaCoCo coverage** 
+The `develop` branch uses:
+- Build & tests 
+- Code quality
+- Security scanning
+- Artifact generation
+
+The project structure and CI scripts are designed to be easily portable to:
+- Jenkins
+- GitLab CI 
+- Azure DevOps
 
 No deployment or publishing occurs on this branch.
 
@@ -75,23 +105,20 @@ This is normal and expected for free-tier SonarCloud usage.
 
 --- 
 
-## Build and Quality Stages
-| Stage                | Tool / Action                     | Description |
-|----------------------|-----------------------------------|-------------|
-| **Build**            | `./mvnw clean package`            | Compiles and packages the Spring Boot application |
-| **Tests**            | `./mvnw test`                     | Runs unit and integration tests using JUnit and Mockito |
-| **Coverage**         | `./mvnw jacoco:report`            | Generates code coverage reports (XML + HTML) |
-| **Checkstyle**       | `./mvnw checkstyle:check`         | Enforces Java code style and formatting rules |
-| **SpotBugs**         | `./mvnw spotbugs:check`           | Performs static bytecode analysis to detect potential bugs |
-| **Security Scan**    | `trivy fs .`                      | Scans dependencies and source for vulnerabilities |
-| **Cleanup**          | `./mvnw clean`                    | Cleanup Maven workspace |
-| **Reports Upload**   | GitHub Artifacts                  | Stores coverage results for download |
+## Quality Gates Summary (Develop vs Staging)
+
+| Branch  | Build/Test | Checkstyle | SpotBugs | Coverage | Trivy | Newman | Docker | SonarCloud |
+| ------- | ---------- | ---------- | -------- | -------- | ----- | ------ | ------ | ---------- |
+| develop | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ❌    | ❌         |
+| staging | ✔         | ✔          | ✔        | ✔       | ✔     | ✔     | ❌    | ❌         |
 
 
-✔  This pipeline ensures that develop code remains clean before staging integration.
+> **JaCoCo Coverage** reports are generated on both branches.
 
 ---
-### Tests & Quality Instructions
+
+### Tests Instructions
+
 #### Run everything locally:
 
 ```sh
@@ -108,31 +135,31 @@ Equivalent to CI:
 
 ```sh
 ./mvnw test
-./mvnw jacoco:report
 ./mvnw checkstyle:check
 ./mvnw spotbugs:check
+./mvnw jacoco:report
 ```
 
 ---
-#### Reports generated:
 
-JaCoCo Coverage
-- HTML report → `target/site/jacoco/`
-- XML report → `target/site/jacoco/jacoco.xml`
+## Run CI on Github Actions
 
-XML is uploaded to artifacts for potential use by SonarCloud (on main only).
+#### Reports Generated:
 
-Checkstyle
-- HTML → `target/site/checkstyle.html`
-- XML → `target/checkstyle-result.xml`
+| Report           | Path                            |
+| ---------------- | ------------------------------- |
+| Checkstyle HTML  | `target/site/checkstyle.html`   |
+| SpotBugs HTML    | `target/site/spotbugs.html`     |
+| JaCoCo HTML      | `target/site/jacoco/`           |
+| JaCoCo XML       | `target/site/jacoco/jacoco.xml` |
+| Application logs | `spring.log` (CI artifact)      |
 
-**Latest status**: No Checkstyle violations (0 errors)
+JaCoCo XML is uploaded for SonarCloud usage (on `main` only).
 
-SpotBugs
-- HTML → `target/site/spotbugs.html`
-- XML → `target/spotbugsXml.xml`
+A **Trivy** report checks is included on `actions/runs/`, job name: `Scan filesystem with Trivy` 
+where you will see the:  `Library  │ Vulnerability  │ Severity │ Status │ Installed Version │ Fixed Version │ `  
 
-All reports are created locally inside the runner; coverage is uploaded as an artifact.
+> The report highlights vulnerable dependencies detected from your `pom.xml`
 
 ---
 
@@ -149,16 +176,7 @@ Ensure:
 ✔ SpotBugs = 0 issues   
 ✔ Coverage OK   
 
-This guarantees that develop remains stable.
-
----
-## Summary of Branch Roles
-
-| Branch   | Purpose            | Pipeline                                   | Produces Docker Image |
-|----------|--------------------|---------------------------------------------|--------------------------|
-| **develop** | Dev integration     | Full CI (tests + quality + security)        | ❌ No                    |
-| **staging** | Pre-production      | Same + integration tests                    | ⚠ Optional               |
-| **main**    | Production          | Build + push Docker                         | ✔ Yes                   |
+This guarantees that `develop` branch remains stable.
 
 ---
 
