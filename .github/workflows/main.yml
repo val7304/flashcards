@@ -79,15 +79,11 @@ jobs:
           name: jacoco-xml
           path: target/site/jacoco/jacoco.xml
 
-      - name: Build + Test + SonarCloud Analysis
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          mvn -B clean verify sonar:sonar \
-            -Dmaven.project.sourceRoots.warningsDisabled=true \
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
-            -Dsonar.organization=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.host.url=https://sonarcloud.io
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Scan Maven dependencies with Trivy
         uses: aquasecurity/trivy-action@0.28.0
