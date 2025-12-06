@@ -14,6 +14,13 @@ This folder contains the files and scripts related to the CI/CD pipelines for th
 [![Docker Pulls](https://img.shields.io/docker/pulls/valeriejeanne/flashcards)](https://hub.docker.com/r/valeriejeanne/flashcards)
 [![Docker Image Size](https://img.shields.io/docker/image-size/valeriejeanne/flashcards/latest)](https://hub.docker.com/r/valeriejeanne/flashcards)
 
+#### SonarQube Cloud Quality gate
+
+[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=coverage)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
+
 #### Continuous Integration (Branch) 
 ![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/develop.yml/badge.svg?branch=develop)
 [![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/staging.yml)
@@ -84,16 +91,6 @@ The project uses three Spring Boot profiles:
 
 Each branch automatically loads the matching profile in CI/CD.
 
-<!-- ### Environments & Profiles
-
-| Profile   | Purpose                  | Database   | Reset Behavior   |
-| --------- | ------------------------ | ---------- | ---------------- |
-| `test`    | Unit + integration tests | H2         | Always clean     |
-| `dev`     | Local development        | PostgreSQL | create / drop    |
-| `staging` | CI / QA                  | PostgreSQL | update           |
-| `prod`    | (future)                 | PostgreSQL | validated schema | -->
-
-
 ----
 
 ## CI Workflow
@@ -140,15 +137,19 @@ SonarCloud is triggered only on the `main` branch because the free plan supports
 
 ---
 
-## Quality Gates Summary (all branches)
+##  Code Quality & Continuous Inspection
 
-| Branch  | Build/Test | Checkstyle | SpotBugs | Coverage | Trivy | Newman | Docker | SonarCloud |
-| ------- | ---------- | ---------- | -------- | -------- | ----- | ------ | ------ | ---------- |
-| develop | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ❌     | ❌        |
-| staging | ✔         | ✔          | ✔        | ✔       | ✔     | ✔     | ❌     | ❌        |
-| main    | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ✔      | ✔         |
+The project uses SonarCloud to analyze:
 
-> **JaCoCo Coverage** reports are generated on all branches.
+- Bugs
+- Code Smells
+- Vulnerabilities
+- Test coverage (JaCoCo)
+- Code duplication
+
+- [See the full analysis on SonarCloud](https://sonarcloud.io/project/overview?id=val7304_flashcards)
+
+The Quality Gate must be **Green** for the CI/CD pipeline to be validated.
 
 ---
 
@@ -160,6 +161,18 @@ SonarCloud is triggered only on the `main` branch because the free plan supports
 - **ci-scripts/**     — Standardized shell scripts reusable across CI platforms  
 
 > Reusable in Jenkins or GitLab CI with minimal adaptations.
+
+---
+
+## Quality Gates Summary (all branches)
+
+| Branch  | Build/Test | Checkstyle | SpotBugs | Coverage | Trivy | Newman | Docker | SonarCloud |
+| ------- | ---------- | ---------- | -------- | -------- | ----- | ------ | ------ | ---------- |
+| develop | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ❌     | ❌        |
+| staging | ✔         | ✔          | ✔        | ✔       | ✔     | ✔     | ❌     | ❌        |
+| main    | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ✔      | ✔         |
+
+> **JaCoCo Coverage** reports are generated on all branches.
 
 ---
 

@@ -9,18 +9,25 @@ On GitHub, this project has three branches and each branch loads its own default
 [![CI/CD](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
 [![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards/tags)
 
-- main for  production
-- [develop](https://github.com/val7304/flashcards/tree/develop) is dedicated to development.
-- [staging](https://github.com/val7304/flashcards/tree/staging) provides a safe environment close to production for integration, functional and API testing.
+- `main` for  production
+- [See the full analysis on SonarCloud](https://sonarcloud.io/project/overview?id=val7304_flashcards)
+
+
+[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=coverage)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
+
+- [`develop`](https://github.com/val7304/flashcards/tree/develop) is dedicated to development.
+- [`staging`](https://github.com/val7304/flashcards/tree/staging) provides a safe environment close to production for integration, functional and API testing.
 
 ![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/develop.yml/badge.svg?branch=develop)
 [![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/staging.yml)
-
 ![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen)
 ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
 
 
-> See also [readme_CI.md](readme_CI.md) for more explanations about CI.
+> See also [readme_CI.md](https://github.com/val7304/flashcards/blob/main/readme_ci.md) for more explanations about CI.
 
 ---
 
