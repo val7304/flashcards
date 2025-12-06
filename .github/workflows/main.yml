@@ -80,7 +80,13 @@ jobs:
           path: target/site/jacoco/jacoco.xml
 
       - name: SonarCloud analysis (Maven)
-        run: ./mvnw verify sonar:sonar
+        run: |
+          ./mvnw clean verify sonar:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization=val7304 \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.qualitygate.wait=true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
