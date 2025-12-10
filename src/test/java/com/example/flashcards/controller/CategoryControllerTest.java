@@ -16,28 +16,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class CategoryControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+  @Autowired
+  private ObjectMapper objectMapper;
 
-    @Test
-    void shouldGetAllCategories() throws Exception {
-        mockMvc.perform(get("/api/categories"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-    }
+  @Test
+  void shouldGetAllCategories() throws Exception {
+    mockMvc.perform(get("/api/categories")).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+  }
 
-    @Test
-    void shouldCreateCategory() throws Exception {
-        CategoryDto newCategory = new CategoryDto();
-        newCategory.setName("Test Category");
+  @Test
+  void shouldCreateCategory() throws Exception {
+    CategoryDto newCategory = new CategoryDto();
+    newCategory.setName("Test Category");
 
-        mockMvc.perform(post("/api/categories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(newCategory)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Test Category"));
-    }
+    mockMvc
+        .perform(post("/api/categories").contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(newCategory)))
+        .andExpect(status().isOk()).andExpect(jsonPath("$.name").value("Test Category"));
+  }
 }

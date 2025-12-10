@@ -16,31 +16,30 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class FlashcardControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+  @Autowired
+  private ObjectMapper objectMapper;
 
-    @Test
-    void shouldGetAllFlashcards() throws Exception {
-        mockMvc.perform(get("/api/flashcards"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-    }
+  @Test
+  void shouldGetAllFlashcards() throws Exception {
+    mockMvc.perform(get("/api/flashcards")).andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+  }
 
-    @Test
-    void shouldCreateFlashcard() throws Exception {
-        FlashcardDto newFlashcard = new FlashcardDto();
-        newFlashcard.setQuestion("Quelle est la capitale de la France ?");
-        newFlashcard.setAnswer("Paris");
-        newFlashcard.setCategoryId(1L); // ⚠️ doit exister en base !
+  @Test
+  void shouldCreateFlashcard() throws Exception {
+    FlashcardDto newFlashcard = new FlashcardDto();
+    newFlashcard.setQuestion("Quelle est la capitale de la France ?");
+    newFlashcard.setAnswer("Paris");
+    newFlashcard.setCategoryId(1L); // ⚠️ doit exister en base !
 
-        mockMvc.perform(post("/api/flashcards")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(newFlashcard)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.question").value("Quelle est la capitale de la France ?"))
-                .andExpect(jsonPath("$.answer").value("Paris"));
-    }
+    mockMvc
+        .perform(post("/api/flashcards").contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(newFlashcard)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.question").value("Quelle est la capitale de la France ?"))
+        .andExpect(jsonPath("$.answer").value("Paris"));
+  }
 }

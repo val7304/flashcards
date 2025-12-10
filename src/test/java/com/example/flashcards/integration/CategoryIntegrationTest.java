@@ -16,49 +16,44 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class CategoryIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+  @Autowired
+  private ObjectMapper objectMapper;
 
-    @Test
-    void testCRUDCategory() throws Exception {
-        // 1. Create Category
-        CategoryDto newCategory = new CategoryDto(null, "Science");
-        String categoryJson = objectMapper.writeValueAsString(newCategory);
+  @Test
+  void testCRUDCategory() throws Exception {
+    // 1. Create Category
+    CategoryDto newCategory = new CategoryDto(null, "Science");
+    String categoryJson = objectMapper.writeValueAsString(newCategory);
 
-        String response = mockMvc.perform(post("/api/categories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(categoryJson))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.name").value("Science"))
-                .andReturn().getResponse().getContentAsString();
+    String response = mockMvc
+        .perform(
+            post("/api/categories").contentType(MediaType.APPLICATION_JSON).content(categoryJson))
+        .andExpect(status().isOk()).andExpect(jsonPath("$.id").exists())
+        .andExpect(jsonPath("$.name").value("Science")).andReturn().getResponse()
+        .getContentAsString();
 
-        CategoryDto created = objectMapper.readValue(response, CategoryDto.class);
+    CategoryDto created = objectMapper.readValue(response, CategoryDto.class);
 
-        // 2. Read Category
-        mockMvc.perform(get("/api/categories/" + created.getId()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Science"));
+    // 2. Read Category
+    mockMvc.perform(get("/api/categories/" + created.getId())).andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Science"));
 
-        // 3. Update Category
-        CategoryDto updatedCategory = new CategoryDto(created.getId(), "Biology");
-        String updatedJson = objectMapper.writeValueAsString(updatedCategory);
+    // 3. Update Category
+    CategoryDto updatedCategory = new CategoryDto(created.getId(), "Biology");
+    String updatedJson = objectMapper.writeValueAsString(updatedCategory);
 
-        mockMvc.perform(put("/api/categories/" + created.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(updatedJson))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Biology"));
+    mockMvc
+        .perform(put("/api/categories/" + created.getId()).contentType(MediaType.APPLICATION_JSON)
+            .content(updatedJson))
+        .andExpect(status().isOk()).andExpect(jsonPath("$.name").value("Biology"));
 
-        // 4. Delete Category
-        mockMvc.perform(delete("/api/categories/" + created.getId()))
-                .andExpect(status().isOk());
+    // 4. Delete Category
+    mockMvc.perform(delete("/api/categories/" + created.getId())).andExpect(status().isOk());
 
-        // 5. Ensure Deleted
-        mockMvc.perform(get("/api/categories/" + created.getId()))
-                .andExpect(status().isNotFound());
-    }
+    // 5. Ensure Deleted
+    mockMvc.perform(get("/api/categories/" + created.getId())).andExpect(status().isNotFound());
+  }
 }
