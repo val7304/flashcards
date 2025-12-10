@@ -27,7 +27,7 @@ On GitHub, this project has three branches and each branch loads its own default
 ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
 
 
-> See also [readme_CI.md](https://github.com/val7304/flashcards/blob/main/readme_ci.md) for more explanations about CI.
+> See also [readme_CI](https://github.com/val7304/flashcards/blob/main/readme_ci.md) for more explanations about CI.
 
 ---
 
@@ -123,12 +123,8 @@ This script checks for `flashcardsdb`, creating it if missing.
 
 #### Production profile
 
-> Used for live deployments. 
-
-> Data and schema preserved across restarts.
-
 ```sh
-./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
+./mvnw spring-boot:run
 ```
 
 #### Behavior:

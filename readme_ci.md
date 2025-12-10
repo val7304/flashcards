@@ -122,6 +122,18 @@ It ensures that produced artifacts are secure before being deployed or published
 
 ---
 
+## Quality Gates Summary (all branches)
+
+| Branch  | Build/Test | Checkstyle | SpotBugs | Coverage | Trivy | Newman | Docker | SonarCloud |
+| ------- | ---------- | ---------- | -------- | -------- | ----- | ------ | ------ | ---------- |
+| develop | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ❌     | ❌        |
+| staging | ✔         | ✔          | ✔        | ✔       | ✔     | ✔     | ❌     | ❌        |
+| main    | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ✔      | ✔         |
+
+> **JaCoCo Coverage** reports are generated on all branches.
+
+---
+
 ## SonarCloud Integration
 
 This project uses SonarCloud to analyze code quality on the `main` branch.
@@ -135,8 +147,6 @@ The workflow:
 
 SonarCloud is triggered only on the `main` branch because the free plan supports a single branch.
 
----
-
 ##  Code Quality & Continuous Inspection
 
 The project uses SonarCloud to analyze:
@@ -147,9 +157,9 @@ The project uses SonarCloud to analyze:
 - Test coverage (JaCoCo)
 - Code duplication
 
-- [See the full analysis on SonarCloud](https://sonarcloud.io/project/overview?id=val7304_flashcards)
+[See the full analysis on SonarCloud](https://sonarcloud.io/project/overview?id=val7304_flashcards)
 
-The Quality Gate must be **Green** for the CI/CD pipeline to be validated.
+> The Quality Gate must be **Green** for the CI/CD pipeline to be validated.
 
 ---
 
@@ -161,18 +171,6 @@ The Quality Gate must be **Green** for the CI/CD pipeline to be validated.
 - **ci-scripts/**     — Standardized shell scripts reusable across CI platforms  
 
 > Reusable in Jenkins or GitLab CI with minimal adaptations.
-
----
-
-## Quality Gates Summary (all branches)
-
-| Branch  | Build/Test | Checkstyle | SpotBugs | Coverage | Trivy | Newman | Docker | SonarCloud |
-| ------- | ---------- | ---------- | -------- | -------- | ----- | ------ | ------ | ---------- |
-| develop | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ❌     | ❌        |
-| staging | ✔         | ✔          | ✔        | ✔       | ✔     | ✔     | ❌     | ❌        |
-| main    | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ✔      | ✔         |
-
-> **JaCoCo Coverage** reports are generated on all branches.
 
 ---
 
