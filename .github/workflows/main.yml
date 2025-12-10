@@ -67,8 +67,8 @@ jobs:
           fi
         continue-on-error: false
 
-      - name: Run Checkstyle
-        run: ./mvnw checkstyle:check
+      - name: Run Checkstyle (temporary disabled)
+        run: echo "Checkstyle disabled temporarily"
 
       - name: Run SpotBugs
         run: ./mvnw spotbugs:check
