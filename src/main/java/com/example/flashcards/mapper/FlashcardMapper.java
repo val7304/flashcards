@@ -7,9 +7,7 @@ import com.example.flashcards.entity.Flashcard;
 /**
  * Classe utilitaire pour mapper entre {@link Flashcard} et {@link FlashcardDto}.
  *
- * <p>
- * Fournit des méthodes statiques pour convertir les entités vers leurs DTOs et inversement.
- * </p>
+ * <p>Fournit des méthodes statiques pour convertir les entités vers leurs DTOs et inversement.
  */
 public final class FlashcardMapper {
 
@@ -25,8 +23,8 @@ public final class FlashcardMapper {
    * Convertit une entité {@link Flashcard} en {@link FlashcardDto}.
    *
    * @param flashcard entité {@link Flashcard} à convertir
-   * @return un objet {@link FlashcardDto} correspondant, ou {@code null} si l'entrée est
-   *         {@code null}
+   * @return un objet {@link FlashcardDto} correspondant, ou {@code null} si l'entrée est {@code
+   *     null}
    */
   public static FlashcardDto toDto(final Flashcard flashcard) {
     if (flashcard == null) {
@@ -46,8 +44,8 @@ public final class FlashcardMapper {
    *
    * @param dto objet {@link FlashcardDto} à convertir
    * @param category catégorie associée à la flashcard
-   * @return une entité {@link Flashcard} correspondante, ou {@code null} si {@code dto} est
-   *         {@code null}
+   * @return une entité {@link Flashcard} correspondante, ou {@code null} si {@code dto} est {@code
+   *     null}
    */
   public static Flashcard toEntity(final FlashcardDto dto, final Category category) {
     if (dto == null) {

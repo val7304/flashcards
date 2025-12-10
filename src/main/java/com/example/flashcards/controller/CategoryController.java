@@ -1,7 +1,11 @@
 package com.example.flashcards.controller;
 
+import com.example.flashcards.dto.CategoryDto;
+import com.example.flashcards.entity.Category;
+import com.example.flashcards.mapper.CategoryMapper;
+import com.example.flashcards.service.CategoryService;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,23 +18,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.flashcards.dto.CategoryDto;
-import com.example.flashcards.entity.Category;
-import com.example.flashcards.mapper.CategoryMapper;
-import com.example.flashcards.service.CategoryService;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
-/**
- * Contrôleur REST pour la gestion des catégories de flashcards.
- */
+/** Contrôleur REST pour la gestion des catégories de flashcards. */
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {
 
-  /**
-   * Service gérant la logique métier liée aux catégories.
-   */
+  /** Service gérant la logique métier liée aux catégories. */
   private final CategoryService categoryService;
 
   /**
@@ -38,14 +31,13 @@ public class CategoryController {
    *
    * @param categoryService service de gestion des catégories
    */
-  // CHECKSTYLE:OFF: ParameterAssignment
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP2",
+  @SuppressFBWarnings(
+      value = "EI_EXPOSE_REP2",
       justification = "Spring injects immutable service beans safely")
   @Autowired
   public CategoryController(final CategoryService categoryService) {
     this.categoryService = categoryService;
   }
-  // CHECKSTYLE:ON: ParameterAssignment
 
   /**
    * Récupère toutes les catégories.
@@ -65,7 +57,10 @@ public class CategoryController {
    */
   @GetMapping("/{id}")
   public ResponseEntity<CategoryDto> getById(@PathVariable final Long id) {
-    return categoryService.getCategoryById(id).map(CategoryMapper::toDto).map(ResponseEntity::ok)
+    return categoryService
+        .getCategoryById(id)
+        .map(CategoryMapper::toDto)
+        .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
   }
 
@@ -81,7 +76,7 @@ public class CategoryController {
   }
 
   /**
-   * Crée une catégorie par son nom.
+   * Crée une catégorie.
    *
    * @param dto nom de la catégorie
    * @return catégorie créée

@@ -1,30 +1,27 @@
 package com.example.flashcards.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.example.flashcards.dto.FlashcardDto;
 import com.example.flashcards.entity.Category;
 import com.example.flashcards.entity.Flashcard;
 import com.example.flashcards.mapper.FlashcardMapper;
 import com.example.flashcards.repository.FlashcardRepository;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 class FlashcardServiceTest {
 
-  @Mock
-  private FlashcardRepository flashcardRepository;
+  @Mock private FlashcardRepository flashcardRepository;
 
-  @InjectMocks
-  private FlashcardService flashcardService;
+  @InjectMocks private FlashcardService flashcardService;
 
   private Category category;
 
@@ -65,11 +62,13 @@ class FlashcardServiceTest {
     FlashcardDto dto = new FlashcardDto(null, "Q?", "A", category.getId());
     Flashcard entity = FlashcardMapper.toEntity(dto, category);
 
-    when(flashcardRepository.save(any(Flashcard.class))).thenAnswer(inv -> {
-      Flashcard saved = inv.getArgument(0);
-      saved.setId(1L);
-      return saved;
-    });
+    when(flashcardRepository.save(any(Flashcard.class)))
+        .thenAnswer(
+            inv -> {
+              Flashcard saved = inv.getArgument(0);
+              saved.setId(1L);
+              return saved;
+            });
 
     Flashcard saved = flashcardService.createFlashcard(entity);
     FlashcardDto savedDTO = FlashcardMapper.toDto(saved);

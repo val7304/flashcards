@@ -1,7 +1,13 @@
 package com.example.flashcards.controller;
 
+import com.example.flashcards.dto.FlashcardDto;
+import com.example.flashcards.entity.Category;
+import com.example.flashcards.entity.Flashcard;
+import com.example.flashcards.mapper.FlashcardMapper;
+import com.example.flashcards.service.CategoryService;
+import com.example.flashcards.service.FlashcardService;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,18 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.flashcards.dto.FlashcardDto;
-import com.example.flashcards.entity.Category;
-import com.example.flashcards.entity.Flashcard;
-import com.example.flashcards.mapper.FlashcardMapper;
-import com.example.flashcards.service.CategoryService;
-import com.example.flashcards.service.FlashcardService;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
-/**
- * Contrôleur REST pour la gestion des flashcards.
- */
+/** Contrôleur REST pour la gestion des flashcards. */
 @RestController
 @RequestMapping("/api/flashcards")
 public class FlashcardController {
@@ -43,14 +38,16 @@ public class FlashcardController {
    * @param categoryService service gérant les catégories
    */
   // CHECKSTYLE:OFF: ParameterAssignment
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP2",
+  @SuppressFBWarnings(
+      value = "EI_EXPOSE_REP2",
       justification = "Spring injects immutable service beans safely")
   @Autowired
-  public FlashcardController(final FlashcardService flashcardService,
-      final CategoryService categoryService) {
+  public FlashcardController(
+      final FlashcardService flashcardService, final CategoryService categoryService) {
     this.flashcardService = flashcardService;
     this.categoryService = categoryService;
   }
+
   // CHECKSTYLE:ON: ParameterAssignment
 
   /**
@@ -71,7 +68,10 @@ public class FlashcardController {
    */
   @GetMapping("/{id}")
   public ResponseEntity<FlashcardDto> getById(@PathVariable final Long id) {
-    return flashcardService.getFlashcardById(id).map(FlashcardMapper::toDto).map(ResponseEntity::ok)
+    return flashcardService
+        .getFlashcardById(id)
+        .map(FlashcardMapper::toDto)
+        .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
   }
 
@@ -95,8 +95,10 @@ public class FlashcardController {
    */
   @PostMapping
   public FlashcardDto create(@RequestBody final FlashcardDto dto) {
-    Category category = categoryService.getCategoryById(dto.getCategoryId())
-        .orElseThrow(() -> new RuntimeException("Category not found"));
+    Category category =
+        categoryService
+            .getCategoryById(dto.getCategoryId())
+            .orElseThrow(() -> new RuntimeException("Category not found"));
     Flashcard saved = flashcardService.createFlashcard(FlashcardMapper.toEntity(dto, category));
     return FlashcardMapper.toDto(saved);
   }
@@ -110,8 +112,10 @@ public class FlashcardController {
    */
   @PutMapping("/{id}")
   public FlashcardDto update(@PathVariable final Long id, @RequestBody final FlashcardDto dto) {
-    Category category = categoryService.getCategoryById(dto.getCategoryId())
-        .orElseThrow(() -> new RuntimeException("Category not found"));
+    Category category =
+        categoryService
+            .getCategoryById(dto.getCategoryId())
+            .orElseThrow(() -> new RuntimeException("Category not found"));
     Flashcard updated =
         flashcardService.updateFlashcard(id, FlashcardMapper.toEntity(dto, category));
     return FlashcardMapper.toDto(updated);

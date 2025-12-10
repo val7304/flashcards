@@ -1,29 +1,26 @@
 package com.example.flashcards.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.example.flashcards.dto.CategoryDto;
 import com.example.flashcards.entity.Category;
 import com.example.flashcards.mapper.CategoryMapper;
 import com.example.flashcards.repository.CategoryRepository;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 class CategoryServiceTest {
 
-  @Mock
-  private CategoryRepository categoryRepository;
+  @Mock private CategoryRepository categoryRepository;
 
-  @InjectMocks
-  private CategoryService categoryService;
+  @InjectMocks private CategoryService categoryService;
 
   @BeforeEach
   void setUp() {
@@ -61,11 +58,13 @@ class CategoryServiceTest {
     CategoryDto dto = new CategoryDto(null, "Histoire");
     Category entity = CategoryMapper.toEntity(dto);
 
-    when(categoryRepository.save(any(Category.class))).thenAnswer(inv -> {
-      Category saved = inv.getArgument(0);
-      saved.setId(1L);
-      return saved;
-    });
+    when(categoryRepository.save(any(Category.class)))
+        .thenAnswer(
+            inv -> {
+              Category saved = inv.getArgument(0);
+              saved.setId(1L);
+              return saved;
+            });
 
     Category saved = categoryService.createCategory(entity);
     CategoryDto savedDTO = CategoryMapper.toDto(saved);

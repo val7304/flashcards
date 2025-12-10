@@ -94,7 +94,18 @@
                 </configuration>
             </plugin>
 
-            <!-- Checkstyle -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.43.0</version>
+                <configuration>
+                    <java>
+                    <googleJavaFormat/>
+                    </java>
+                </configuration>
+            </plugin>
+
+         <!-- Checkstyle -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
@@ -104,7 +115,6 @@
                     <suppressionsLocation>config/checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
-                    <linkXRef>false</linkXRef>
                 </configuration>
                 <executions>
                     <execution>
@@ -132,23 +142,6 @@
                         <phase>verify</phase>
                         <goals>
                             <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- formatter maven -->
-            <plugin>
-                <groupId>net.revelc.code.formatter</groupId>
-                <artifactId>formatter-maven-plugin</artifactId>
-                <version>2.23.0</version>
-                <configuration>
-                    <configFile>src/main/resources/eclipse-java-google-style.xml</configFile>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>validate</goal>
                         </goals>
                     </execution>
                 </executions>

@@ -10,9 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Représente une carte mémoire (flashcard). Chaque flashcard appartient à une {@link Category}.
- */
+/** Représente une carte mémoire (flashcard). Chaque flashcard appartient à une {@link Category}. */
 @Entity
 @Getter
 @Setter
@@ -47,9 +45,10 @@ public class Flashcard {
     this.id = id;
     this.question = question;
     this.answer = answer;
-    this.category = (category != null)
-        ? new Category(category.getId(), category.getName(), category.getFlashcards())
-        : new Category();
+    this.category =
+        (category != null)
+            ? new Category(category.getId(), category.getName(), category.getFlashcards())
+            : new Category();
   }
 
   /**
@@ -71,8 +70,9 @@ public class Flashcard {
    * @param category la nouvelle catégorie
    */
   public void setCategory(Category category) {
-    this.category = (category != null)
-        ? new Category(category.getId(), category.getName(), category.getFlashcards())
-        : null;
+    this.category =
+        (category != null)
+            ? new Category(category.getId(), category.getName(), category.getFlashcards())
+            : null;
   }
 }

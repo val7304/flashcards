@@ -1,19 +1,15 @@
 package com.example.flashcards.repository;
 
+import com.example.flashcards.entity.Flashcard;
 import java.util.List;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import com.example.flashcards.entity.Flashcard;
 
 /**
  * Repository Spring Data JPA pour l'entité {@link Flashcard}.
  *
- * <p>
- * Cette interface fournit des méthodes pour gérer la persistance des flashcards et effectuer des
+ * <p>Cette interface fournit des méthodes pour gérer la persistance des flashcards et effectuer des
  * recherches personnalisées.
- * </p>
  */
 @Repository
 public interface FlashcardRepository extends JpaRepository<Flashcard, Long> {

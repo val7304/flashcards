@@ -1,27 +1,20 @@
 package com.example.flashcards.service;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.stereotype.Service;
-
 import com.example.flashcards.dto.FlashcardDto;
 import com.example.flashcards.entity.Flashcard;
 import com.example.flashcards.mapper.FlashcardMapper;
 import com.example.flashcards.repository.FlashcardRepository;
-
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
-/**
- * Service gérant la logique métier liée aux flashcards.
- */
+/** Service gérant la logique métier liée aux flashcards. */
 @Service
 @RequiredArgsConstructor
 public class FlashcardService {
 
-  /**
-   * Repository permettant d'accéder aux données des flashcards.
-   */
+  /** Repository permettant d'accéder aux données des flashcards. */
   private final FlashcardRepository flashcardRepository;
 
   /**
@@ -51,7 +44,8 @@ public class FlashcardService {
    */
   public List<FlashcardDto> searchByQuestion(final String question) {
     return flashcardRepository.findByQuestionContainingIgnoreCase(question).stream()
-        .map(FlashcardMapper::toDto).toList();
+        .map(FlashcardMapper::toDto)
+        .toList();
   }
 
   /**
@@ -73,12 +67,16 @@ public class FlashcardService {
    * @throws RuntimeException si la flashcard n'existe pas
    */
   public Flashcard updateFlashcard(final Long id, final Flashcard flashcard) {
-    return flashcardRepository.findById(id).map(f -> {
-      f.setQuestion(flashcard.getQuestion());
-      f.setAnswer(flashcard.getAnswer());
-      f.setCategory(flashcard.getCategory());
-      return flashcardRepository.save(f);
-    }).orElseThrow(() -> new RuntimeException("Flashcard not found"));
+    return flashcardRepository
+        .findById(id)
+        .map(
+            f -> {
+              f.setQuestion(flashcard.getQuestion());
+              f.setAnswer(flashcard.getAnswer());
+              f.setCategory(flashcard.getCategory());
+              return flashcardRepository.save(f);
+            })
+        .orElseThrow(() -> new RuntimeException("Flashcard not found"));
   }
 
   /**

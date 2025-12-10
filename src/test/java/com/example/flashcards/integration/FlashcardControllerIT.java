@@ -1,5 +1,8 @@
 package com.example.flashcards.integration;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.example.flashcards.dto.CategoryDto;
 import com.example.flashcards.dto.FlashcardDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,18 +13,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 class FlashcardControllerIT {
 
-  @Autowired
-  private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-  @Autowired
-  private ObjectMapper objectMapper;
+  @Autowired private ObjectMapper objectMapper;
 
   @Test
   void testCreateAndGetFlashcard() throws Exception {
@@ -29,10 +27,16 @@ class FlashcardControllerIT {
     CategoryDto category = new CategoryDto(null, "ITCategory");
     String categoryJson = objectMapper.writeValueAsString(category);
 
-    String categoryResponse = mockMvc
-        .perform(
-            post("/api/categories").contentType(MediaType.APPLICATION_JSON).content(categoryJson))
-        .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+    String categoryResponse =
+        mockMvc
+            .perform(
+                post("/api/categories")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(categoryJson))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
     CategoryDto savedCategory = objectMapper.readValue(categoryResponse, CategoryDto.class);
 
@@ -44,13 +48,16 @@ class FlashcardControllerIT {
     mockMvc
         .perform(
             post("/api/flashcards").contentType(MediaType.APPLICATION_JSON).content(flashcardJson))
-        .andExpect(status().isOk()).andExpect(jsonPath("$.id").isNumber())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").isNumber())
         .andExpect(jsonPath("$.question").value("What is Java?"))
         .andExpect(jsonPath("$.answer").value("A programming language"))
         .andExpect(jsonPath("$.categoryId").value(savedCategory.getId()));
 
     // 3. Vérifier qu'elle est récupérable
-    mockMvc.perform(get("/api/flashcards")).andExpect(status().isOk())
+    mockMvc
+        .perform(get("/api/flashcards"))
+        .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].question").value("What is Java?"));
   }
 }

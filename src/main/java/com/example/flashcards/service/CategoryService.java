@@ -1,27 +1,20 @@
 package com.example.flashcards.service;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.stereotype.Service;
-
 import com.example.flashcards.dto.CategoryDto;
 import com.example.flashcards.entity.Category;
 import com.example.flashcards.mapper.CategoryMapper;
 import com.example.flashcards.repository.CategoryRepository;
-
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
-/**
- * Service gérant la logique métier liée aux catégories de flashcards.
- */
+/** Service gérant la logique métier liée aux catégories de flashcards. */
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
 
-  /**
-   * Repository permettant d'accéder aux données des catégories.
-   */
+  /** Repository permettant d'accéder aux données des catégories. */
   private final CategoryRepository categoryRepository;
 
   /**
@@ -41,7 +34,8 @@ public class CategoryService {
    */
   public List<CategoryDto> searchByName(final String name) {
     return categoryRepository.findByNameContainingIgnoreCase(name).stream()
-        .map(CategoryMapper::toDto).toList();
+        .map(CategoryMapper::toDto)
+        .toList();
   }
 
   /**
@@ -73,10 +67,14 @@ public class CategoryService {
    * @throws RuntimeException si la catégorie n'existe pas
    */
   public Category updateCategory(final Long id, final Category category) {
-    return categoryRepository.findById(id).map(c -> {
-      c.setName(category.getName());
-      return categoryRepository.save(c);
-    }).orElseThrow(() -> new RuntimeException("Category not found"));
+    return categoryRepository
+        .findById(id)
+        .map(
+            c -> {
+              c.setName(category.getName());
+              return categoryRepository.save(c);
+            })
+        .orElseThrow(() -> new RuntimeException("Category not found"));
   }
 
   /**

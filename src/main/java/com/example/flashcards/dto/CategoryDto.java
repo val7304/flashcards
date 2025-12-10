@@ -6,10 +6,9 @@ import lombok.NoArgsConstructor;
 
 /**
  * DTO représentant une catégorie de flashcards.
- * <p>
- * Cette classe est utilisée pour transférer les données entre la couche de persistance et la couche
- * de présentation, sans exposer directement l'entité {@code Category}.
- * </p>
+ *
+ * <p>Cette classe est utilisée pour transférer les données entre la couche de persistance et la
+ * couche de présentation, sans exposer directement l'entité {@code Category}.
  */
 @Data
 @AllArgsConstructor

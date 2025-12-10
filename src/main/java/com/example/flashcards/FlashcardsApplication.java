@@ -6,9 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * Classe principale de l'application Flashcards.
  *
- * <p>
- * Cette classe lance l'application Spring Boot.
- * </p>
+ * <p>Cette classe lance l'application Spring Boot.
  */
 @SpringBootApplication
 public class FlashcardsApplication {

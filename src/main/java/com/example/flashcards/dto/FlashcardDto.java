@@ -6,10 +6,9 @@ import lombok.NoArgsConstructor;
 
 /**
  * DTO représentant une carte mémoire (flashcard).
- * <p>
- * Cette classe est utilisée pour échanger des données entre les couches de l'application concernant
- * les questions, réponses et catégories associées.
- * </p>
+ *
+ * <p>Cette classe est utilisée pour échanger des données entre les couches de l'application
+ * concernant les questions, réponses et catégories associées.
  */
 @Data
 @AllArgsConstructor

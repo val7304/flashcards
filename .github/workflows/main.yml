@@ -61,12 +61,6 @@ jobs:
       - name: Build with Maven
         run: ./mvnw -B clean verify
 
-      - name: Run Checkstyle
-        run: ./mvnw checkstyle:check
-
-      - name: Run SpotBugs
-        run: ./mvnw spotbugs:check
-
       - name: Wait for PostgreSQL
         run: |
           for i in {1..15}; do
@@ -94,6 +88,14 @@ jobs:
             -Dsonar.qualitygate.wait=true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: java
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v4
 
       - name: Scan Maven dependencies with Trivy
         uses: aquasecurity/trivy-action@0.28.0
@@ -126,7 +128,39 @@ jobs:
           exit-code: 0
 
       - name: Show built image
-        run: docker images | grep flashcards
+        run: docker images | grep flashcards || true
+
+      # Smoke tests: start container and validate health before pushing
+      - name: Run container for smoke tests
+        run: |
+          docker run -d --name flashcards-smoke -p 8080:8080 $IMAGE_NAME:$IMAGE_TAG
+          echo "Waiting container to be ready..."
+          for i in {1..20}; do
+            nc -z localhost 8080 && break
+            sleep 2
+          done
+          sleep 4
+
+      - name: Health check API
+        run: |
+          curl -f http://localhost:8080/actuator/health
+
+      - name: Smoke Test - Basic API Endpoint
+        run: |
+          curl -f http://localhost:8080/api/categories || exit 1
+
+      - name: Stop container after smoke tests
+        if: always()
+        run: |
+          docker stop flashcards-smoke || true
+          docker rm flashcards-smoke || true
+
+      - name: Create Git Tag for release
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag $IMAGE_TAG
+          git push origin $IMAGE_TAG
 
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
