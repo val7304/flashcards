@@ -118,12 +118,12 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: 0
 
-      - name: Run container for smoke tests (host networking)
+      - name: Run container for smoke tests
         run: |
           docker run -d --name flashcards-smoke \
-            --network host \
+            -p 8080:8080 \
             -e SPRING_PROFILES_ACTIVE=prod \
-            -e DB_HOST=localhost \
+            -e DB_HOST=host.docker.internal \
             -e DB_PORT=5432 \
             -e DB_USER=postgres \
             -e DB_PASSWORD=pswd \
