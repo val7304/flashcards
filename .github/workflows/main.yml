@@ -118,10 +118,8 @@ jobs:
           format: table
           severity: HIGH,CRITICAL
 
-      - name: Run tests (prod profile)
-        run: |
-          export SPRING_PROFILES_ACTIVE=prod
-          ci-scripts/test.sh
+      - name: Run tests
+        run: ./mvnw -B test
 
       - name: Build Docker image
         run: |
