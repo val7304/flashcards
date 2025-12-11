@@ -140,7 +140,7 @@ jobs:
       - name: Show built image
         run: docker images | grep flashcards || true
 
-      # Smoke tests améliorés
+      # Smoke tests
       - name: Run container for smoke tests
         run: |
           docker run -d --name flashcards-smoke -p 8080:8080 $IMAGE_NAME:$IMAGE_TAG
@@ -157,9 +157,9 @@ jobs:
 
       - name: Check container logs BEFORE health check
         run: |
-          echo "=== 🐳 Container startup logs (last 50 lines) ==="
+          echo "=== Container startup logs (last 50 lines) ==="
           docker logs flashcards-smoke --tail 50
-          echo "=== 📊 End logs ==="
+          echo "=== End logs ==="
 
       - name: Health check API (with retries)
         run: |
@@ -187,7 +187,7 @@ jobs:
           done
           echo "API test FAILED"
           exit 1
-
+     
       - name: Stop container after smoke tests
         if: always()
         run: |
