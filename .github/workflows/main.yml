@@ -10,7 +10,7 @@ permissions:
   contents: read
   actions: write
   id-token: write
-  security-events: write  # ← Ajouté pour CodeQL
+  security-events: write  # ← Pour CodeQL
 
 jobs:
   build:
@@ -140,44 +140,49 @@ jobs:
       - name: Show built image
         run: docker images | grep flashcards || true
 
+      # Smoke tests améliorés
       - name: Run container for smoke tests
         run: |
           docker run -d --name flashcards-smoke -p 8080:8080 $IMAGE_NAME:$IMAGE_TAG
           echo "Waiting container to be ready (max 120s)..."
-          for i in {1..60}; do  # ← 120 secondes total
-            nc -z localhost 8080 && echo "Port 8080 ready after ${i*2}s" && break
-            echo "Waiting... (${i}/60)"
+          for i in {1..60}; do
+            if nc -z localhost 8080 2>/dev/null; then
+              echo "Port 8080 ready after $((i*2))s"
+              break
+            fi
+            echo "Waiting... ($i/60)"
             sleep 2
           done
-          sleep 15  # ← Temps supplémentaire pour Spring Boot
+          sleep 15
 
       - name: Check container logs BEFORE health check
         run: |
-          echo "=== Container startup logs (last 50 lines) ==="
+          echo "=== 🐳 Container startup logs (last 50 lines) ==="
           docker logs flashcards-smoke --tail 50
-          echo "=== End logs ==="
+          echo "=== 📊 End logs ==="
 
       - name: Health check API (with retries)
         run: |
-          for i in {1..12}; do  # ← 12 tentatives = 60s max
+          for i in {1..12}; do
             if timeout 10 curl -f -s http://localhost:8080/actuator/health; then
-              echo " Health check OK (tentative ${i})"
+              echo "Health check OK (tentative $i)"
               exit 0
             fi
-            echo "Health check ${i}/12 failed - retrying in 5s..."
+            echo "Health check $i/12 failed - retrying in 5s..."
             sleep 5
           done
           echo "Health check FAILED after 12 retries"
+          docker logs flashcards-smoke --tail 20
           exit 1
 
       - name: Smoke Test - Basic API Endpoint (with retries)
         run: |
           for i in {1..6}; do
             if timeout 10 curl -f -s http://localhost:8080/api/categories; then
-              echo "API /categories OK (tentative ${i})"
+              echo "API /categories OK (tentative $i)"
               exit 0
             fi
-            echo "API check ${i}/6 failed - retrying in 5s..."
+            echo "API check $i/6 failed - retrying in 5s..."
             sleep 5
           done
           echo "API test FAILED"
