@@ -146,9 +146,10 @@ jobs:
           docker run -d --name flashcards-smoke \
             --network host \
             -p 8080:8080 \
-            -e SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/flashcardsdb" \
-            -e SPRING_DATASOURCE_USERNAME=postgres \
-            -e SPRING_DATASOURCE_PASSWORD=pswd \
+            -e DB_HOST=localhost \
+            -e DB_PORT=5432 \
+            -e DB_USER=postgres \
+            -e DB_PASSWORD=pswd \
             $IMAGE_NAME:$IMAGE_TAG
           echo "Waiting container to be ready (max 120s)..."
           for i in {1..60}; do
@@ -160,7 +161,6 @@ jobs:
             sleep 2
           done
           sleep 15
-
 
       - name: Check container logs BEFORE health check
         run: |
