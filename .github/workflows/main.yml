@@ -126,7 +126,7 @@ jobs:
           docker run -d --name flashcards-smoke \
             -p 8080:8080 \
             -e SPRING_PROFILES_ACTIVE=prod \
-            -e DB_HOST=host.docker.internal \
+            -e DB_HOST=localhost \
             -e DB_PORT=5432 \
             -e DB_USER=postgres \
             -e DB_PASSWORD=pswd \
