@@ -10,7 +10,7 @@ permissions:
   contents: read
   actions: write
   id-token: write
-  security-events: write  # ← Pour CodeQL
+  security-events: write
 
 jobs:
   build:
@@ -44,8 +44,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4
@@ -54,22 +54,14 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
-      - name: Make scripts and mvnw executable
+      - name: Make scripts executable
         run: |
           chmod +x mvnw
           chmod +x ci-scripts/*.sh
 
-      - name: Validate code formatting with Spotless
+      - name: Validate formatting with Spotless
         run: |
-          if ./mvnw -q spotless:check; then
-            echo "Spotless: Format OK"
-          else
-            echo "Run './mvnw spotless:apply' locally to fix formatting"
-            exit 1
-          fi
-
-      - name: Build with Maven
-        run: ./mvnw -B clean verify
+          ./mvnw -q spotless:check || (echo "Run './mvnw spotless:apply' locally to fix formatting" && exit 1)
 
       - name: Wait for PostgreSQL
         run: |
@@ -79,18 +71,18 @@ jobs:
             sleep 2
           done
 
-      - name: Run JUnit tests ++ Jacoco coverage
-        run: ./mvnw -B clean test jacoco:report
+      - name: Run Maven build + tests + JaCoCo
+        run: ./mvnw -B clean verify jacoco:report
 
-      - name: Upload JaCoCo XML for future SonarCloud
+      - name: Upload JaCoCo XML
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-xml
           path: target/site/jacoco/jacoco.xml
 
-      - name: SonarCloud analysis (Maven)
+      - name: SonarCloud analysis
         run: |
-          ./mvnw clean verify sonar:sonar \
+          ./mvnw sonar:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=val7304 \
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
@@ -104,22 +96,16 @@ jobs:
         with:
           languages: java
 
-      - name: Build final artifacts
-        run: ci-scripts/build.sh
-
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v4
 
-      - name: Scan Maven dependencies with Trivy
+      - name: Scan dependencies with Trivy
         uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: fs
           scan-ref: .
           format: table
           severity: HIGH,CRITICAL
-
-      - name: Run tests
-        run: ./mvnw -B test
 
       - name: Build Docker image
         run: |
@@ -131,70 +117,47 @@ jobs:
         with:
           image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           format: table
-          vuln-type: 'os,library'
+          vuln-type: os,library
           severity: CRITICAL,HIGH
           exit-code: 0
 
-      - name: Show built image
-        run: docker images | grep flashcards || true
-
-      # Smoke tests
       - name: Run container for smoke tests
         run: |
           docker run -d --name flashcards-smoke \
-            --network host \
             -p 8080:8080 \
-            -e DB_HOST=localhost \
+            -e SPRING_PROFILES_ACTIVE=prod \
+            -e DB_HOST=host.docker.internal \
             -e DB_PORT=5432 \
             -e DB_USER=postgres \
             -e DB_PASSWORD=pswd \
-            -e SPRING_PROFILES_ACTIVE=prod \
             $IMAGE_NAME:$IMAGE_TAG
-          echo "Waiting container to be ready (max 120s)..."
-          for i in {1..60}; do
-            if nc -z localhost 8080 2>/dev/null; then
-              echo "Port 8080 ready after $((i*2))s"
+
+      - name: Wait for Spring Boot health endpoint
+        run: |
+          for i in {1..30}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health)
+            if [ "$STATUS" = "200" ]; then
+              echo "Health OK"
               break
             fi
-            echo "Waiting... ($i/60)"
-            sleep 2
+            echo "Health check $i/30 failed (status=$STATUS), retrying..."
+            sleep 3
           done
-          sleep 15
 
-      - name: Check container logs BEFORE health check
-        run: |
-          echo "=== Container startup logs (last 50 lines) ==="
-          docker logs flashcards-smoke --tail 50
-          echo "=== End logs ==="
-
-      - name: Health check API (with retries)
-        run: |
-          for i in {1..12}; do
-            if timeout 10 curl -f -s http://localhost:8080/actuator/health; then
-              echo "Health check OK (tentative $i)"
-              exit 0
-            fi
-            echo "Health check $i/12 failed - retrying in 5s..."
-            sleep 5
-          done
-          echo "Health check FAILED after 12 retries"
-          docker logs flashcards-smoke --tail 20
-          exit 1
-
-      - name: Smoke Test - Basic API Endpoint (with retries)
+      - name: Smoke Test - Categories endpoint
         run: |
           for i in {1..6}; do
             if timeout 10 curl -f -s http://localhost:8080/api/categories; then
-              echo "API /categories OK (tentative $i)"
+              echo "API /categories OK (attempt $i)"
               exit 0
             fi
-            echo "API check $i/6 failed - retrying in 5s..."
+            echo "API check $i/6 failed - retrying..."
             sleep 5
           done
-          echo "API test FAILED"
+          echo "API smoke test FAILED"
           exit 1
-     
-      - name: Stop container after smoke tests
+
+      - name: Stop smoke test container
         if: always()
         run: |
           docker stop flashcards-smoke || true
@@ -219,7 +182,7 @@ jobs:
 
   cleanup:
     runs-on: ubuntu-latest
-    needs: [build]
+    needs: build
     if: always()
     steps:
       - name: Checkout code
