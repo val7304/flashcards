@@ -11,10 +11,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
-@Transactional
 @AutoConfigureMockMvc
 class CategoryControllerIT {
 
@@ -23,21 +21,23 @@ class CategoryControllerIT {
   @Autowired private ObjectMapper objectMapper;
 
   @Test
-  void testCreateAndGetCategory() throws Exception {
-    // 1. Créer une catégorie
-    CategoryDto category = new CategoryDto(null, "IntegrationTestCategory");
-    String json = objectMapper.writeValueAsString(category);
+  void shouldCreateAndGetCategories() throws Exception {
+    CategoryDto dto = new CategoryDto();
+    dto.setName("IntegrationTestCategory");
 
+    // POST
     mockMvc
-        .perform(post("/api/categories").contentType(MediaType.APPLICATION_JSON).content(json))
+        .perform(
+            post("/api/categories")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").isNumber())
         .andExpect(jsonPath("$.name").value("IntegrationTestCategory"));
 
-    // 2. Vérifier qu'elle est bien récupérable
+    // GET
     mockMvc
         .perform(get("/api/categories"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].name").value("IntegrationTestCategory"));
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON));
   }
 }

@@ -2,13 +2,21 @@ package com.example.flashcards;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 
 /**
  * Classe principale de l'application Flashcards.
  *
  * <p>Cette classe lance l'application Spring Boot.
  */
-@SpringBootApplication
+@SpringBootApplication(
+    exclude = {
+      SecurityAutoConfiguration.class,
+      SecurityFilterAutoConfiguration.class,
+      UserDetailsServiceAutoConfiguration.class
+    })
 public class FlashcardsApplication {
 
   /**
