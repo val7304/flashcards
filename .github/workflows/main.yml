@@ -10,7 +10,7 @@ permissions:
   contents: read
   actions: write
   id-token: write
-  security-events: write 
+  security-events: write  # ← Ajouté pour CodeQL
 
 jobs:
   build:
