@@ -129,6 +129,15 @@ jobs:
             -e DB_PASSWORD=pswd \
             $IMAGE_NAME:$IMAGE_TAG
 
+      - name: Debug - Container status + logs
+        run: |
+          echo "=== Docker PS ==="
+          docker ps -a
+          echo "=== Container logs (first 50 lines) ==="
+          docker logs flashcards-smoke --tail=50
+          echo "=== Test port 8080 ==="
+          netstat -tlnp | grep 8080 || echo "Port 8080 NOT listening"
+
       - name: Wait for Spring Boot health endpoint
         run: |
           for i in {1..30}; do
@@ -193,4 +202,3 @@ jobs:
 
       - name: Cleanup Maven workspace
         run: ./mvnw clean
-        
