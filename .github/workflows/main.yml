@@ -63,9 +63,14 @@ jobs:
         run: |
           ./mvnw -q spotless:check || (echo "Run './mvnw spotless:apply' locally to fix formatting" && exit 1)
 
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: java
+
       - name: Wait for PostgreSQL
         run: |
-          for i in {1..15}; do
+          for i in {1..20}; do
             nc -z localhost 5432 && echo "PostgreSQL is up" && break
             echo "Waiting for PostgreSQL..."
             sleep 2
@@ -90,11 +95,6 @@ jobs:
             -Dsonar.qualitygate.wait=true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
-        with:
-          languages: java
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v4
