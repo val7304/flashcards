@@ -138,6 +138,15 @@ jobs:
           echo "=== Test port 8080 ==="
           netstat -tlnp | grep 8080 || echo "Port 8080 NOT listening"
 
+      - name: Debug - Test endpoints + FULL logs
+        run: |
+          echo "=== Test curl RAW ==="
+          curl -v http://localhost:8080/actuator/health || echo "CURL FAILED"
+          curl -v http://localhost:8080/actuator || echo "ACTUATOR FAILED"
+          curl -v http://localhost:8080/actuator/info || echo "INFO FAILED"
+          echo "=== FULL container logs ==="
+          docker logs flashcards-smoke
+
       - name: Wait for Spring Boot health endpoint
         run: |
           for i in {1..30}; do
