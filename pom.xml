@@ -22,22 +22,15 @@
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!-- Versions -->
         <lombok.version>1.18.30</lombok.version>
         <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
         <jacoco.plugin.version>0.8.11</jacoco.plugin.version>
         <spotless.plugin.version>2.43.0</spotless.plugin.version>
 
-        <!-- Sonar (optionnel: tu peux aussi fournir depuis CI) -->
-        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.organization>val7304</sonar.organization>
-        <sonar.projectKey>val7304_flashcards</sonar.projectKey>
-
-        <!-- Permet de bypasser localement la vérif JaCoCo : -Djacoco.check.skip=true -->
         <jacoco.check.skip>false</jacoco.check.skip>
     </properties>
-
     <dependencies>
+
         <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -110,12 +103,10 @@
                     <compilerArgs>
                         <!-- Ignore warnings deprecated -->
                         <arg>-Xlint:-deprecation,-rawtypes,-unchecked</arg>
-                        <!-- OU suppression spécifique Spring Boot -->
                         <arg>-nowarn</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
-
 
             <!-- Spotless -->
             <plugin>
@@ -177,7 +168,7 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.plugin.version}</version>
                 <executions>
-                    <!-- active l'agent pour instrumenter les tests -->
+                    <!-- active agent -->
                     <execution>
                         <id>prepare-agent</id>
                         <goals>
@@ -185,7 +176,7 @@
                         </goals>
                     </execution>
 
-                    <!-- génère le rapport HTML/XML -->
+                    <!-- HTML/XML -->
                     <execution>
                         <id>report</id>
                         <phase>verify</phase>
@@ -194,7 +185,7 @@
                         </goals>
                     </execution>
 
-                    <!-- vérification de couverture -->
+                    <!-- check coverage -->
                     <execution>
                         <id>jacoco-check</id>
                         <phase>verify</phase>
@@ -202,7 +193,7 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
-                            <!-- Permet de désactiver localement: -Djacoco.check.skip=true -->
+                            <!-- desactive localement: -Djacoco.check.skip=true -->
                             <skip>${jacoco.check.skip}</skip>
                             <rules>
                                 <rule>

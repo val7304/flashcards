@@ -54,8 +54,7 @@ jobs:
           chmod +x ci-scripts/*.sh
 
       - name: Validate formatting with Spotless
-        run: |
-          ./mvnw -q spotless:check || (echo "Run './mvnw spotless:apply' locally to fix formatting" && exit 1)
+        run: ./mvnw -q spotless:check
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
@@ -64,11 +63,7 @@ jobs:
 
       - name: Wait for PostgreSQL
         run: |
-          for i in {1..20}; do
-            if pg_isready -h localhost -p 5432 -U postgres; then
-              echo "PostgreSQL is ready."
-              break
-            fi
+          until pg_isready -h localhost -p 5432 -U postgres; do
             echo "Waiting for PostgreSQL..."
             sleep 2
           done
@@ -84,16 +79,12 @@ jobs:
 
       - name: SonarCloud analysis
         run: |
-          ./mvnw clean verify sonar:sonar \
+          ./mvnw sonar:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=val7304 \
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.qualitygate.wait=true \
-            -Dsonar.java.libraries=target/*.jar \
-            -Dsonar.java.binaries=target/classes \
-            -Dsonar.java.test.libraries=target/*.jar \
-            -Dsonar.java.test.binaries=target/test-classes \
             -Dsonar.sourceEncoding=UTF-8 \
             -Dsonar.securityAnalysisEnabled=false
         env:
@@ -111,22 +102,10 @@ jobs:
           severity: HIGH,CRITICAL
 
       - name: Build Docker image
-        run: |
-          chmod +x ci-scripts/docker-build.sh
-          ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
-
-      - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          format: table
-          vuln-type: os,library
-          severity: CRITICAL,HIGH
-          exit-code: 0
+        run: ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
 
       - name: Run container for smoke tests
         run: |
-          # map host.docker.internal -> runner host pour que le container atteigne le Postgres du job
           docker run -d --name flashcards-smoke \
             --add-host=host.docker.internal:host-gateway \
             -p 8080:8080 \
@@ -136,47 +115,25 @@ jobs:
             -e SPRING_DATASOURCE_PASSWORD=pswd \
             $IMAGE_NAME:$IMAGE_TAG
 
-      - name: Debug - Container status + logs
-        run: |
-          echo "=== Docker PS ==="
-          docker ps -a
-          echo "=== Container logs (first 200 lines) ==="
-          docker logs flashcards-smoke --tail=200 || true
-          echo "=== Test port 8080 ==="
-          ss -tlnp | grep 8080 || echo "Port 8080 NOT listening"
-
-      - name: Debug - Test endpoints + FULL logs
-        run: |
-          echo "=== Test curl RAW ==="
-          curl -v http://localhost:8080/actuator/health || echo "CURL FAILED"
-          curl -v http://localhost:8080/actuator || echo "ACTUATOR FAILED"
-          curl -v http://localhost:8080/actuator/info || echo "INFO FAILED"
-          echo "=== FULL container logs ==="
-          docker logs flashcards-smoke  || true
-
       - name: Wait for Spring Boot health endpoint
         run: |
-          for i in {1..30}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health) || STATUS=""
-            if [ "$STATUS" = "200" ]; then
-              echo "Health OK"
+          for i in {1..20}; do
+            if curl -sf http://localhost:8080/actuator/health > /dev/null; then
+              echo "Spring Boot is healthy"
               exit 0
             fi
-            echo "Health status: $STATUS. Retrying..."
             sleep 3
           done
-          echo "Spring Boot did not become healthy. Dumping container logs:"
-          docker logs flashcards-smoke || true
+          docker logs flashcards-smoke
           exit 1
 
       - name: Smoke Test - Categories endpoint
         run: |
-          for i in {1..6}; do
-            if timeout 10 curl -f -s http://localhost:8080/api/categories; then
-              echo "API /categories OK (attempt $i)"
+          for i in {1..3}; do
+            if curl -sf http://localhost:8080/api/categories > /dev/null; then
+              echo "API /categories OK"
               exit 0
             fi
-            echo "API check $i/6 failed - retrying..."
             sleep 5
           done
           echo "API smoke test FAILED"
@@ -210,11 +167,7 @@ jobs:
     needs: build
     if: always()
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Make mvnw executable
-        run: chmod +x mvnw
-
-      - name: Cleanup Maven workspace
-        run: ./mvnw clean
+      - uses: actions/checkout@v4
+      - run: chmod +x mvnw
+      - run: ./mvnw clean
+      
