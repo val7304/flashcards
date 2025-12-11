@@ -1,5 +1,6 @@
 package com.example.flashcards.integration;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -24,7 +25,7 @@ class CategoryControllerIT {
 
   @Test
   void testCreateAndGetCategory() throws Exception {
-    // 1. Créer une catégorie
+    // 1. Create category
     CategoryDto category = new CategoryDto(null, "IntegrationTestCategory");
     String json = objectMapper.writeValueAsString(category);
 
@@ -34,10 +35,10 @@ class CategoryControllerIT {
         .andExpect(jsonPath("$.id").isNumber())
         .andExpect(jsonPath("$.name").value("IntegrationTestCategory"));
 
-    // 2. Vérifier qu'elle est bien récupérable
+    // 2. Ensure category appears in list (any position)
     mockMvc
         .perform(get("/api/categories"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].name").value("IntegrationTestCategory"));
+        .andExpect(jsonPath("$[*].name", hasItem("IntegrationTestCategory")));
   }
 }

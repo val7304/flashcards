@@ -1,5 +1,6 @@
 package com.example.flashcards.integration;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -25,7 +26,7 @@ class FlashcardControllerIT {
 
   @Test
   void testCreateAndGetFlashcard() throws Exception {
-    // 1. Créer une catégorie d'abord
+    // 1. Create category
     CategoryDto category = new CategoryDto(null, "ITCategory");
     String categoryJson = objectMapper.writeValueAsString(category);
 
@@ -42,7 +43,7 @@ class FlashcardControllerIT {
 
     CategoryDto savedCategory = objectMapper.readValue(categoryResponse, CategoryDto.class);
 
-    // 2. Créer une flashcard liée à cette catégorie
+    // 2. Create flashcard
     FlashcardDto flashcard =
         new FlashcardDto(null, "What is Java?", "A programming language", savedCategory.getId());
     String flashcardJson = objectMapper.writeValueAsString(flashcard);
@@ -56,10 +57,10 @@ class FlashcardControllerIT {
         .andExpect(jsonPath("$.answer").value("A programming language"))
         .andExpect(jsonPath("$.categoryId").value(savedCategory.getId()));
 
-    // 3. Vérifier qu'elle est récupérable
+    // 3. Ensure flashcard appears in list (any position)
     mockMvc
         .perform(get("/api/flashcards"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].question").value("What is Java?"));
+        .andExpect(jsonPath("$[*].question", hasItem("What is Java?")));
   }
 }
