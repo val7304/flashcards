@@ -10,6 +10,7 @@ permissions:
   contents: read
   actions: write
   id-token: write
+  security-events: write 
 
 jobs:
   build:
@@ -103,6 +104,9 @@ jobs:
         with:
           languages: java
 
+      - name: Build final artifacts
+        run: ci-scripts/build.sh
+
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v4
 
@@ -113,9 +117,6 @@ jobs:
           scan-ref: .
           format: table
           severity: HIGH,CRITICAL
-
-      - name: Build
-        run: ci-scripts/build.sh
 
       - name: Run tests (prod profile)
         run: |
@@ -128,7 +129,7 @@ jobs:
           ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
 
       - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivya-action@0.28.0
         with:
           image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           format: table
