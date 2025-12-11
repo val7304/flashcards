@@ -140,24 +140,48 @@ jobs:
       - name: Show built image
         run: docker images | grep flashcards || true
 
-      # Smoke tests: start container and validate health before pushing
       - name: Run container for smoke tests
         run: |
           docker run -d --name flashcards-smoke -p 8080:8080 $IMAGE_NAME:$IMAGE_TAG
-          echo "Waiting container to be ready..."
-          for i in {1..20}; do
-            nc -z localhost 8080 && break
+          echo "Waiting container to be ready (max 120s)..."
+          for i in {1..60}; do  # ← 120 secondes total
+            nc -z localhost 8080 && echo "Port 8080 ready after ${i*2}s" && break
+            echo "Waiting... (${i}/60)"
             sleep 2
           done
-          sleep 4
+          sleep 15  # ← Temps supplémentaire pour Spring Boot
 
-      - name: Health check API
+      - name: Check container logs BEFORE health check
         run: |
-          curl -f http://localhost:8080/actuator/health
+          echo "=== Container startup logs (last 50 lines) ==="
+          docker logs flashcards-smoke --tail 50
+          echo "=== End logs ==="
 
-      - name: Smoke Test - Basic API Endpoint
+      - name: Health check API (with retries)
         run: |
-          curl -f http://localhost:8080/api/categories || exit 1
+          for i in {1..12}; do  # ← 12 tentatives = 60s max
+            if timeout 10 curl -f -s http://localhost:8080/actuator/health; then
+              echo " Health check OK (tentative ${i})"
+              exit 0
+            fi
+            echo "Health check ${i}/12 failed - retrying in 5s..."
+            sleep 5
+          done
+          echo "Health check FAILED after 12 retries"
+          exit 1
+
+      - name: Smoke Test - Basic API Endpoint (with retries)
+        run: |
+          for i in {1..6}; do
+            if timeout 10 curl -f -s http://localhost:8080/api/categories; then
+              echo "API /categories OK (tentative ${i})"
+              exit 0
+            fi
+            echo "API check ${i}/6 failed - retrying in 5s..."
+            sleep 5
+          done
+          echo "API test FAILED"
+          exit 1
 
       - name: Stop container after smoke tests
         if: always()
