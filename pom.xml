@@ -17,13 +17,23 @@
     <artifactId>flashcards</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>flashcards</name>
+    <description>Flashcards Application - Spring Boot</description>
 
     <properties>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <lombok.version>1.18.30</lombok.version>
+        <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
+        <jacoco.plugin.version>0.8.11</jacoco.plugin.version>
+        <spotless.plugin.version>2.43.0</spotless.plugin.version>
+
+        <jacoco.check.skip>false</jacoco.check.skip>
+
         <maven.compiler.release>17</maven.compiler.release>
         <skipTests>false</skipTests>
     </properties>
+
+    
 
     <dependencies>
 
@@ -81,14 +91,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
                 <configuration>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </path>
-                    </annotationProcessorPaths>
+                    <release>${java.version}</release>
+                    <compilerArgs>
+                        <!-- Ignore warnings deprecated -->
+                        <arg>-Xlint:-deprecation,-rawtypes,-unchecked</arg>
+                        <arg>-nowarn</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
 
@@ -104,6 +113,17 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.2.5</version>
+            </plugin>
+
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless.plugin.version}</version>
+                <configuration>
+                    <java>
+                        <googleJavaFormat/>
+                    </java>
+                </configuration>
             </plugin>
 
             <!-- Checkstyle -->
@@ -151,7 +171,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.11</version>
+                <version>${jacoco.plugin.version}</version>
 
                 <executions>
 
@@ -201,6 +221,18 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                        <exclude>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-devtools</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
             </plugin>
 
         </plugins>

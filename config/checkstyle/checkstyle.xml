@@ -5,29 +5,40 @@
 
 <module name="Checker">
 
-    <!-- Vérifie la longueur des lignes -->
+    <!-- Longueur de ligne -->
     <module name="LineLength">
         <property name="max" value="120"/>
         <property name="ignorePattern" value="^package.*|^import.*|a href|href|http|https"/>
     </module>
 
-    <!-- Vérifie les tabulations -->
+    <!-- Interdiction des tabulations -->
     <module name="FileTabCharacter">
         <property name="eachLine" value="true"/>
     </module>
 
-    <!-- Analyse syntaxique du code Java -->
     <module name="TreeWalker">
+
+        <!-- Ne PAS utiliser Indentation : Spotless le gère -->
+        <!-- Pour Google Format : cette règle doit être supprimée -->
+        <!-- <module name="Indentation"> ... </module> -->
+
+        <!-- Imports -->
         <module name="UnusedImports"/>
         <module name="AvoidStarImport"/>
-        <module name="Indentation"/>
+
+        <!-- Style -->
         <module name="NeedBraces"/>
+
+        <!-- Méthodes -->
         <module name="MethodLength">
             <property name="max" value="100"/>
         </module>
+
+        <!-- Nommage -->
         <module name="ParameterName"/>
         <module name="LocalVariableName"/>
         <module name="MemberName"/>
+
     </module>
 
 </module>
