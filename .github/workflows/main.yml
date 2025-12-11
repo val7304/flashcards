@@ -92,11 +92,12 @@ jobs:
             -Dsonar.qualitygate.wait=true \
             -Dsonar.java.libraries=target/*.jar \
             -Dsonar.java.binaries=target/classes \
+            -Dsonar.java.test.libraries=target/*.jar \
+            -Dsonar.java.test.binaries=target/test-classes \
             -Dsonar.sourceEncoding=UTF-8 \
             -Dsonar.securityAnalysisEnabled=false
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v4
