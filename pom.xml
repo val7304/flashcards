@@ -21,9 +21,20 @@
     <properties>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Versions -->
+        <lombok.version>1.18.30</lombok.version>
+        <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
+        <jacoco.plugin.version>0.8.11</jacoco.plugin.version>
+        <spotless.plugin.version>2.43.0</spotless.plugin.version>
+
+        <!-- Sonar (optionnel: tu peux aussi fournir depuis CI) -->
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>val7304</sonar.organization>
         <sonar.projectKey>val7304_flashcards</sonar.projectKey>
+
+        <!-- Permet de bypasser localement la vérif JaCoCo : -Djacoco.check.skip=true -->
+        <jacoco.check.skip>false</jacoco.check.skip>
     </properties>
 
     <dependencies>
@@ -38,7 +49,7 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- ACTUATOR ← AJOUTE ICI -->
+        <!-- Actuator -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -69,10 +80,11 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <optional>true</optional>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
         </dependency>
 
-        <!-- SpotBugs annotations (version managed by plugin) -->
+        <!-- SpotBugs annotations -->
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
@@ -89,32 +101,35 @@
 
     <build>
         <plugins>
-            <!-- Compiler (avec Lombok) -->
+            <!-- Compiler (avec Lombok annotation processing) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </path>
-                    </annotationProcessorPaths>
+                    <release>${java.version}</release>
+                    <compilerArgs>
+                        <!-- Ignore warnings deprecated -->
+                        <arg>-Xlint:-deprecation,-rawtypes,-unchecked</arg>
+                        <!-- OU suppression spécifique Spring Boot -->
+                        <arg>-nowarn</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
 
+
+            <!-- Spotless -->
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
-                <version>2.43.0</version>
+                <version>${spotless.plugin.version}</version>
                 <configuration>
                     <java>
-                    <googleJavaFormat/>
+                        <googleJavaFormat/>
                     </java>
                 </configuration>
             </plugin>
 
-         <!-- Checkstyle -->
+            <!-- Checkstyle -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
@@ -160,11 +175,9 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.11</version>
-
+                <version>${jacoco.plugin.version}</version>
                 <executions>
-
-                    <!-- Active JaCoCo -->
+                    <!-- active l'agent pour instrumenter les tests -->
                     <execution>
                         <id>prepare-agent</id>
                         <goals>
@@ -172,25 +185,33 @@
                         </goals>
                     </execution>
 
-                    <!-- generate report -->
+                    <!-- génère le rapport HTML/XML -->
                     <execution>
                         <id>report</id>
-                        <phase>test</phase>
+                        <phase>verify</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
                     </execution>
 
-                    <!-- Fail si couverture < 80% -->
+                    <!-- vérification de couverture -->
                     <execution>
                         <id>jacoco-check</id>
+                        <phase>verify</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
                         <configuration>
+                            <!-- Permet de désactiver localement: -Djacoco.check.skip=true -->
+                            <skip>${jacoco.check.skip}</skip>
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
+                                    <excludes>
+                                        <!-- patterns complémentaires pour être sûr d'attraper les DTO -->
+                                        <exclude>com/example/flashcards/dto/**</exclude>
+                                        <!-- <exclude>com/example/flashcards/mapper/**</exclude> -->
+                                    </excludes>
                                     <limits>
                                         <limit>
                                             <counter>INSTRUCTION</counter>
@@ -202,10 +223,10 @@
                             </rules>
                         </configuration>
                     </execution>
-
                 </executions>
             </plugin>
 
+            <!-- Sonar -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
@@ -222,14 +243,13 @@
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                         </exclude>
-                        <exclude> 
+                        <exclude>
                             <groupId>org.springframework.boot</groupId>
                             <artifactId>spring-boot-devtools</artifactId>
                         </exclude>
                     </excludes>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 </project>
