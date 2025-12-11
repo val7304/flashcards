@@ -136,17 +136,17 @@ jobs:
         run: |
           for i in {1..30}; do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health)
-
+            
             if [ "$STATUS" = "200" ]; then
               echo "Health OK"
               exit 0
             fi
 
-            echo "Health check $i/30 failed (status=$STATUS). Retrying in 3s..."
             sleep 3
           done
 
-          echo "Spring Boot did not become healthy after 90 seconds."
+          echo "Spring Boot did not become healthy. Dumping container logs:"
+          docker logs flashcards-smoke || true
           exit 1
 
       - name: Smoke Test - Categories endpoint
