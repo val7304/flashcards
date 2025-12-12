@@ -34,6 +34,8 @@ flashcards/
  ├─ .github/workflows/staging.yml       # Staging CI pipeline
  ├─ src/main/java/                      # Application source code
  ├─ src/test/java/                      # Unit & integration tests
+ ├─ src/test/resources/
+ │   └─ application-test.properties     # profile used to run tests
  ├─ src/main/resources/
  │   ├─ application.properties
  │   └─ application-staging.properties
@@ -64,16 +66,17 @@ The following workflow is triggered on `push` and `pull requests` targeting the 
 
 ```text
 .github/workflows/staging.yml
-├─ Checkout & Maven cache                : Clone repo / restore dependencies
-├─ Static analysis                       : Checkstyle + SpotBugs
-├─ PostgreSQL service                    : Real database for integration tests
-├─ Build & Tests                         : Unit + integration tests
-├─ Coverage (JaCoCo)                     : Generate XML + HTML reports
-├─ Security scan (Trivy filesystem)      : CVE detection on project directory
-├─ Start Spring Boot (staging profile)   : Run app on port 8081
-├─ API tests with Newman                 : Live API validation
-├─ Upload artifacts                      : Checkstyle, SpotBugs, logs, coverage
-└─ Workspace cleanup                     : Final cleanup
+├─ Checkout & Maven cache           : Clone repository and restore Maven dependencies
+├─ Static analysis                  : Checkstyle + SpotBugs
+├─ PostgreSQL service               : Real PostgreSQL instance for integration tests
+├─ Build & Tests                    : Unit + integration tests (JUnit 5 + H2/PostgreSQL)
+├─ Coverage (JaCoCo)                : Generate XML and HTML coverage reports
+├─ Security scan (Trivy filesystem) : Detect CVEs in project dependencies and filesystem
+├─ Start Spring Boot (staging profile) : Launch on port 8081 for live API testing
+├─ API tests with Newman           : Execute Postman collection against running application
+├─ Upload artifacts                : Store Checkstyle, SpotBugs, logs, and coverage reports
+└─ Workspace cleanup               : Final cleanup of temporary files
+
 ```
 
 --- 
@@ -103,7 +106,7 @@ The project structure and CI scripts are designed to be easily portable to:
 | staging | ✔         | ✔          | ✔        | ✔       | ✔     | ✔     | ❌    | ❌         |
 
 
-> **JaCoCo Coverage** reports are generated on both branches.
+> **JaCoCo Coverage** reports are generated on all branches.
 
 ---
 
@@ -118,16 +121,32 @@ The project structure and CI scripts are designed to be easily portable to:
 
 ## Run CI Locally (staging equivalent)
 
+This project uses Spotless to enforce consistent code formatting. 
+
+The CI pipeline runs:
+
+```sh
+./mvnw spotless:check
+```
+
+Before committing, or if formatting issues are detected, apply fixes locally (before the ```clean verify``` cmd) to ensure formatting is correct:
+
+```sh
+./mvnw spotless:apply
+```
+
 Full pipeline equivalent:
 ```sh
-./mvnw clean verify     #inclut tests + JaCoCo
+./mvnw clean verify     #include tests + JaCoCo
 ```
 
 Individual checks:
 ```sh
+./mvnw spotless:apply
 ./mvnw checkstyle:check 
 ./mvnw spotbugs:check
 ./mvnw test
+./mvnw clean   # clean target folder
 ./mvnw jacoco:report   
 ```
 ---
@@ -164,6 +183,7 @@ The `staging` branch runs **the complete QA pipeline**:
 | Phase                        | Status |
 | ---------------------------- | ------ |
 | Build                        | ✔     |
+| Spotless formatting check    | ✔     |
 | Checkstyle                   | ✔     |
 | SpotBugs                     | ✔     |
 | Integration tests PostgreSQL | ✔     |
@@ -172,6 +192,7 @@ The `staging` branch runs **the complete QA pipeline**:
 | Trivy filesystem scan        | ✔     |
 | Newman API tests             | ✔     |
 | Clean workspace              | ✔     |
+
 
 **No Docker image and no SonarCloud scan are executed on this branch.**
 

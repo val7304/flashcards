@@ -51,16 +51,20 @@ src/
  │   ├─ java/com/example/flashcards/
  │   │   ├─ controller/       # REST controllers
  │   │   ├─ service/          # Business services
- │   │   ├─ model/            # Entities
+ │   │   ├─ entity/           # Entities
+ │   │   ├─ mapper/           # Mappers
  │   │   ├─ dto/              # DTO for API exchanges
  │   │   └─ repository/       # JPA interfaces
  │   └─ resources/
  │       └─ application.properties
- │       └─ application-staging.properties
- └─ test/
+ │       └─ application-dev.properties
+ └─ test/java/com/example/flashcards/
      ├─ controller/           # Unit tests for controllers
      ├─ service/              # Unit tests for services
-     └─ integration/          # Integration tests
+     ├─ integration/          # Integration tests
+     └─ resources
+        └─ application-test.properties  # Spring Boot automatically 
+                                        # activates the 'test' profile during tests
 ```
 
 ---
@@ -85,7 +89,7 @@ cd flashcards
 
 > The application requires a running local PostgreSQL instance when using the `staging` profile. 
 
-> The app connects automatically to a local PostgreSQL instance via environments variables.
+> The application connects automatically to a local PostgreSQL instance via environments variables.
 
 Default credentials are:
 ```sh
@@ -130,6 +134,7 @@ spring.profiles.active=staging
 #### Behavior:
 - Database schema is updated, never dropped 
 - `data.sql` executed only on first startup
+- Tests run using the "test profile" with an embedded H2 database
 - Application runs on port 8081
 - Suitable for integration & functional API testing
 
@@ -229,6 +234,19 @@ curl -X DELETE http://localhost:8081/api/categories/6
 ---
 
 ## Local Pre-Commit Validation
+
+This project uses Spotless to enforce consistent code formatting.
+Before committing, or if formatting issues are detected, apply fixes locally to ensure formatting is correct:
+
+```sh
+### Code formatting
+./mvnw spotless:apply
+```
+
+> Spotless fails the build if formatting rules are violated.
+
+> Run ```spotless:apply``` before any ```clean test``` or ```clean verify``` to avoid failures.
+
 Before pushing:
 
 ```sh
