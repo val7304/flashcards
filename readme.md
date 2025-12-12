@@ -66,7 +66,7 @@ src/
      ├─ service/              # Unit tests for services
      ├─ integration/          # Integration tests
      └─ resources
-        └─ application-test.properties
+        └─ application-test.properties  # profile used to run tests
 ```
 
 ---
@@ -90,7 +90,7 @@ cd flashcards
 
 > The application requires a running local PostgreSQL instance when using the `dev` profile.
 
-> The app connects automatically to a local PostgreSQL instance via environments variables.  
+> The application connects automatically to a local PostgreSQL instance via environments variables.  
 
 Default credentials are:
 ```sh
@@ -127,9 +127,10 @@ export DB_PASSWORD=mypassword
 ```
 
 #### Behavior:
-- Schema recreated on startup  
+- Database schema recreated on startup  
 - Create-drop → schema recreated and data reloaded from `data.sql`
-- Port: 8080
+- Tests run using the "test profile" with an embedded H2 database
+- Application runs on port: 8080
 
 ---
 
@@ -225,6 +226,20 @@ curl -X DELETE http://localhost:8080/api/categories/6
 ---
 
 ## Local Pre-Commit Validation
+
+This project uses Spotless to enforce consistent code formatting. 
+
+Before committing, or 
+if formatting issues are detected, apply fixes locally to ensure formatting is correct:
+
+```sh
+./mvnw spotless:apply
+```
+
+> Spotless fails the build if formatting rules are violated.
+
+> Run ```spotless:apply``` before any ```clean test``` or ```clean verify``` to avoid failures.
+
 Before pushing:
 
 ```sh

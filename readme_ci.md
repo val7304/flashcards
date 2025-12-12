@@ -37,7 +37,7 @@ flashcards/
  ├─ .github/workflows/develop.yml       # develop CI pipeline
  ├─ src/test/java/                      # Unit & integration tests
  ├─ src/test/resources/                 # test profile
- │   └─ application-test.properties     # running test on H2
+ │   └─ application-test.properties     # profile running test on H2
  ├─ src/main/java/                      # Application source code
  ├─ src/main/resources/
  │   ├─ application.properties
@@ -114,11 +114,24 @@ SonarCloud can analyze this project, but:
 | staging | ✔         | ✔          | ✔        | ✔       | ✔     | ✔     | ❌    | ❌         |
 
 
-> **JaCoCo Coverage** reports are generated on both branches.
+> **JaCoCo Coverage** reports are generated on all branches.
 
 ---
 
 ### Run CI Locally (Develop equivalent)
+
+This project uses Spotless to enforce consistent code formatting.
+
+The CI pipeline runs:
+
+```sh
+./mvnw spotless:check
+```
+Before committing, or if formatting issues are detected, ```apply``` fixes locally (before the ```clean verify``` cmd) to ensure formatting is correct:
+
+```sh
+./mvnw spotless:apply
+```
 
 #### Full pipeline equivalent:
 
@@ -129,6 +142,7 @@ SonarCloud can analyze this project, but:
 #### Individual checks:
 
 ```sh
+./mvnw spotless:apply
 ./mvnw test
 ./mvnw checkstyle:check
 ./mvnw spotbugs:check
@@ -141,13 +155,14 @@ SonarCloud can analyze this project, but:
 
 #### Reports Generated:
 
-| Report           | Path                            |
-| ---------------- | ------------------------------- |
-| Checkstyle HTML  | `target/site/checkstyle.html`   |
-| SpotBugs HTML    | `target/site/spotbugs.html`     |
-| JaCoCo HTML      | `target/site/jacoco/`           |
-| JaCoCo XML       | `target/site/jacoco/jacoco.xml` |
-| Application logs | `spring.log` (CI artifact)      |
+| Branch            | Report            | Location / Artifact                                       |
+| ----------------- | ----------------- | --------------------------------------------------------- |
+| local (developer) | Checkstyle HTML   | `target/site/checkstyle.html`                             |
+| local (developer) | SpotBugs HTML     | `target/site/spotbugs.html`                               |
+| develop           | JaCoCo HTML + XML | `target/site/jacoco/` (XML uploaded as CI artifact)       |
+| staging           | JaCoCo HTML + XML | `target/site/jacoco/` (HTML + XML uploaded as artifacts)  |
+| staging           | Application logs  | `spring.log` (uploaded as CI artifact)                    |
+| main              | JaCoCo XML only   | `target/site/jacoco/jacoco.xml` (uploaded for SonarCloud) |
 
 JaCoCo XML is uploaded for SonarCloud usage (on `main` only).
 
