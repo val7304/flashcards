@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  security-events: write
 
 jobs:
   build-test-static-analysis:
@@ -23,10 +24,10 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: pswd
         options: >-
-          --health-cmd "pg_isready -U postgres"
+          --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
 
     env:
       SPRING_PROFILES_ACTIVE: staging
@@ -52,22 +53,23 @@ jobs:
       - name: Make mvnw executable
         run: chmod +x mvnw
 
-      - name: Run Checkstyle
-        run: ./mvnw checkstyle:check
+      - name: Validate formatting with Spotless
+        run: ./mvnw spotless:check
 
-      - name: Run SpotBugs
-        run: ./mvnw spotbugs:check
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: java
 
       - name: Wait for PostgreSQL
         run: |
-          for i in {1..15}; do
-            nc -z localhost 5432 && echo "PostgreSQL is ready" && break
+          until pg_isready -h localhost -p 5432 -U postgres; do
             echo "Waiting for PostgreSQL..."
             sleep 2
           done
       
       - name: Run JUnit tests  + Jacoco coverage
-        run: ./mvnw -B clean test jacoco:report
+        run: ./mvnw -B clean verify jacoco:report
 
       - name: Upload JaCoCo report (HTML + XML)
         uses: actions/upload-artifact@v4
@@ -80,6 +82,9 @@ jobs:
         with:
           name: jacoco-xml
           path: target/site/jacoco/jacoco.xml
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v4
 
       - name: Scan filesystem with Trivy
         uses: aquasecurity/trivy-action@0.28.0
@@ -98,11 +103,10 @@ jobs:
             -jar target/*.jar > spring.log 2>&1 &
 
           echo "Waiting for Spring Boot to start..."
-          STARTED=0
+          
           for i in {1..30}; do
             if nc -z localhost 8081; then
               echo "Spring Boot is up!"
-              STARTED=1
               break
             fi
             echo "Waiting for Spring Boot to start... ($i)"
@@ -112,7 +116,7 @@ jobs:
           echo "---- Spring Boot Logs ----"
           cat spring.log || echo "spring.log not found"
 
-          if [ "$STARTED" -ne 1 ]; then
+          if ! nc -z localhost 8081; then
             echo "Spring Boot failed to start"
             exit 1
           fi
@@ -127,7 +131,7 @@ jobs:
       - name: Set up Node.js (for Newman)
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
 
       - name: Install Newman
         run: npm install -g newman
@@ -140,8 +144,7 @@ jobs:
       
       - name: Stop Spring Boot
         if: always()
-        run: |
-          pkill -f 'java -jar' || true
+        run: pkill -f 'java -jar' || true
 
   cleanup:
     runs-on: ubuntu-latest
@@ -156,3 +159,4 @@ jobs:
 
       - name: Cleanup Maven workspace
         run: ./mvnw clean
+        
