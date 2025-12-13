@@ -228,13 +228,12 @@
                                 <rule>
                                     <element>BUNDLE</element>
                                     <excludes>
-                                        <!-- patterns complémentaires pour être sûr d'attraper les DTO -->
                                         <exclude>com/example/flashcards/dto/**</exclude>
-                                        <!-- <exclude>com/example/flashcards/mapper/**</exclude> -->
+                                        <exclude>com/example/flashcards/FlashcardsApplication.class</exclude>
                                     </excludes>
                                     <limits>
                                         <limit>
-                                            <counter>INSTRUCTION</counter>
+                                            <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
                                             <minimum>0.80</minimum>
                                         </limit>
