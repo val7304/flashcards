@@ -46,7 +46,7 @@ jobs:
       - name: Cache Maven dependencies
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
-          path: path: ~/.m2/repository
+          path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
@@ -146,4 +146,3 @@ jobs:
       - name: Stop Spring Boot
         if: always()
         run: pkill -f 'java -jar' || true
-        
