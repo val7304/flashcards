@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     services:
       postgres:
@@ -37,15 +37,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           fetch-depth: 0
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e
         with:
           distribution: temurin
-          java-version: 17
+          java-version: '17'
           cache: maven
 
       - name: Make scripts executable
@@ -57,7 +57,7 @@ jobs:
         run: ./mvnw -q spotless:check
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@1b168cd39490f61582a9beae412bb7057a6b2c4e
         with:
           languages: java
 
@@ -72,7 +72,7 @@ jobs:
         run: ./mvnw -B clean verify jacoco:report
 
       - name: Upload JaCoCo XML
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: jacoco-xml
           path: target/site/jacoco/jacoco.xml
@@ -91,10 +91,10 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@1b168cd39490f61582a9beae412bb7057a6b2c4e
 
       - name: Scan dependencies with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
         with:
           scan-type: fs
           scan-ref: .
@@ -152,6 +152,15 @@ jobs:
           git tag $IMAGE_TAG
           git push origin $IMAGE_TAG
 
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
+        with:
+          scan-type: image
+          image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: 1
+
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
@@ -163,11 +172,11 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
 
   cleanup:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     if: always()
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - run: chmod +x mvnw
       - run: ./mvnw clean
       
