@@ -2,16 +2,16 @@
 
 
 **Flashcards** is a Java Spring Boot application designed to manage flashcards and their categories.  
-It serves as a learning and demonstration project to practice **DevOps**, **clean code**, and **automation** concepts.
+It serves as a learning and demonstration project showcasing **DevOps** practices, **clean code** principles, and **CI/CD automation**.
 
 On GitHub, this project has three branches and each branch loads its own default profile. 
 
 [![CI/CD](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
 [![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards/tags)
-
+[![Docker Pulls](https://img.shields.io/docker/pulls/valeriejeanne/flashcards)](https://hub.docker.com/r/valeriejeanne/flashcards)
+[![Docker Image Size](https://img.shields.io/docker/image-size/valeriejeanne/flashcards/latest)](https://hub.docker.com/r/valeriejeanne/flashcards)
 - `main` for  production
 - [See the full analysis on SonarCloud](https://sonarcloud.io/project/overview?id=val7304_flashcards)
-
 
 [![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
@@ -46,7 +46,7 @@ On GitHub, this project has three branches and each branch loads its own default
 |---------------|----------------------------------------------------|
 | Backend       | Java 17, Spring Boot 3                             |
 | Build         | Maven Wrapper (`./mvnw`)                           |
-| Database      | PostgreSQL                                         |
+| Database      | PostgreSQL (runtime), H2 (tests)                   |
 | Testing       | JUnit 5, Mockito                                   |
 | Code Quality  | Checkstyle, SpotBugs, JaCoCo, SonarCloud           |
 | Security Scan | Trivy (filesystem scan + Docker image scan)        |
@@ -67,7 +67,7 @@ src/
  │   │   ├─ dto/              # DTO for API exchanges
  │   │   └─ repository/       # JPA interfaces
  │   └─ resources/
- │       └─ application.properties
+ │       └─ application.properties  # default profile = prod
  │       └─ application-prod.properties
  │       └─ data.sql
  └─ test/
@@ -90,7 +90,7 @@ cd flashcards
 
 ### Database configuration: 
 
-> The app connects automatically to a local PostgreSQL instance via environments variables.  
+> The app connects automatically to a local PostgreSQL instance via environment variables.  
 
 Default credentials are:
 ```sh
@@ -165,7 +165,7 @@ http://localhost:8080/api/flashcards
 
 ### Data Initialization
 
-the `data.sql` file loads:
+The `data.sql` file loads:
 - 5 categories
 - 25 flashcards (5 per categories)
 
@@ -228,7 +228,20 @@ curl -X DELETE http://localhost:8080/api/categories/6
 
 ---
 ## Local Pre-Commit Validation
-To ensure the same quality gates as CI/CD, before pushing changes:
+
+This project uses Spotless to enforce consistent code formatting.
+
+Before committing, or if formatting issues are detected, apply fixes locally to ensure formatting is correct:
+
+```sh
+./mvnw spotless:apply
+```
+
+> Spotless fails the build if formatting rules are violated.
+
+> Run ```spotless:apply``` before any ```clean test``` or ```clean verify``` to avoid failures.
+
+Before pushing:
 
 ```sh
 ./mvnw clean verify   # full validation
@@ -236,12 +249,13 @@ To ensure the same quality gates as CI/CD, before pushing changes:
 
 This validates that:
 
+✔ Format pass
 ✔ All tests pass
 ✔ Checkstyle = 0 errors
 ✔ SpotBugs = 0 issues
 ✔ Coverage OK
 
-> If all commands pass successfully, your code is production-ready and can be safely committed and pushed.
+> If all commands pass successfully, the code is production-ready and can be safely committed and pushed.
 
 ---
 

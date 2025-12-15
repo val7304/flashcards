@@ -4,7 +4,7 @@ This folder contains the files and scripts related to the CI/CD pipelines for th
 
 ## Flashcards CI/CD Status
 
-#### Continuous Deployment  
+#### Production Build & Release Pipeline
 
 [![CI/CD](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
 
@@ -25,7 +25,7 @@ This folder contains the files and scripts related to the CI/CD pipelines for th
 ![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/develop.yml/badge.svg?branch=develop)
 [![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/staging.yml)
 
-#### Actions Runs Badges
+#### 'Actions Runs' Badges
 ![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen)
 ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
 ![Build](https://img.shields.io/badge/Build-success-brightgreen)
@@ -41,13 +41,25 @@ This document describes the **CI/CD pipelines** and validation processes of the 
 
 #### The CD pipeline on `main` automates:
 - Build & packaging (Maven)
+- Code formatting validation (Spotless)
 - Static analysis (Checkstyle, SpotBugs)
-- Unit & integration tests (JUnit 5)
-- Coverage analysis (JaCoCo) 
-- Security scanning (Trivy)
-- Docker build & publishing on Docker Hub Registry
-- Connect and send JaCoCo report to SonarQube Cloud
-- Ready to Deploy 
+- Unit & integration tests (JUnit 5, Spring Boot) 
+- Coverage analysis (JaCoCo – XML generated for CI)
+- Security scanning (filesystem) using Trivy
+- Docker image build (non-root runtime user for container hardening)
+- Security scanning (Docker image) using Trivy
+- Container smoke tests:
+    * Spring Boot health check
+    * API endpoint validation
+- Versioning & traceability
+    * Git release tag (vX.Y.Z)
+    * Docker tags: release version, short Git SHA, latest
+- Docker image publishing to Docker Hub
+- SonarCloud analysis: 
+    * JaCoCo report upload
+    * Quality Gate enforcement
+- Production-ready artifact validation
+
 
 ---
 
@@ -73,10 +85,6 @@ flashcards/
 #### The pipeline uses the project's dedicated Checkstyle configuration
 These rules are enforced automatically during the CI pipeline stages.
 
-> Note: The file `sonar-project.properties` is only required on branches scanned by SonarCloud 
-
-> Only `main` branch when using the free plan
-
 --- 
 
 ### Branch profile
@@ -101,16 +109,18 @@ The following workflow is triggered on `push` targeting the `main` branch:
 
 ```text
 .github/workflows/main.yml
-├─ Checkout & Maven cache                : Clone repo / restore dependencies
+├─ Checkout & Maven cache                : Clone repository / restore dependencies
+├─ Code format validation                : Spotless check
 ├─ Static analysis                       : Checkstyle + SpotBugs
-├─ Build & Tests                         : Unit + integration tests
-├─ Coverage (JaCoCo)                     : Generate XML + HTML reports
-├─ Security scan (Trivy filesystem)      : CVE detection on project directory
-├─ Upload artifacts                      : Checkstyle, SpotBugs, logs, coverage
-├─ Build Docker image                    : with version tag and Latest
-├─ Security scan (Trivy Docker image)
-├─ Push Docker image to Docker Hub (version + latest tags)
-├─ SonarQube Cloud                       : Push the JaCoCo report on SonarQube Cloud
+├─ Build & Tests                         : Unit + integration tests (JUnit 5)
+├─ Coverage (JaCoCo)                     : Generate XML report for CI
+├─ Security scan (Trivy filesystem)      : CVE detection on project dependencies
+├─ Build Docker image                    : Tagged with short SHA
+├─ Security scan (Trivy Docker image)    : CVE detection on final container image
+├─ Container smoke tests                 : Health check + API endpoint validation
+├─ Release tagging                       : Git release tag (vX.Y.Z)
+├─ Push Docker image to Docker Hub       : Version, short SHA and latest tags
+├─ SonarCloud analysis                   : JaCoCo upload + Quality Gate
 └─ Workspace cleanup                     : Final cleanup
 ```
 
@@ -176,21 +186,32 @@ The project uses SonarCloud to analyze:
 
 ## Tests Instructions & Code Quality
 
-#### Run everything locally:
+#### Run locally:
+
+This project uses Spotless to enforce consistent code formatting.
+
+The CI pipeline runs:
+
+```sh
+./mvnw spotless:check
+```
+
+Before committing, or if formatting issues are detected, apply fixes locally (before the clean verify cmd) to ensure formatting is correct:
+
+```sh
+./mvnw spotless:apply
+```
+
+Full pipeline equivalent:
 
 ```sh
 ./mvnw clean verify
 ```
-Equivalent to CI:
-- Build
-- Tests
-- Coverage
-- Checkstyle
-- SpotBugs
 
-#### Run individually:
+#### Individual checks:
 
 ```sh
+./mvnw spotless:apply
 ./mvnw test
 ./mvnw checkstyle:check
 ./mvnw spotbugs:check
@@ -203,16 +224,19 @@ Equivalent to CI:
 
 #### Reports Generated:
 
-| Report           | Path                            |
-| ---------------- | ------------------------------- |
-| Checkstyle HTML  | `target/site/checkstyle.html`   |
-| SpotBugs HTML    | `target/site/spotbugs.html`     |
-| JaCoCo HTML      | `target/site/jacoco/`           |
-| JaCoCo XML       | `target/site/jacoco/jacoco.xml` |
-| Application logs | `spring.log` (CI artifact)      |
+| Branch           | Report             | Location / Artifact                                                |
+| ---------------- | ------------------ | ------------------------------------------------------------------ |
+| local (developer)| Checkstyle HTML    | `target/site/checkstyle.html`                                      |
+| local (developer)| SpotBugs HTML      | `target/site/spotbugs.html`                                        |
+| develop          | JaCoCo HTML + XML  | `target/site/jacoco/`       (XML uploaded as CI artifact)          |
+| staging          | JaCoCo HTML + XML  | `target/site/jacoco/jacoco.xml` (HTML + XML uploaded as artifacts) |
+| staging          | Application logs   | `spring.log` (uploaded as CI artifact)                             |
+| main             | JaCoCo XML only    | `target/site/jacoco/jacoco.xml` (uploaded for SonarCloud)          |
 
 JaCoCo XML is uploaded for SonarCloud usage (on `main` only).
  
+> Limitation of the SonarCloud free plan: only the `main` branch is analyzed
+
 A **Trivy** report is available in the GitHub Actions logs under the job `Scan filesystem with Trivy` 
 where you will see the:  `Library  │ Vulnerability  │ Severity │ Status │ Installed Version │ Fixed Version │ `  
 
@@ -220,15 +244,62 @@ where you will see the:  `Library  │ Vulnerability  │ Severity │ Status �
 
 ---
 
-### Developer Notes
+## Notes for `main` CI
 
-- **Dev profile** (develop branch): drops and recreates schema at each run
-- **Staging profile** (staging branch): keeps schema and loads test data once
-- **Prod profile** (main branch): persistent data
+### **test profile:** 
+JUnit tests run using the `test` Spring profile, isolated from production-like services.
+The configuration file is located at: `src/test/resources/application-test.properties`
 
-- **Code quality**: 	Checkstyle and SpotBugs must both pass with 0 issues before commit
-- **Tests**:        	All unit/integration tests must succeed before merge
-- **CI/CD-ready**:  	Compatible with CI/CD tools (GitHub Actions, Jenkins, GitLab CI)
+Uses an in-memory H2 database to ensure:
+- fast execution
+- deterministic results
+- no dependency on PostgreSQL during test phases
+
+> This explicit test profile fixes previous integration-test instability and guarantees clean CI runs.
+
+### **prod profile:** 
+
+The `prod` profile is activated automatically when the application is started manually or inside Docker.
+The file is located at: `\src\main\resources\application.properties` and use `spring.profiles.active=prod` as default profile.
+
+This profile is not used during CI tests, ensuring strict separation between test and production-like execution.
+Designed for:
+- persistent data
+- Docker and deployment scenarios
+- production parity
+
+**Image versioning & traceability**
+The CI pipeline produces three Docker tags per successful run:
+- Release tag (e.g. v0.87.0) → human-readable, semantic version used for releases and documentation
+- Short Git SHA (e.g. fd268dd) → immutable technical reference for audit, rollback and traceability
+- latest → convenience tag pointing to the most recent successful production build
+
+> All tags reference the same image digest, ensuring full consistency between GitHub releases and Docker Hub artifacts.
+
+**Code formatting & quality gates**: 
+Spotless is enforced in CI:
+- formatting violations fail fast
+- guarantees consistent code style across contributors
+- Checkstyle and SpotBugs must both pass with 0 issues
+- JaCoCo coverage is generated on all branches
+- SonarCloud Quality Gate must be green on main
+
+**Smoke tests** (container-level validation)
+Before publishing images to Docker Hub:
+- The Docker image is started in CI
+- Spring Boot health endpoint is checked 
+- A real API endpoint (/api/categories) is called
+- Image publication is blocked if any step fails
+> This ensures that only runnable, production-ready images are published.
+
+**CI/CD readiness**
+All unit and integration tests must succeed before merge
+Fully compatible with:
+- GitHub Actions
+- Jenkins
+- GitLab CI
+
+> CI scripts are centralized and reusable (ci-scripts/)
 
 ---
 
