@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 IMAGE_NAME=${1:-flashcards}
 IMAGE_TAG=${2:-latest}

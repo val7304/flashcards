@@ -33,7 +33,6 @@ jobs:
 
     env:
       IMAGE_NAME: flashcards
-      IMAGE_TAG: v${{ github.run_number }}
 
     steps:
       - name: Checkout repository
@@ -101,8 +100,21 @@ jobs:
           format: table
           severity: HIGH,CRITICAL
 
+      - name: Compute short SHA
+        id: vars
+        run: echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
       - name: Build Docker image
         run: ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
+        with:
+          scan-type: image
+          image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: 1
 
       - name: Run container for smoke tests
         run: |
@@ -146,20 +158,12 @@ jobs:
           docker rm flashcards-smoke || true
 
       - name: Create Git Tag for release
+        if: github.event_name == 'push'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag $IMAGE_TAG
           git push origin $IMAGE_TAG
-
-      - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
-        with:
-          scan-type: image
-          image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          format: table
-          severity: HIGH,CRITICAL
-          exit-code: 1
 
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
