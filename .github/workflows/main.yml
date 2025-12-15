@@ -33,6 +33,7 @@ jobs:
 
     env:
       IMAGE_NAME: flashcards
+      RELEASE_TAG: v${{ github.run_number }}
 
     steps:
       - name: Checkout repository
@@ -162,8 +163,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag $IMAGE_TAG
-          git push origin $IMAGE_TAG
+          git tag ${RELEASE_TAG}
+          git push origin ${RELEASE_TAG}
 
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
@@ -171,8 +172,10 @@ jobs:
       - name: Push image to Docker Hub
         run: |
           docker tag $IMAGE_NAME:$IMAGE_TAG ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
+          docker tag $IMAGE_NAME:$IMAGE_TAG ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:${RELEASE_TAG}
           docker tag $IMAGE_NAME:$IMAGE_TAG ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:${RELEASE_TAG}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
 
   cleanup:
