@@ -20,6 +20,8 @@
 **Flashcards** is a Java Spring Boot application designed to manage flashcards and their categories.  
 It serves as a learning and demonstration project to practice **DevOps**, **clean code**, and **automation** concepts.
 
+In addition to the REST API, the application exposes a minimal web interface to make the project immediately usable after cloning, without requiring curl or Postman.
+
 The `develop` branch is dedicated to development.  
 
 ---
@@ -28,6 +30,7 @@ The `develop` branch is dedicated to development.
 
 - Full CRUD on Categories and Flashcards  
 - Extensible REST API  
+- Minimal Web UI (HTML + JavaScript) for interacting with the API
 - Automatic data loading via `data.sql`  
 - Unit and integration tests using Spring Boot
 
@@ -59,8 +62,9 @@ src/
  │   │   ├─ dto/              # DTO for API exchanges
  │   │   └─ repository/       # JPA interfaces
  │   └─ resources/
- │       └─ application.properties
- │       └─ application-dev.properties
+ │       ├─ application.properties
+ │       ├─ application-dev.properties
+ │       └─ static/          # Minimal frontend (index.html, app.js)
  └─ test/java/com/example/flashcards/
      ├─ controller/           # Unit tests for controllers
      ├─ service/              # Unit tests for services
@@ -135,7 +139,49 @@ export DB_PASSWORD=mypassword
 ---
 
 ### Access the Application
-Base URLs:
+
+#### Web Interface
+
+Once the application is running, open:
+
+```sh 
+http://localhost:8080
+```
+
+This page provides: 
+A simple UI to list, search, create, update and delete:
+- Categories
+- Flashcards
+
+Click-to-toggle or hide Flashcard answers
+
+Visibility of category ID for each Flashcard
+
+> This UI is intentionally simple and framework-free (no React/Angular)
+
+> as the project focuses on backend, CI/CD, and DevOps practices.
+
+
+---
+
+#### Notes on Frontend vs Backend responsibilities
+
+**The backend** remains API-first
+
+**The frontend**:
+
+- Is served from src/main/resources/static
+- Uses fetch() to call REST endpoints
+- Exists only to improve developer experience and project discoverability
+
+In a real-world scenario, this frontend could be:
+
+Replaced by a dedicated frontend application
+Or deployed separately (e.g., React + API gateway)
+
+---
+
+#### Base URLs:
 
 ```sh
 http://localhost:8080/api/categories
@@ -164,13 +210,33 @@ http://localhost:8080/api/flashcards
 
 `src/main/resources/data.sql` loads:
 - 5 categories
-- 25 flashcards (5 by categories)
+- 25 flashcards (5 per categories)
+
+This allows:
+- Immediate API testing
+- Immediate usage of the Web UI after startup
 
 ---
 
 ### Usage Scenario (via cURL)
 
+**You can now:**
+
+Use the Web UI at 
+```sh
+http://localhost:8080```
+
+Or interact directly with the API via curl (examples below)
+
+---
+
 #### 1. Get all categories
+```sh 
+curl -s http://localhost:8080/api/categories
+```
+
+#### Optional: JSON pretty-print
+For a nicer output, you may install jq and run:
 ```sh 
 curl -s http://localhost:8080/api/categories | jq
 ```
@@ -186,36 +252,36 @@ curl -X POST http://localhost:8080/api/categories \
 ```
 
 #### 3. Create a flashcard inside this new category
-> returns: new flashcard ID (example: 26)
+> returns: new flashcard ID (example: 25)
 ```sh
 curl -X POST http://localhost:8080/api/flashcards \
      -H "Content-Type: application/json" \
      -d '{
            "question": "My question",
            "answer": "My answer",
-           "category": { "id": 6 }
+           "categoryId": 6
          }'
 ```
 
 #### 4. List all flashcards
 ```sh
-curl -s http://localhost:8080/api/flashcards | jq 
+curl -s http://localhost:8080/api/flashcards
 ```
 
-#### 5. Update flashcard 26
+#### 5. Update flashcard 25
 ```sh
-curl -X PUT http://localhost:8080/api/flashcards/26 \
+curl -X PUT http://localhost:8080/api/flashcards/25 \
      -H "Content-Type: application/json" \
      -d '{
            "question": "My corrected question",
            "answer": "My corrected answer",
-           "category": { "id": 6 }
-         }'
+           "categoryId": 1 
+        }'
 ```
 
 #### 6. Delete flashcard 26
 ```sh
-curl -X DELETE http://localhost:8080/api/flashcards/26 
+curl -X DELETE http://localhost:8080/api/flashcards/25
 ```
 
 #### 7. Delete category 6

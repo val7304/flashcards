@@ -1,0 +1,33 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 2rem;
+    background-color: #f4f6f8;
+}
+
+h1 {
+    color: #2c3e50;
+}
+
+section {
+    background: white;
+    padding: 1.2rem;
+    margin-bottom: 2rem;
+    border-radius: 6px;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+}
+
+input {
+    margin: 0.3rem 0;
+    padding: 0.4rem;
+    width: 220px;
+}
+
+button {
+    margin: 0.3rem 0;
+    padding: 0.4rem 0.6rem;
+    cursor: pointer;
+}
+
+ul {
+    margin-top: 1rem;
+}

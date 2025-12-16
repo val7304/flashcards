@@ -1,6 +1,5 @@
 package com.example.flashcards.integration;
 
-import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -14,9 +13,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Transactional
 @AutoConfigureMockMvc
 class FlashcardControllerIT {
 
@@ -26,7 +27,7 @@ class FlashcardControllerIT {
 
   @Test
   void testCreateAndGetFlashcard() throws Exception {
-    // 1. Create category
+    // 1. Créer une catégorie d'abord
     CategoryDto category = new CategoryDto(null, "ITCategory");
     String categoryJson = objectMapper.writeValueAsString(category);
 
@@ -43,7 +44,7 @@ class FlashcardControllerIT {
 
     CategoryDto savedCategory = objectMapper.readValue(categoryResponse, CategoryDto.class);
 
-    // 2. Create flashcard
+    // 2. Créer une flashcard liée à cette catégorie
     FlashcardDto flashcard =
         new FlashcardDto(null, "What is Java?", "A programming language", savedCategory.getId());
     String flashcardJson = objectMapper.writeValueAsString(flashcard);
@@ -57,10 +58,10 @@ class FlashcardControllerIT {
         .andExpect(jsonPath("$.answer").value("A programming language"))
         .andExpect(jsonPath("$.categoryId").value(savedCategory.getId()));
 
-    // 3. Ensure flashcard appears in list (any position)
+    // 3. Vérifier qu'elle est récupérable
     mockMvc
         .perform(get("/api/flashcards"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[*].question", hasItem("What is Java?")));
+        .andExpect(jsonPath("$[0].question").value("What is Java?"));
   }
 }
