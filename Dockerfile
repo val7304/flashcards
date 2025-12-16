@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jre
+FROM temurin:17-jre-slim
 
 RUN useradd -r -u 1001 appuser
 WORKDIR /app
