@@ -4,7 +4,7 @@
 **Flashcards** is a Java Spring Boot application designed to manage flashcards and their categories.  
 It serves as a learning and demonstration project showcasing **DevOps** practices, **clean code** principles, and **CI/CD automation**.
 
-On GitHub, this project has three branches and each branch loads its own default profile. 
+This repository follows a three-branch strategy, where each branch is associated with a dedicated default Spring profile.
 
 [![CI/CD](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
 [![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards/tags)
@@ -35,7 +35,7 @@ On GitHub, this project has three branches and each branch loads its own default
 
 - Full CRUD on Categories and Flashcards  
 - Extensible REST API  
-- Automatic data loading via `data.sql`  
+- Automatic sample data loading (development profile only)
 - Unit and integration tests using Spring Boot, JUnit 5, Mockito
 
 ---
@@ -53,6 +53,24 @@ On GitHub, this project has three branches and each branch loads its own default
 | Packaging     | Docker                                             |
 | CI/CD         | GitHub Actions, Docker Hub                         |
 
+
+---
+
+## Profiles & Data Management
+
+This project follows a realistic database lifecycle strategy depending on the active Spring profile.
+
+| Profile   | Database type           | Schema strategy | Data initialization |
+|----------|-------------------------|-----------------|---------------------|
+| dev      | Local (ephemeral)       | create-drop    | `data.sql` executed automatically |
+| staging  | Persistent (local VM)   | update         | No automatic data loading |
+| prod     | Persistent (production) | update         | No automatic data loading |
+
+### Important
+- In **production (`main`)**, the application **never modifies data automatically at startup**
+- Initial production data must be inserted **manually or via CI/CD**
+- This ensures safe redeployments and realistic production behavior
+
 ---
 
 ## Project structure
@@ -62,18 +80,24 @@ src/
  ├─ main/
  │   ├─ java/com/example/flashcards/
  │   │   ├─ controller/       # REST controllers
- │   │   ├─ service/          # Business services
- │   │   ├─ model/            # Entities
+ │   │   ├─ dto/              # DTO for API exchanges
+ │   │   ├─ entity/           # JPA entities
+ │   │   ├─ mapper/           # Mapper
+ │   │   ├─ entity/           # JPA entities
  │   │   ├─ dto/              # DTO for API exchanges
  │   │   └─ repository/       # JPA interfaces
  │   └─ resources/
  │       └─ application.properties  # default profile = prod
  │       └─ application-prod.properties
- │       └─ data.sql
+ ├─ db/
+ │   └─ prod/
+ │       └─ init-data.sql    # manual / CI production init
  └─ test/
      ├─ controller/           # Unit tests for controllers
      ├─ service/              # Unit tests for services
-     └─ integration/          # Integration tests
+     ├─ integration/          # Integration tests
+     └─ resources/
+         └─ application-test.properties  # test profile
 ```
 ---
 
@@ -112,10 +136,34 @@ This script checks for `flashcardsdb`, creating it if missing.
 ```sh
 ./init-db.sh
 ```
-> `init-db.sh` is required only for local development, when PostgreSQL run manually.
 
+> `init-db.sh` is required only for local development when PostgreSQL is not managed by Docker or CI.
 > In CI/CD pipelines, PostgreSQL is provided using a GitHub Actions service container (postgres:16).  
 > No manual initialization is required during CI.
+
+--- 
+
+## Production Data Initialization (main branch)
+
+Production data is initialized manually using an idempotent SQL script.
+
+### Script location
+```text
+db/prod/init-data.sql
+```
+
+### Execution (one-time or controlled re-run)
+
+```bash
+psql -h <host> -U <user> -d flashcardsdb -f db/prod/init-data.sql
+```
+
+> **Notes**
+> - Executed manually or via CI/CD, never by Spring Boot
+> - Safe to re-run if the script uses idempotent inserts
+  (INSERT ... WHERE NOT EXISTS or ON CONFLICT DO NOTHING)
+> - Does NOT truncate or overwrite production data
+> - Fully compatible with PostgreSQL 16
 
 ---
 
@@ -135,15 +183,16 @@ This script checks for `flashcardsdb`, creating it if missing.
 ---
 
 ### Access the Application
-Base URLs:
+Base URLs: ```http://localhost:8080```   return →  "Flashcards API is running"
+
+### API
 
 ```sh
 http://localhost:8080/api/categories
 http://localhost:8080/api/flashcards
-
 ```
 
-### API Endpoints
+### Endpoints
 
 | Type   | Endpoint                                 | Description                  |
 | ------ | ---------------------------------------- | ---------------------------- |
@@ -165,21 +214,33 @@ http://localhost:8080/api/flashcards
 
 ### Data Initialization
 
-The `data.sql` file loads:
-- 5 categories
-- 25 flashcards (5 per categories)
+- In the **development profile**, `data.sql` automatically loads:
+  - 5 categories
+  - 25 flashcards
+
+- In **staging and production**, data initialization is **disabled by design**.
+  Initial data must be inserted manually using the provided SQL script.
 
 ---
 
 ### Usage Scenario (via cURL)
 
 #### 1. Get all categories
+
 ```sh 
+curl -s http://localhost:8080/api/categories
+```
+
+### Optional: JSON pretty-print
+
+For a nicer output, you may install `jq` and run:
+
+```bash
 curl -s http://localhost:8080/api/categories | jq
 ```
 
 #### 2. Create a new category
-> returns: new ID (example: 6)
+> returns: new ID (example: {"id":6,"name":"new category"})
 ```sh
 curl -X POST http://localhost:8080/api/categories \
      -H "Content-Type: application/json" \
@@ -189,36 +250,37 @@ curl -X POST http://localhost:8080/api/categories \
 ```
 
 #### 3. Create a flashcard inside this new category
-> returns: new flashcard ID (example: 26)
+> returns: new flashcard ID (example: {"id":25,"question":"My question","answer":"My answer","categoryId":6})
 ```sh
 curl -X POST http://localhost:8080/api/flashcards \
-     -H "Content-Type: application/json" \
-     -d '{
-           "question": "My question",
-           "answer": "My answer",
-           "category": { "id": 6 }
-         }'
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "My question",
+    "answer": "My answer",
+    "categoryId": 6
+  }'
 ```
 
 #### 4. List all flashcards
 ```sh
-curl -s http://localhost:8080/api/flashcards | jq 
+curl -s http://localhost:8080/api/flashcards
 ```
 
-#### 5. Update flashcard 26
+#### 5. Update flashcard (example: {"id":25,"question":"My corrected question","answer":"My corrected answer","categoryId":4})
 ```sh
-curl -X PUT http://localhost:8080/api/flashcards/26 \
-     -H "Content-Type: application/json" \
-     -d '{
-           "question": "My corrected question",
-           "answer": "My corrected answer",
-           "category": { "id": 6 }
-         }'
+curl -X PUT http://localhost:8080/api/flashcards/25 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "My corrected question",
+    "answer": "My corrected answer",
+    "categoryId": 4
+  }'
+
 ```
 
 #### 6. Delete flashcard 26
 ```sh
-curl -X DELETE http://localhost:8080/api/flashcards/26
+curl -X DELETE http://localhost:8080/api/flashcards/25
 ```
 
 #### 7. Delete category 6

@@ -25,114 +25,109 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/flashcards")
 public class FlashcardController {
 
-    /** Service pour la gestion des flashcards. */
-    private final FlashcardService flashcardService;
+  /** Service pour la gestion des flashcards. */
+  private final FlashcardService flashcardService;
 
-    /** Service pour la gestion des catégories. */
-    private final CategoryService categoryService;
+  /** Service pour la gestion des catégories. */
+  private final CategoryService categoryService;
 
-    /**
-     * Constructeur avec injection de dépendances.
-     *
-     * @param flashcardService service gérant les flashcards
-     * @param categoryService  service gérant les catégories
-     */
+  /**
+   * Constructeur avec injection de dépendances.
+   *
+   * @param flashcardService service gérant les flashcards
+   * @param categoryService service gérant les catégories
+   */
+  // CHECKSTYLE:OFF: ParameterAssignment
+  @SuppressFBWarnings(
+      value = "EI_EXPOSE_REP2",
+      justification = "Spring injects immutable service beans safely")
+  @Autowired
+  public FlashcardController(
+      final FlashcardService flashcardService, final CategoryService categoryService) {
+    this.flashcardService = flashcardService;
+    this.categoryService = categoryService;
+  }
 
-    @RestController
-    public class RootController {
+  // CHECKSTYLE:ON: ParameterAssignment
 
-        @GetMapping("/")
-        public String home() {
-            return "Flashcards API is running";
-        }
-    }
+  /**
+   * Récupère toutes les flashcards.
+   *
+   * @return liste des flashcards
+   */
+  @GetMapping
+  public List<FlashcardDto> getAll() {
+    return flashcardService.getAllFlashcards().stream().map(FlashcardMapper::toDto).toList();
+  }
 
-    // CHECKSTYLE:OFF: ParameterAssignment
-    @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "Spring injects immutable service beans safely")
-    @Autowired
-    public FlashcardController(
-            final FlashcardService flashcardService, final CategoryService categoryService) {
-        this.flashcardService = flashcardService;
-        this.categoryService = categoryService;
-    }
+  /**
+   * Récupère une flashcard par son identifiant.
+   *
+   * @param id identifiant de la flashcard
+   * @return la flashcard correspondante
+   */
+  @GetMapping("/{id}")
+  public ResponseEntity<FlashcardDto> getById(@PathVariable final Long id) {
+    return flashcardService
+        .getFlashcardById(id)
+        .map(FlashcardMapper::toDto)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
+  }
 
-    // CHECKSTYLE:ON: ParameterAssignment
+  /**
+   * Recherche des flashcards par leur question.
+   *
+   * @param question texte de la question à rechercher
+   * @return liste des flashcards correspondantes
+   */
+  @GetMapping("/search")
+  public ResponseEntity<List<FlashcardDto>> searchByQuestion(
+      @RequestParam("question") final String question) {
+    return ResponseEntity.ok(flashcardService.searchByQuestion(question));
+  }
 
-    /**
-     * Récupère toutes les flashcards.
-     *
-     * @return liste des flashcards
-     */
-    @GetMapping
-    public List<FlashcardDto> getAll() {
-        return flashcardService.getAllFlashcards().stream().map(FlashcardMapper::toDto).toList();
-    }
+  /**
+   * Crée une nouvelle flashcard.
+   *
+   * @param dto données de la flashcard à créer
+   * @return flashcard créée
+   */
+  @PostMapping
+  public FlashcardDto create(@RequestBody final FlashcardDto dto) {
+    Category category =
+        categoryService
+            .getCategoryById(dto.getCategoryId())
+            .orElseThrow(() -> new RuntimeException("Category not found"));
+    Flashcard saved = flashcardService.createFlashcard(FlashcardMapper.toEntity(dto, category));
+    return FlashcardMapper.toDto(saved);
+  }
 
-    /**
-     * Récupère une flashcard par son identifiant.
-     *
-     * @param id identifiant de la flashcard
-     * @return la flashcard correspondante
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<FlashcardDto> getById(@PathVariable final Long id) {
-        return flashcardService
-                .getFlashcardById(id)
-                .map(FlashcardMapper::toDto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+  /**
+   * Met à jour une flashcard existante.
+   *
+   * @param id identifiant de la flashcard à mettre à jour
+   * @param dto nouvelles données de la flashcard
+   * @return flashcard mise à jour
+   */
+  @PutMapping("/{id}")
+  public FlashcardDto update(@PathVariable final Long id, @RequestBody final FlashcardDto dto) {
+    Category category =
+        categoryService
+            .getCategoryById(dto.getCategoryId())
+            .orElseThrow(() -> new RuntimeException("Category not found"));
+    Flashcard updated =
+        flashcardService.updateFlashcard(id, FlashcardMapper.toEntity(dto, category));
+    return FlashcardMapper.toDto(updated);
+  }
 
-    /**
-     * Recherche des flashcards par leur question.
-     *
-     * @param question texte de la question à rechercher
-     * @return liste des flashcards correspondantes
-     */
-    @GetMapping("/search")
-    public ResponseEntity<List<FlashcardDto>> searchByQuestion(
-            @RequestParam("question") final String question) {
-        return ResponseEntity.ok(flashcardService.searchByQuestion(question));
-    }
-
-    /**
-     * Crée une nouvelle flashcard.
-     *
-     * @param dto données de la flashcard à créer
-     * @return flashcard créée
-     */
-    @PostMapping
-    public FlashcardDto create(@RequestBody final FlashcardDto dto) {
-        Category category = categoryService
-                .getCategoryById(dto.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-        Flashcard saved = flashcardService.createFlashcard(FlashcardMapper.toEntity(dto, category));
-        return FlashcardMapper.toDto(saved);
-    }
-
-    /**
-     * Met à jour une flashcard existante.
-     *
-     * @param id  identifiant de la flashcard à mettre à jour
-     * @param dto nouvelles données de la flashcard
-     * @return flashcard mise à jour
-     */
-    @PutMapping("/{id}")
-    public FlashcardDto update(@PathVariable final Long id, @RequestBody final FlashcardDto dto) {
-        Category category = categoryService
-                .getCategoryById(dto.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-        Flashcard updated = flashcardService.updateFlashcard(id, FlashcardMapper.toEntity(dto, category));
-        return FlashcardMapper.toDto(updated);
-    }
-
-    /**
-     * Supprime une flashcard par son identifiant.
-     *
-     * @param id identifiant de la flashcard à supprimer
-     */
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable final Long id) {
-        flashcardService.deleteFlashcard(id);
-    }
+  /**
+   * Supprime une flashcard par son identifiant.
+   *
+   * @param id identifiant de la flashcard à supprimer
+   */
+  @DeleteMapping("/{id}")
+  public void delete(@PathVariable final Long id) {
+    flashcardService.deleteFlashcard(id);
+  }
 }

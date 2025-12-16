@@ -71,12 +71,13 @@ flashcards/
  ├─ src/test/java/                   # Unit & integration tests
  ├─ src/main/java/                   # Application source code
  ├─ src/main/resources/
- │   ├─ application.properties
- │   └─ application-prod.properties
- │   └─ data.sql
+ │            ├─ application.properties
+ │            └─ application-prod.properties
  ├─ config/checkstyle/                  
- │   ├─ checkstyle.xml
- │   └─ checkstyle-suppressions.xml
+ │            ├─ checkstyle.xml
+ │            └─ checkstyle-suppressions.xml
+ ├─ db/prod/
+ │      └─ init-data.sql           # manual / CI production init
  ├─ Dockerfile
  ├─ pom.xml
  └─ sonar-project.properties
@@ -260,13 +261,28 @@ Uses an in-memory H2 database to ensure:
 ### **prod profile:** 
 
 The `prod` profile is activated automatically when the application is started manually or inside Docker.
-The file is located at: `\src\main\resources\application.properties` and use `spring.profiles.active=prod` as default profile.
+The `prod` profile is activated automatically by default (`spring.profiles.active=prod`) when the application is started
 
 This profile is not used during CI tests, ensuring strict separation between test and production-like execution.
 Designed for:
 - persistent data
 - Docker and deployment scenarios
 - production parity
+
+### Database initialization in production
+
+The `prod` profile does not rely on `data.sql`.
+
+- `spring.sql.init.mode=never`
+- No schema or data mutation at application startup
+- Production data is initialized explicitly via SQL scripts
+  located under `db/prod/`
+
+This guarantees:
+- safe redeployments
+- no accidental data loss
+- realistic production behavior
+
 
 **Image versioning & traceability**
 The CI pipeline produces three Docker tags per successful run:
