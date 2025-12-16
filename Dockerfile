@@ -1,4 +1,4 @@
-FROM temurin:17-jre-slim
+FROM FROM eclipse-temurin:17-jre-jammy
 
 RUN useradd -r -u 1001 appuser
 WORKDIR /app
