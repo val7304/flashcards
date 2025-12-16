@@ -1,7 +1,8 @@
 #!/bin/bash
+set -e
 
-DB_NAME="flashcardsdb"
-DB_USER="postgres"
+DB_NAME="${DB_NAME:-flashcardsdb}"
+DB_USER="${DB_USER:-postgres}"
 
 DB_EXIST=$(psql -U "$DB_USER" -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'")
 
