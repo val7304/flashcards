@@ -215,7 +215,7 @@ http://localhost:8081/api/flashcards
 
 ### Data Initialization
 
-`data.sql` loads:
+`init-data.sql` loads:
 - 5 categories
 - 25 flashcards (5 per categories)
 
