@@ -21,6 +21,8 @@ It focuses entirely on **code quality**, **tests**, **coverage**, **static analy
 
 The CI pipeline on `develop` automates:
 - Build & packaging (Maven)
+- Format code (Spotless)
+- Static application security testing (CodeQL)
 - Static code quality scanning (Checkstyle, SpotBugs)
 - Unit & integration tests (JUnit 5)
 - Coverage analysis (JaCoCo)
@@ -35,17 +37,18 @@ It serves as the **quality gate** before merging into `staging` or `main`.
 ```text
 flashcards/
  ├─ .github/workflows/develop.yml       # develop CI pipeline
- ├─ src/test/java/                      # Unit & integration tests
- ├─ src/test/resources/                 # test profile
- │   └─ application-test.properties     # profile running test on H2
  ├─ src/main/java/                      # Application source code
  ├─ src/main/resources/
- │   ├─ application.properties
- │   └─ application-dev.properties
- │   └─ data.sql
+ │           ├─ application.properties  # common configuration (no active profile)
+ │           ├─ data.sql
+ │           └─ static/                 # minimal frontend (index.html, app.js)
+ ├─ src/test/java/                      # Unit & integration tests
+ ├─ src/test/resources/                 
+ │   └─ application-test.properties     # profile running test on H2
  ├─ config/checkstyle/                  
  │   ├─ checkstyle.xml
  │   └─ checkstyle-suppressions.xml
+ ├─ init_db.sh
  ├─ Dockerfile
  └─ pom.xml
 ```
@@ -60,16 +63,15 @@ location: `.github/workflows/develop.yml`
 
 The following workflow is triggered on `push` targeting the `develop` branch:
 
-
 ```text
 .github/workflows/develop.yml
 ├─ Checkout & Maven cache                : Clone repo / restore dependencies
-├─ Static analysis                       : Checkstyle + SpotBugs
-├─ Build & Tests                         : Unit + integration tests
+├─ Spotless check                        : Validate formatting with Spotless
+├─ Static analysis                       : Checkstyle + SpotBugs + CodeQL
+├─ Build & Tests                         : Unit tests (H2) + integration tests (PostgreSQL service)
 ├─ Coverage (JaCoCo)                     : Generate XML + HTML reports
 ├─ Security scan (Trivy filesystem)      : CVE detection on project directory
-├─ Upload artifacts                      : Checkstyle, SpotBugs, logs, coverage
-└─ Workspace cleanup                     : Final cleanup
+└─ Upload artifacts                      : Checkstyle, SpotBugs, logs, coverage
 ```
 
 Tests run on H2 automatically using the `test` profile
@@ -92,29 +94,17 @@ The project structure and CI scripts are designed to be easily portable to:
 
 No deployment or publishing occurs on this branch.
 
-- **SonarCloud (Free Plan)** 
-
-SonarCloud can analyze this project, but:
-
-⚠  The free plan only provides full branch analysis for main.
-
-⚠  develop and other branches receive limited or no Quality Gate.
-
-⚠  PR decoration works, but coverage and issues may be incomplete.
-
-> This is normal and expected for free-tier SonarCloud usage.
-
 --- 
 
-## Quality Gates Summary (Develop vs Staging)
+## Quality Gates Summary (Develop)
 
-| Branch  | Build/Test | Checkstyle | SpotBugs | Coverage | Trivy | Newman | Docker | SonarCloud |
-| ------- | ---------- | ---------- | -------- | -------- | ----- | ------ | ------ | ---------- |
-| develop | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ❌    | ❌         |
-| staging | ✔         | ✔          | ✔        | ✔       | ✔     | ✔     | ❌    | ❌         |
-
+| Branch    | Build/Test | Checkstyle | SpotBugs | Coverage | Trivy | Newman | Docker | SonarCloud |
+| --------- | ---------- | ---------- | -------- | -------- | ----- | ------ | ------ | ---------- |
+| `develop` | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ❌    | ❌         |
 
 > **JaCoCo Coverage** reports are generated on all branches.
+
+⚠  **SonarCloud (free plan)** only provides a complete analysis for the `main` branch
 
 ---
 
@@ -122,12 +112,11 @@ SonarCloud can analyze this project, but:
 
 This project uses Spotless to enforce consistent code formatting.
 
-The CI pipeline runs:
+The CI pipeline runs: `./mvnw spotless:check`
 
-```sh
-./mvnw spotless:check
-```
-Before committing, or if formatting issues are detected, ```apply``` fixes locally (before the ```clean verify``` cmd) to ensure formatting is correct:
+Before committing, or 
+- if formatting issues are detected, apply fixes locally (before the `clean verify` cmd) 
+to ensure formatting is correct:
 
 ```sh
 ./mvnw spotless:apply
@@ -136,41 +125,56 @@ Before committing, or if formatting issues are detected, ```apply``` fixes local
 #### Full pipeline equivalent:
 
 ```sh
-./mvnw clean verify
+./mvnw clean verify 
 ```
 
 #### Individual checks:
 
 ```sh
 ./mvnw spotless:apply
-./mvnw test
+./mvnw test     
+./mvnw clean   
 ./mvnw checkstyle:check
 ./mvnw spotbugs:check
 ./mvnw jacoco:report
 ```
 
+#### Reports Generated: local(developer): 
+
+| Report             | Location / Artifact               |
+| ------------------ | --------------------------------- |
+| Checkstyle HTML    | `target/site/checkstyle.html`     |
+| SpotBugs HTML      | `target/site/spotbugs.html`       |
+| Jacoco HTML + XML  | `target/site/jacoco/`             |
+| Surefire           | `target/surefire-reports/`        |
+
 ---
 
 ## Run CI on Github Actions
 
-#### Reports Generated:
+### Static Application Security (CodeQL)
 
-| Branch            | Report            | Location / Artifact                                       |
-| ----------------- | ----------------- | --------------------------------------------------------- |
-| local (developer) | Checkstyle HTML   | `target/site/checkstyle.html`                             |
-| local (developer) | SpotBugs HTML     | `target/site/spotbugs.html`                               |
-| develop           | JaCoCo HTML + XML | `target/site/jacoco/` (XML uploaded as CI artifact)       |
-| staging           | JaCoCo HTML + XML | `target/site/jacoco/` (HTML + XML uploaded as artifacts)  |
-| staging           | Application logs  | `spring.log` (uploaded as CI artifact)                    |
-| main              | JaCoCo XML only   | `target/site/jacoco/jacoco.xml` (uploaded for SonarCloud) |
+CodeQL is executed on the `develop` branch to detect potential security
+vulnerabilities and unsafe coding patterns at source code level.
 
-JaCoCo XML is uploaded for SonarCloud usage (on `main` only).
+> Results are published in GitHub : `Security → Code scanning alerts`
 
-A **Trivy** report checks is included on `actions/runs`  job name: `Scan filesystem with Trivy` 
+### Reports Generated: in CI: 
 
-where you will see the:  `Library  │ Vulnerability  │ Severity │ Status │ Installed Version │ Fixed Version │ `  
+| Branch            | Report             | Location / Artifact                                                |
+| ----------------- | ------------------ | ------------------------------------------------------------------ |
+| `develop`         | JaCoCo HTML + XML  | `target/site/jacoco/` (XML uploaded as CI artifact)                |
+| `staging`         | JaCoCo HTML + XML  | `target/site/jacoco/jacoco.xml` (HTML + XML uploaded as artifacts) |
+| `staging`         | Application logs   | `spring.log` (uploaded as CI artifact)                             |
+| `main`            | JaCoCo XML only    | `target/site/jacoco/jacoco.xml` (for SonarCloud)                   |
 
-> The report highlights vulnerable dependencies detected from your `pom.xml`
+> JaCoCo XML is uploaded for SonarCloud usage (on `main` only).
+
+A **Trivy** report is included on `actions/runs`  job name: `Scan filesystem with Trivy` 
+
+where you will see the: `Library │ Vulnerability │ Severity │ Status │ Installed Version │ Fixed Version │`  
+
+> The report highlights vulnerable dependencies detected from your `pom.xml` and filesystem
 
 ---
 
@@ -183,10 +187,6 @@ where you will see the:  `Library  │ Vulnerability  │ Severity │ Status �
 - This file was not mandatory, but is used to isolate the tests from the PostgreSQL service.
 
 **`dev` profile**: 
-- `dev` profile is activated automatically, it is used only when running the application manually.
-- The file is located at: `\src\main\resources\application.properties` and 
-  use `spring.profiles.active=dev` as default profile
-
 - Recreates the schema on each startup (`create-drop`)
 - Reloads demo data from `data.sql`
 

@@ -44,7 +44,7 @@ The `develop` branch is dedicated to development.
 | Build    | Maven Wrapper (`./mvnw`)          |
 | Database | H2 / PostgreSQL                   |
 | Testing  | JUnit 5, Mockito                  |
-| Quality  | Checkstyle, SpotBugs, JaCoCo      |
+| Quality  | Checkstyle, SpotBugs, CodeQl, JaCoCo      |
 | Security | Trivy FS scan (detects CVEs in dependencies and filesystem) |
 | CI       | GitHub Actions (pipeline) |
 
@@ -62,8 +62,7 @@ src/
  │   │   ├─ dto/              # DTO for API exchanges
  │   │   └─ repository/       # JPA interfaces
  │   └─ resources/
- │       ├─ application.properties
- │       ├─ application-dev.properties
+ │       ├─ application.properties  # common configuration (no active profile)
  │       └─ static/          # Minimal frontend (index.html, app.js)
  └─ test/java/com/example/flashcards/
      ├─ controller/           # Unit tests for controllers
@@ -97,7 +96,7 @@ cd flashcards
 > The application connects automatically to a local PostgreSQL instance via environments variables.  
 
 Default credentials are:
-```sh
+```
 spring.datasource.username=${DB_USER:postgres}
 spring.datasource.password=${DB_PASSWORD:pswd}
 ```
@@ -117,6 +116,7 @@ export DB_PASSWORD=mypassword
 ```
 
 > `init-db.sh` is required only for local development, when PostgreSQL run manually
+
 > This script is not used by CI.
 
 ---
@@ -127,6 +127,15 @@ export DB_PASSWORD=mypassword
 
 ```sh
 ./mvnw clean install
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+or, use: 
+
+```sh
+./mvnw clean install
+
+export SPRING_PROFILES_ACTIVE=dev
 ./mvnw spring-boot:run
 ```
 
@@ -142,11 +151,7 @@ export DB_PASSWORD=mypassword
 
 #### Web Interface
 
-Once the application is running, open:
-
-```sh 
-http://localhost:8080
-```
+Once the application is running, open: `http://localhost:8080`
 
 This page provides: 
 A simple UI to list, search, create, update and delete:
@@ -160,7 +165,6 @@ Visibility of category ID for each Flashcard
 > This UI is intentionally simple and framework-free (no React/Angular)
 
 > as the project focuses on backend, CI/CD, and DevOps practices.
-
 
 ---
 
@@ -218,27 +222,19 @@ This allows:
 
 ---
 
-### Usage Scenario (via cURL)
+### Usage Scenario
 
 **You can now:**
 
-Use the Web UI at 
-```sh
-http://localhost:8080```
+Use the Web UI at `http://localhost:8080`
 
-Or interact directly with the API via curl (examples below)
+Or, interact directly with the API via curl (examples below)
 
----
+### Usage Scenario (via cURL)
 
 #### 1. Get all categories
 ```sh 
 curl -s http://localhost:8080/api/categories
-```
-
-#### Optional: JSON pretty-print
-For a nicer output, you may install jq and run:
-```sh 
-curl -s http://localhost:8080/api/categories | jq
 ```
 
 #### 2. Create a new category
@@ -259,13 +255,13 @@ curl -X POST http://localhost:8080/api/flashcards \
      -d '{
            "question": "My question",
            "answer": "My answer",
-           "categoryId": 6
+           "categoryId": 6 }
          }'
 ```
 
 #### 4. List all flashcards
 ```sh
-curl -s http://localhost:8080/api/flashcards
+curl -s http://localhost:8080/api/flashcards | jq 
 ```
 
 #### 5. Update flashcard 25
@@ -275,11 +271,11 @@ curl -X PUT http://localhost:8080/api/flashcards/25 \
      -d '{
            "question": "My corrected question",
            "answer": "My corrected answer",
-           "categoryId": 1 
-        }'
+           "categoryId": 6
+         }'
 ```
 
-#### 6. Delete flashcard 26
+#### 6. Delete flashcard 25
 ```sh
 curl -X DELETE http://localhost:8080/api/flashcards/25
 ```
@@ -304,7 +300,7 @@ if formatting issues are detected, apply fixes locally to ensure formatting is c
 
 > Spotless fails the build if formatting rules are violated.
 
-> Run ```spotless:apply``` before any ```clean test``` or ```clean verify``` to avoid failures.
+> Run `spotless:apply` before any `clean test` or `clean verify` cmd, to avoid failures.
 
 Before pushing:
 
