@@ -33,13 +33,13 @@ The CI pipeline on `staging` automates:
 
  ```text
 flashcards/
- ├─ .github/workflows/staging.yml       # Staging CI pipeline
- ├─ src/main/java/                      # Application source code
- ├─ src/test/java/                      # Unit & integration tests
+ ├─ .github/workflows/staging.yml      # Staging CI pipeline
+ ├─ src/main/java/                     # Application source code
+ ├─ src/test/java/                     # Unit & integration tests
  ├─ src/test/resources/
- │   └─ application-test.properties     # profile used to run tests
+ │   └─ application-test.properties    # profile used to run tests
  ├─ src/main/resources/
- │   └─ application.properties
+ │   └─ application.properties         # common configuration (no active profile)
  ├─ config/checkstyle/                  
  │   ├─ checkstyle.xml
  │   └─ checkstyle-suppressions.xml
@@ -47,7 +47,7 @@ flashcards/
  │   └─ flashcards.postman_collection.json
  ├─ db/
  │   └─ staging/
- │       └─ init-data.sql               # manual / CI staging init
+ │       └─ init-data.sql              # manual / CI staging init
  ├─ Dockerfile
  └─ pom.xml
 ```
