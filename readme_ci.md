@@ -18,10 +18,12 @@ It replicates a realistic enterprise-level integration pipeline.
 
 The CI pipeline on `staging` automates:
 - Build & packaging (Maven)
+- Format code (Spotless)
+- Static application security testing (CodeQL)
 - Static code quality scanning (Checkstyle, SpotBugs)
 - Unit & integration tests (JUnit 5)
 - Coverage analysis (JaCoCo)
-- Run Test/API's collection (Postman/Newman)
+- Execute API test collections (Postman/Newman)
 - Security scanning (Trivy)
 - Artifact publishing (JaCoCo reports)
 
@@ -37,14 +39,15 @@ flashcards/
  ├─ src/test/resources/
  │   └─ application-test.properties     # profile used to run tests
  ├─ src/main/resources/
- │   ├─ application.properties
- │   └─ application-staging.properties
- │   └─ data.sql
+ │   └─ application.properties
  ├─ config/checkstyle/                  
  │   ├─ checkstyle.xml
  │   └─ checkstyle-suppressions.xml
  ├─ postman/
  │   └─ flashcards.postman_collection.json
+ ├─ db/
+ │   └─ staging/
+ │       └─ init-data.sql               # manual / CI staging init
  ├─ Dockerfile
  └─ pom.xml
 ```
@@ -67,18 +70,16 @@ The following workflow is triggered on `push` and `pull requests` targeting the 
 ```text
 .github/workflows/staging.yml
 ├─ Checkout & Maven cache           : Clone repository and restore Maven dependencies
-├─ Static analysis                  : Checkstyle + SpotBugs
+├─ Static analysis                  : Checkstyle + SpotBugs + CodeQL
 ├─ PostgreSQL service               : Real PostgreSQL instance for integration tests
-├─ Build & Tests                    : Unit + integration tests (JUnit 5 + H2/PostgreSQL)
+├─ Build & Tests                    : Unit tests (H2) + integration tests (PostgreSQL service)
 ├─ Coverage (JaCoCo)                : Generate XML and HTML coverage reports
 ├─ Security scan (Trivy filesystem) : Detect CVEs in project dependencies and filesystem
 ├─ Start Spring Boot (staging profile) : Launch on port 8081 for live API testing
 ├─ API tests with Newman           : Execute Postman collection against running application
 ├─ Upload artifacts                : Store Checkstyle, SpotBugs, logs, and coverage reports
 └─ Workspace cleanup               : Final cleanup of temporary files
-
 ```
-
 --- 
 
 ## CI/CD Platforms
@@ -98,11 +99,10 @@ The project structure and CI scripts are designed to be easily portable to:
 
 --- 
 
-## Quality Gates Summary (Develop vs Staging)
+## Quality Gates Summary (Staging)
 
 | Branch  | Build/Test | Checkstyle | SpotBugs | Coverage | Trivy | Newman | Docker | SonarCloud |
 | ------- | ---------- | ---------- | -------- | -------- | ----- | ------ | ------ | ---------- |
-| develop | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ❌    | ❌         |
 | staging | ✔         | ✔          | ✔        | ✔       | ✔     | ✔     | ❌    | ❌         |
 
 
@@ -137,7 +137,7 @@ Before committing, or if formatting issues are detected, apply fixes locally (be
 
 Full pipeline equivalent:
 ```sh
-./mvnw clean verify     #include tests + JaCoCo
+./mvnw clean verify     # includes unit + integration tests, checkstyle, spotbugs and JaCoCo
 ```
 
 Individual checks:
@@ -153,23 +153,38 @@ Individual checks:
 
 ## Run CI on Github Actions
 
-#### Reports Generated:
+### Static Application Security (CodeQL)
 
-| Report           | Path                            |
-| ---------------- | ------------------------------- |
-| Checkstyle HTML  | `target/site/checkstyle.html`   |
-| SpotBugs HTML    | `target/site/spotbugs.html`     |
-| JaCoCo HTML      | `target/site/jacoco/`           |
-| JaCoCo XML       | `target/site/jacoco/jacoco.xml` |
-| Application logs | `spring.log` (CI artifact)      |
+CodeQL is executed on the `staging` branch to detect potential security
+vulnerabilities and unsafe coding patterns at source code level.
 
-JaCoCo XML is uploaded for SonarCloud usage (on `main` only).
+> Results are published in GitHub Security → Code scanning alerts.
 
-A **Trivy** report checks is included on `actions/runs`  job name: `Scan filesystem with Trivy` 
+#### Reports Generated: local(developer): 
+
+| Report             | Location / Artifact               |
+| ------------------ | --------------------------------- |
+| Checkstyle HTML    | `target/site/checkstyle.html`     |
+| SpotBugs HTML      | `target/site/spotbugs.html`       |
+| Jacoco HTML + XML  | `target/site/jacoco/`             |
+| Surefire           | `target/surefire-reports/`        |
+
+#### Reports Generated: in CI: 
+
+| Branch            | Report             | Location / Artifact                       |
+| ----------------- | ------------------ | ------------------------------------------------------------------ |
+| develop           | JaCoCo HTML + XML  | `target/site/jacoco/` (XML uploaded as CI artifact)                |
+| staging           | JaCoCo HTML + XML  | `target/site/jacoco/jacoco.xml` (HTML + XML uploaded as artifacts) |
+| staging           | Application logs   | `spring.log` (uploaded as CI artifact)                             |
+| main              | JaCoCo XML only    | `target/site/jacoco/jacoco.xml` (for SonarCloud)                   |
+
+> JaCoCo XML is uploaded for SonarCloud usage (on `main` only).
+
+A **Trivy** report is included on `actions/runs`  job name: `Scan filesystem with Trivy` 
 
 where you will see the: `Library │ Vulnerability │ Severity │ Status │ Installed Version │ Fixed Version │ `  
 
-> The report highlights vulnerable dependencies detected from your `pom.xml`
+> The report highlights vulnerable dependencies detected from your `pom.xml` and filesystem
 
 ---
 
@@ -186,6 +201,7 @@ The `staging` branch runs **the complete QA pipeline**:
 | Spotless formatting check    | ✔     |
 | Checkstyle                   | ✔     |
 | SpotBugs                     | ✔     |
+| CodeQL                       | ✔     |
 | Integration tests PostgreSQL | ✔     |
 | Unit tests                   | ✔     |
 | JaCoCo coverage              | ✔     |

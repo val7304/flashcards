@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Flashcards API Explorer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <h1>Flashcards API Explorer</h1>
+    <p>Interactive UI to explore the Flashcards REST API.</p>
+
+    <hr>
+
+    <section>
+        <h2>Categories</h2>
+
+        <button onclick="loadCategories()">List categories</button>
+
+        <input id="searchCategory" placeholder="Search by name">
+        <button onclick="searchCategory()">Search</button>
+
+        <h3>Create / Update</h3>
+        <input id="categoryId" placeholder="ID (for update)">
+        <input id="categoryName" placeholder="Category name">
+        <button onclick="createCategory()">Create</button>
+        <button onclick="updateCategory()">Update</button>
+
+        <h3>Delete</h3>
+        <input id="deleteCategoryId" placeholder="Category ID">
+        <button onclick="deleteCategory()">Delete</button>
+
+        <ul id="categories"></ul>
+    </section>
+
+    <hr>
+
+    <section>
+        <h2>Flashcards</h2>
+
+        <button onclick="loadFlashcards()">List flashcards</button>
+
+        <input id="searchFlashcard" placeholder="Search by question">
+        <button onclick="searchFlashcard()">Search</button>
+
+        <h3>Create / Update</h3>
+        <input id="flashcardId" placeholder="ID (for update)">
+        <input id="flashcardQuestion" placeholder="Question">
+        <input id="flashcardAnswer" placeholder="Answer">
+        <input id="flashcardCategoryId" placeholder="Category ID">
+        <button onclick="createFlashcard()">Create</button>
+        <button onclick="updateFlashcard()">Update</button>
+
+        <h3>Delete</h3>
+        <input id="deleteFlashcardId" placeholder="Flashcard ID">
+        <button onclick="deleteFlashcard()">Delete</button>
+
+        <ul id="flashcards"></ul>
+    </section>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
