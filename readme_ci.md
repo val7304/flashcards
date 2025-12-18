@@ -42,6 +42,7 @@ This document describes the **CI/CD pipelines** and validation processes of the 
 #### The CD pipeline on `main` automates:
 - Build & packaging (Maven)
 - Code formatting validation (Spotless)
+- Static application security testing (CodeQL)
 - Static analysis (Checkstyle, SpotBugs)
 - Unit & integration tests (JUnit 5, Spring Boot) 
 - Coverage analysis (JaCoCo – XML generated for CI)
@@ -60,7 +61,6 @@ This document describes the **CI/CD pipelines** and validation processes of the 
     * Quality Gate enforcement
 - Production-ready artifact validation
 
-
 ---
 
 ## Project structure
@@ -71,11 +71,8 @@ flashcards/
  ├─ src/test/java/                   # Unit & integration tests
  ├─ src/main/java/                   # Application source code
  ├─ src/main/resources/
- │            ├─ application.properties
- │            └─ application-prod.properties
+ │             └─ application.properties
  ├─ config/checkstyle/                  
- │            ├─ checkstyle.xml
- │            └─ checkstyle-suppressions.xml
  ├─ db/prod/
  │      └─ init-data.sql           # manual / CI production init
  ├─ Dockerfile
@@ -111,8 +108,8 @@ The following workflow is triggered on `push` targeting the `main` branch:
 ```text
 .github/workflows/main.yml
 ├─ Checkout & Maven cache                : Clone repository / restore dependencies
-├─ Code format validation                : Spotless check
-├─ Static analysis                       : Checkstyle + SpotBugs
+├─ Spotless check                        : Validate formatting with Spotless
+├─ Static analysis                       : Checkstyle + SpotBugs + CodeQL
 ├─ Build & Tests                         : Unit + integration tests (JUnit 5)
 ├─ Coverage (JaCoCo)                     : Generate XML report for CI
 ├─ Security scan (Trivy filesystem)      : CVE detection on project dependencies
@@ -158,6 +155,8 @@ The workflow:
 
 SonarCloud is triggered only on the `main` branch because the free plan supports a single branch.
 
+[See the full analysis on SonarCloud](https://sonarcloud.io/project/overview?id=val7304_flashcards)
+
 ##  Code Quality & Continuous Inspection
 
 The project uses SonarCloud to analyze:
@@ -167,8 +166,6 @@ The project uses SonarCloud to analyze:
 - Vulnerabilities
 - Test coverage (JaCoCo)
 - Code duplication
-
-[See the full analysis on SonarCloud](https://sonarcloud.io/project/overview?id=val7304_flashcards)
 
 > The Quality Gate must be **Green** for the CI/CD pipeline to be validated.
 
@@ -181,7 +178,7 @@ The project uses SonarCloud to analyze:
 - **Docker Hub**      — Stores ready-to-deploy images  
 - **ci-scripts/**     — Standardized shell scripts reusable across CI platforms  
 
-> Reusable in Jenkins or GitLab CI with minimal adaptations.
+> The project structure and CI scripts are designed to be easily transferable in order to perform other scenarios on others CI/CD platforms
 
 ---
 
@@ -191,13 +188,10 @@ The project uses SonarCloud to analyze:
 
 This project uses Spotless to enforce consistent code formatting.
 
-The CI pipeline runs:
+The CI pipeline runs `./mvnw spotless:check`
 
-```sh
-./mvnw spotless:check
-```
-
-Before committing, or if formatting issues are detected, apply fixes locally (before the clean verify cmd) to ensure formatting is correct:
+Before committing, 
+or if formatting issues are detected, apply fixes locally (before the clean verify cmd) to ensure formatting is correct:
 
 ```sh
 ./mvnw spotless:apply
@@ -219,27 +213,41 @@ Full pipeline equivalent:
 ./mvnw jacoco:report
 ```
 
+#### Reports Generated: local(developer): 
+
+| Report             | Location / Artifact               |
+| ------------------ | --------------------------------- |
+| Checkstyle         | `target/site/checkstyle.html`     |
+| SpotBugs           | `target/site/spotbugs.html`       |
+| Jacoco HTML + XML  | `target/site/jacoco/`             |
+| Surefire           | `target/surefire-reports/`        |
+
 ---
 
-## Run CI/CD on Github Actions
+## Run CI on Github Actions
 
-#### Reports Generated:
+### Static Application Security (CodeQL)
 
-| Branch           | Report             | Location / Artifact                                                |
-| ---------------- | ------------------ | ------------------------------------------------------------------ |
-| local (developer)| Checkstyle HTML    | `target/site/checkstyle.html`                                      |
-| local (developer)| SpotBugs HTML      | `target/site/spotbugs.html`                                        |
-| develop          | JaCoCo HTML + XML  | `target/site/jacoco/`       (XML uploaded as CI artifact)          |
-| staging          | JaCoCo HTML + XML  | `target/site/jacoco/jacoco.xml` (HTML + XML uploaded as artifacts) |
-| staging          | Application logs   | `spring.log` (uploaded as CI artifact)                             |
-| main             | JaCoCo XML only    | `target/site/jacoco/jacoco.xml` (uploaded for SonarCloud)          |
+CodeQL is executed on the all branches to detect potential security
+vulnerabilities and unsafe coding patterns at source code level.
+
+> Results are published in GitHub Security → Code scanning alerts.
+
+### Reports Generated: in CI: 
+
+| Branch            | Report             | Location / Artifact                                                |
+| ----------------- | ------------------ | ------------------------------------------------------------------ |
+| develop           | JaCoCo XML         | `target/site/jacoco/` (XML uploaded as CI artifact)                |
+| staging           | JaCoCo HTML + XML  | `target/site/jacoco/jacoco.xml` (HTML + XML uploaded as artifacts) |
+| staging           | Application logs   | `spring.log` (uploaded as CI artifact)                             |
+| main              | JaCoCo XML only    | `target/site/jacoco/jacoco.xml` (for SonarCloud)                   |
 
 JaCoCo XML is uploaded for SonarCloud usage (on `main` only).
- 
+
 > Limitation of the SonarCloud free plan: only the `main` branch is analyzed
 
 A **Trivy** report is available in the GitHub Actions logs under the job `Scan filesystem with Trivy` 
-where you will see the:  `Library  │ Vulnerability  │ Severity │ Status │ Installed Version │ Fixed Version │ `  
+where you will see the:  `Library` | `Vulnerability` │ `Severity` │ `Status` │ `Installed Version` │ `Fixed Version ` table 
 
 > The report highlights vulnerable dependencies detected from your `pom.xml`
 
@@ -261,7 +269,6 @@ Uses an in-memory H2 database to ensure:
 ### **prod profile:** 
 
 The `prod` profile is activated automatically when the application is started manually or inside Docker.
-The `prod` profile is activated automatically by default (`spring.profiles.active=prod`) when the application is started
 
 This profile is not used during CI tests, ensuring strict separation between test and production-like execution.
 Designed for:
@@ -271,7 +278,7 @@ Designed for:
 
 ### Database initialization in production
 
-The `prod` profile does not rely on `data.sql`.
+The `prod` profile does not rely on `init-data.sql`
 
 - `spring.sql.init.mode=never`
 - No schema or data mutation at application startup
@@ -283,7 +290,6 @@ This guarantees:
 - no accidental data loss
 - realistic production behavior
 
-
 **Image versioning & traceability**
 The CI pipeline produces three Docker tags per successful run:
 - Release tag (e.g. v0.87.0) → human-readable, semantic version used for releases and documentation
@@ -293,9 +299,12 @@ The CI pipeline produces three Docker tags per successful run:
 > All tags reference the same image digest, ensuring full consistency between GitHub releases and Docker Hub artifacts.
 
 **Code formatting & quality gates**: 
+
 Spotless is enforced in CI:
 - formatting violations fail fast
 - guarantees consistent code style across contributors
+
+
 - Checkstyle and SpotBugs must both pass with 0 issues
 - JaCoCo coverage is generated on all branches
 - SonarCloud Quality Gate must be green on main
@@ -309,6 +318,7 @@ Before publishing images to Docker Hub:
 > This ensures that only runnable, production-ready images are published.
 
 **CI/CD readiness**
+
 All unit and integration tests must succeed before merge
 Fully compatible with:
 - GitHub Actions

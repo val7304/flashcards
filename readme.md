@@ -35,7 +35,7 @@ This repository follows a three-branch strategy, where each branch is associated
 
 - Full CRUD on Categories and Flashcards  
 - Extensible REST API  
-- Automatic sample data loading (development profile only)
+- Automatic sample data loading (`dev` profile only)
 - Unit and integration tests using Spring Boot, JUnit 5, Mockito
 
 ---
@@ -48,11 +48,10 @@ This repository follows a three-branch strategy, where each branch is associated
 | Build         | Maven Wrapper (`./mvnw`)                           |
 | Database      | PostgreSQL (runtime), H2 (tests)                   |
 | Testing       | JUnit 5, Mockito                                   |
-| Code Quality  | Checkstyle, SpotBugs, JaCoCo, SonarCloud           |
+| Code Quality  | Checkstyle, SpotBugs, CodeQl, JaCoCo, SonarCloud   |
 | Security Scan | Trivy (filesystem scan + Docker image scan)        |
 | Packaging     | Docker                                             |
 | CI/CD         | GitHub Actions, Docker Hub                         |
-
 
 ---
 
@@ -60,11 +59,11 @@ This repository follows a three-branch strategy, where each branch is associated
 
 This project follows a realistic database lifecycle strategy depending on the active Spring profile.
 
-| Profile   | Database type           | Schema strategy | Data initialization |
-|----------|-------------------------|-----------------|---------------------|
-| dev      | Local (ephemeral)       | create-drop    | `data.sql` executed automatically |
-| staging  | Persistent (local VM)   | update         | No automatic data loading |
-| prod     | Persistent (production) | update         | No automatic data loading |
+| Profile   | Database type           | Schema strategy | Data initialization               |
+|---------- |------------------------ |---------------- |---------------------------------- |
+| dev       | Local (ephemeral)       | create-drop     | `data.sql` executed automatically |
+| staging   | Persistent (local VM)   | update          | No automatic data loading         |
+| prod      | Persistent (production) | update          | No automatic data loading         |
 
 ### Important
 - In **production (`main`)**, the application **never modifies data automatically at startup**
@@ -75,29 +74,42 @@ This project follows a realistic database lifecycle strategy depending on the ac
 
 ## Project structure
 
-```text
-src/
- ├─ main/
- │   ├─ java/com/example/flashcards/
- │   │   ├─ controller/       # REST controllers
- │   │   ├─ dto/              # DTO for API exchanges
- │   │   ├─ entity/           # JPA entities
- │   │   ├─ mapper/           # Mapper
- │   │   ├─ entity/           # JPA entities
- │   │   ├─ dto/              # DTO for API exchanges
- │   │   └─ repository/       # JPA interfaces
- │   └─ resources/
- │       └─ application.properties  # default profile = prod
- │       └─ application-prod.properties
- ├─ db/
- │   └─ prod/
- │       └─ init-data.sql    # manual / CI production init
- └─ test/
-     ├─ controller/           # Unit tests for controllers
-     ├─ service/              # Unit tests for services
-     ├─ integration/          # Integration tests
-     └─ resources/
-         └─ application-test.properties  # test profile
+```
+FLASHCARDS/
+├── .github
+│    └─ workflows
+│	    └─ main.yaml  
+├── ci-scripts
+│    └─ build.sh
+│    └─ docker-build.sh
+│    └─ test.sh
+├── config/checkstyle/
+│   		└─ checkstyle-suppressions.xml
+│   		└─ checkstyle.xml
+├── src/
+│	 ├─ main/
+│	 │   ├─ java/com/example/flashcards/
+│	 │   │   ├─ controller/     # REST controllers
+│	 │   │   ├─ dto/            # DTO for API exchanges
+│	 │   │   ├─ entity/         # JPA entities
+│	 │   │   ├─ mapper/         # Mapper
+│	 │   │   ├─ repository/     # JPA interfaces
+│	 │   │   └─ service/        # Service
+│	 │   └─ resources/
+│	 │       └─ application.properties   # common configuration (no active profile)
+│	 ├─ db/
+│	 │   └─ prod/
+│	 │     	 └─ init-data.sql            # manual / CI staging init
+│	 └─ test/
+│		 ├─ controller/  # Unit tests for controllers
+│		 ├─ service/     # Unit tests for services
+│		 ├─ integration/ # Integration tests
+│		 └─ application-test.properties	  # test profile
+│		 
+├─── Dockerfile
+├─── init-db.sh
+├─── pom.xml
+└─── sonar-project.properties
 ```
 ---
 
@@ -117,40 +129,31 @@ cd flashcards
 > The app connects automatically to a local PostgreSQL instance via environment variables.  
 
 Default credentials are:
-```sh
+```
 spring.datasource.username=${DB_USER:postgres}
 spring.datasource.password=${DB_PASSWORD:pswd}
 ```
 
 To override:
+
 ```sh
 export DB_USER=myuser
 export DB_PASSWORD=mypassword
 ```
 
---- 
+### Initialize the Database 
 
-### Initialize the Database (first time only)
-This script checks for `flashcardsdb`, creating it if missing.
-
-```sh
-./init-db.sh
-```
+The `./init-db.sh` script checks for `flashcardsdb`, creating it if missing
 
 > `init-db.sh` is required only for local development when PostgreSQL is not managed by Docker or CI.
 > In CI/CD pipelines, PostgreSQL is provided using a GitHub Actions service container (postgres:16).  
 > No manual initialization is required during CI.
 
---- 
-
 ## Production Data Initialization (main branch)
 
-Production data is initialized manually using an idempotent SQL script.
+Production data is initialized manually using an idempotent SQL script
 
-### Script location
-```text
-db/prod/init-data.sql
-```
+Script location: `db/prod/init-data.sql`
 
 ### Execution (one-time or controlled re-run)
 
@@ -172,6 +175,15 @@ psql -h <host> -U <user> -d flashcardsdb -f db/prod/init-data.sql
 #### Production profile
 
 ```sh
+./mvnw clean install
+./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
+```
+or use:
+
+```sh
+./mvnw clean install
+
+export SPRING_PROFILES_ACTIVE=prod
 ./mvnw spring-boot:run
 ```
 
@@ -183,9 +195,13 @@ psql -h <host> -U <user> -d flashcardsdb -f db/prod/init-data.sql
 ---
 
 ### Access the Application
-Base URLs: ```http://localhost:8080```   return →  "Flashcards API is running"
 
-### API
+Base URLs: `http://localhost:8080`   return →  "Flashcards API is running"
+
+> **Note:**
+> In the `develop` and `staging` branches, there is a minimal web user interface (HTML + JavaScript) for interacting with the API. 
+
+### Access to the API
 
 ```sh
 http://localhost:8080/api/categories
@@ -209,7 +225,6 @@ http://localhost:8080/api/flashcards
 | PUT    | `/api/flashcards/{id}`                   | Update flashcard             |
 | DELETE | `/api/flashcards/{id}`                   | Delete flashcard             |
 
-
 ---
 
 ### Data Initialization
@@ -218,8 +233,8 @@ http://localhost:8080/api/flashcards
   - 5 categories
   - 25 flashcards
 
-- In **staging and production**, data initialization is **disabled by design**.
-  Initial data must be inserted manually using the provided SQL script.
+- In **staging and production**, data initialization is **disabled by design**
+  Initial data must be inserted manually using the provided SQL script
 
 ---
 
@@ -275,10 +290,9 @@ curl -X PUT http://localhost:8080/api/flashcards/25 \
     "answer": "My corrected answer",
     "categoryId": 4
   }'
-
 ```
 
-#### 6. Delete flashcard 26
+#### 6. Delete flashcard 25
 ```sh
 curl -X DELETE http://localhost:8080/api/flashcards/25
 ```
@@ -289,6 +303,7 @@ curl -X DELETE http://localhost:8080/api/categories/6
 ```
 
 ---
+
 ## Local Pre-Commit Validation
 
 This project uses Spotless to enforce consistent code formatting.
@@ -299,14 +314,14 @@ Before committing, or if formatting issues are detected, apply fixes locally to 
 ./mvnw spotless:apply
 ```
 
-> Spotless fails the build if formatting rules are violated.
+> Spotless fails the build if formatting rules are violated
 
-> Run ```spotless:apply``` before any ```clean test``` or ```clean verify``` to avoid failures.
+> Run `spotless:apply` before any `clean test` or `clean verify` to avoid failures
 
 Before pushing:
 
 ```sh
-./mvnw clean verify   # full validation
+./mvnw clean verify 
 ```
 
 This validates that:
