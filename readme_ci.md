@@ -35,31 +35,17 @@ This folder contains the files and scripts related to the CI/CD pipelines for th
 
 ---
 
-## Overview
+## Code Quality Enforcement
 
-This document describes the **CI/CD pipelines** and validation processes of the Flashcards application.
+The CI pipeline enforces strict quality gates:
 
-#### The CD pipeline on `main` automates:
-- Build & packaging (Maven)
-- Code formatting validation (Spotless)
-- Static application security testing (CodeQL)
-- Static analysis (Checkstyle, SpotBugs)
-- Unit & integration tests (JUnit 5, Spring Boot) 
-- Coverage analysis (JaCoCo – XML generated for CI)
-- Security scanning (filesystem) using Trivy
-- Docker image build (non-root runtime user for container hardening)
-- Security scanning (Docker image) using Trivy
-- Container smoke tests:
-    * Spring Boot health check
-    * API endpoint validation
-- Versioning & traceability
-    * Git release tag (vX.Y.Z)
-    * Docker tags: release version, short Git SHA, latest
-- Docker image publishing to Docker Hub
-- SonarCloud analysis: 
-    * JaCoCo report upload
-    * Quality Gate enforcement
-- Production-ready artifact validation
+- Spotless (formatting)
+- Checkstyle
+- SpotBugs
+- JaCoCo coverage
+- SonarCloud Quality Gate (main only)
+
+Any violation fails the pipeline immediately.
 
 ---
 
@@ -126,8 +112,6 @@ Trivy is used to detect vulnerabilities both in:
 - project dependencies (filesystem scan)
 - the final Docker image (image scan)
 
-It ensures that produced artifacts are secure before being deployed or published.
-
 ---
 
 ## Quality Gates Summary (all branches)
@@ -144,7 +128,7 @@ It ensures that produced artifacts are secure before being deployed or published
 
 ## SonarCloud Integration
 
-This project uses SonarCloud to analyze code quality on the `main` branch.
+This project uses SonarCloud to analyze code quality 
 
 The workflow:
 1. Generates JaCoCo XML coverage report
@@ -153,21 +137,9 @@ The workflow:
 4. SonarCloud reads `sonar-project.properties`
 5. Displays results (Bugs, Code Smells, Coverage, Duplications)
 
-SonarCloud is triggered only on the `main` branch because the free plan supports a single branch.
+SonarCloud is only triggered on the `main` branch because the free plan only supports this branch
 
 [See the full analysis on SonarCloud](https://sonarcloud.io/project/overview?id=val7304_flashcards)
-
-##  Code Quality & Continuous Inspection
-
-The project uses SonarCloud to analyze:
-
-- Bugs
-- Code Smells
-- Vulnerabilities
-- Test coverage (JaCoCo)
-- Code duplication
-
-> The Quality Gate must be **Green** for the CI/CD pipeline to be validated.
 
 ---
 
@@ -242,90 +214,82 @@ vulnerabilities and unsafe coding patterns at source code level.
 | staging           | Application logs   | `spring.log` (uploaded as CI artifact)                             |
 | main              | JaCoCo XML only    | `target/site/jacoco/jacoco.xml` (for SonarCloud)                   |
 
-JaCoCo XML is uploaded for SonarCloud usage (on `main` only).
-
-> Limitation of the SonarCloud free plan: only the `main` branch is analyzed
-
-A **Trivy** report is available in the GitHub Actions logs under the job `Scan filesystem with Trivy` 
-where you will see the:  `Library` | `Vulnerability` │ `Severity` │ `Status` │ `Installed Version` │ `Fixed Version ` table 
-
-> The report highlights vulnerable dependencies detected from your `pom.xml`
+> JaCoCo XML is uploaded for SonarCloud usage
+> A **Trivy** report is available in the GitHub Actions logs under the job `Scan filesystem with Trivy` 
 
 ---
 
 ## Notes for `main` CI
 
-### **test profile:** 
-JUnit tests run using the `test` Spring profile, isolated from production-like services.
-The configuration file is located at: `src/test/resources/application-test.properties`
+### Test execution (`test` profile)
+JUnit tests run using the dedicated `test` Spring profile
+(`src/test/resources/application-test.properties`).
 
-Uses an in-memory H2 database to ensure:
-- fast execution
-- deterministic results
-- no dependency on PostgreSQL during test phases
+- In-memory H2 database
+- Fast and deterministic execution
+- No dependency on PostgreSQL
 
-> This explicit test profile fixes previous integration-test instability and guarantees clean CI runs.
+This ensures stable and reproducible CI test runs.
 
-### **prod profile:** 
+---
 
-The `prod` profile is activated automatically when the application is started manually or inside Docker.
+### Production execution (`prod` profile)
+The `prod` profile is automatically activated when running inside Docker.
+It is never used during CI test phases.
 
-This profile is not used during CI tests, ensuring strict separation between test and production-like execution.
 Designed for:
-- persistent data
-- Docker and deployment scenarios
-- production parity
+- Persistent data
+- Docker-based deployments
+- Production parity
 
-### Database initialization in production
-
-The `prod` profile does not rely on `init-data.sql`
-
+#### Database initialization
 - `spring.sql.init.mode=never`
-- No schema or data mutation at application startup
-- Production data is initialized explicitly via SQL scripts
-  located under `db/prod/`
+- No schema or data mutation at startup
+- Production data initialized explicitly via SQL scripts (`db/prod/`)
 
-This guarantees:
-- safe redeployments
-- no accidental data loss
-- realistic production behavior
+This guarantees safe redeployments and prevents accidental data loss.
 
-**Image versioning & traceability**
-The CI pipeline produces three Docker tags per successful run:
-- Release tag (e.g. v0.87.0) → human-readable, semantic version used for releases and documentation
-- Short Git SHA (e.g. fd268dd) → immutable technical reference for audit, rollback and traceability
-- latest → convenience tag pointing to the most recent successful production build
+---
 
-> All tags reference the same image digest, ensuring full consistency between GitHub releases and Docker Hub artifacts.
+### Image versioning & traceability
+Each successful CI run produces three Docker tags:
+- **Release tag** (e.g. `v0.87.0`) — semantic version
+- **Short Git SHA** — immutable audit & rollback reference
+- **latest** — most recent production build
 
-**Code formatting & quality gates**: 
+All tags reference the same image digest.
 
-Spotless is enforced in CI:
-- formatting violations fail fast
-- guarantees consistent code style across contributors
+---
 
+### Quality gates
+CI enforces strict validation:
+- Spotless (formatting)
+- Checkstyle
+- SpotBugs
+- JaCoCo coverage (all branches)
+- SonarCloud Quality Gate (**main only**)
 
-- Checkstyle and SpotBugs must both pass with 0 issues
-- JaCoCo coverage is generated on all branches
-- SonarCloud Quality Gate must be green on main
+Any violation fails the pipeline.
 
-**Smoke tests** (container-level validation)
-Before publishing images to Docker Hub:
-- The Docker image is started in CI
-- Spring Boot health endpoint is checked 
-- A real API endpoint (/api/categories) is called
-- Image publication is blocked if any step fails
-> This ensures that only runnable, production-ready images are published.
+---
 
-**CI/CD readiness**
+### Smoke tests (container validation)
+Before publishing to Docker Hub:
+- Container is started in CI
+- Spring Boot health check is executed
+- API endpoint (`/api/categories`) is validated
 
-All unit and integration tests must succeed before merge
-Fully compatible with:
-- GitHub Actions
-- Jenkins
-- GitLab CI
+Only runnable, production-ready images are published.
 
-> CI scripts are centralized and reusable (ci-scripts/)
+---
+
+### CI/CD readiness
+- All unit and integration tests must pass before merge
+- Fully compatible with:
+  - GitHub Actions
+  - Jenkins
+  - GitLab CI
+- CI scripts are centralized and reusable (`ci-scripts/`)
 
 ---
 

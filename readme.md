@@ -68,7 +68,6 @@ This project follows a realistic database lifecycle strategy depending on the ac
 ### Important
 - In **production (`main`)**, the application **never modifies data automatically at startup**
 - Initial production data must be inserted **manually or via CI/CD**
-- This ensures safe redeployments and realistic production behavior
 
 ---
 
@@ -304,36 +303,20 @@ curl -X DELETE http://localhost:8080/api/categories/6
 
 ---
 
-## Local Pre-Commit Validation
+## Local Validation
 
-This project uses Spotless to enforce consistent code formatting.
-
-Before committing, or if formatting issues are detected, apply fixes locally to ensure formatting is correct:
-
-```sh
-./mvnw spotless:apply
-```
-
-> Spotless fails the build if formatting rules are violated
-
-> Run `spotless:apply` before any `clean test` or `clean verify` to avoid failures
+Code formatting and quality checks are enforced using Spotless, Checkstyle, SpotBugs and JaCoCo.
 
 Before pushing:
-
 ```sh
-./mvnw clean verify 
+./mvnw spotless:apply
+./mvnw clean verify
 ```
-
-This validates that:
-
-✔ Format pass
-✔ All tests pass
-✔ Checkstyle = 0 errors
-✔ SpotBugs = 0 issues
-✔ Coverage OK
-
 > If all commands pass successfully, the code is production-ready and can be safely committed and pushed.
 
+All validations are also enforced in CI.
+> See [readme_CI](https://github.com/val7304/flashcards/blob/main/readme_ci.md) for full CI details.
+ 
 ---
 
 **Maintainer:** Valérie Hermans  
