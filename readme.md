@@ -4,14 +4,14 @@
 [![CI - Main](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
 
 > **Note:**  
-> Advanced pipelines are only executed on the `main` branch. 
+> Advanced pipelines are only executed on the `main` branch
 
-> `develop` only executes: Build, Tests, Checkstyle, SpotBugs, Coverage.
+> `develop` only executes: Build, Tests, Checkstyle, SpotBugs, CodeQl, JaCoCo Coverage
 
 ![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen)
 ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
 
-> See also [readme_CI](https://github.com/val7304/flashcards/blob/develop/readme_ci.md)  for more explanations about CI.
+> See also the [readme_CI](https://github.com/val7304/flashcards/blob/develop/readme_ci.md) for more explanations about CI
 
 ---
 
@@ -185,7 +185,7 @@ Or deployed separately (e.g., React + API gateway)
 
 ---
 
-#### Base URLs:
+#### API Base URLs:
 
 ```sh
 http://localhost:8080/api/categories
@@ -222,14 +222,6 @@ This allows:
 
 ---
 
-### Usage Scenario
-
-**You can now:**
-
-Use the Web UI at `http://localhost:8080`
-
-Or, interact directly with the API via curl (examples below)
-
 ### Usage Scenario (via cURL)
 
 #### 1. Get all categories
@@ -261,7 +253,7 @@ curl -X POST http://localhost:8080/api/flashcards \
 
 #### 4. List all flashcards
 ```sh
-curl -s http://localhost:8080/api/flashcards | jq 
+curl -s http://localhost:8080/api/flashcards
 ```
 
 #### 5. Update flashcard 25

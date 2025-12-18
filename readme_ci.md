@@ -53,7 +53,7 @@ flashcards/
  └─ pom.xml
 ```
 #### The pipeline uses the project's dedicated Checkstyle configuration
-These rules are enforced automatically during the CI pipeline stages.
+These rules are enforced automatically during the CI pipeline stages
 
 ---
 
@@ -87,12 +87,9 @@ The `develop` branch uses:
 - Security scanning
 - Artifact generation
 
-The project structure and CI scripts are designed to be easily portable to:
-- Jenkins
-- GitLab CI 
-- Azure DevOps
+The project structure and CI scripts are designed to be easily transferable in order to perform other scenarios on others CI/CD platforms
 
-No deployment or publishing occurs on this branch.
+> No deployment or publishing occurs on this branch.
 
 --- 
 
@@ -143,7 +140,7 @@ to ensure formatting is correct:
 
 | Report             | Location / Artifact               |
 | ------------------ | --------------------------------- |
-| Checkstyle HTML    | `target/site/checkstyle.html`     |
+| Checkstyle         | `target/site/checkstyle.html/xml` |
 | SpotBugs HTML      | `target/site/spotbugs.html`       |
 | Jacoco HTML + XML  | `target/site/jacoco/`             |
 | Surefire           | `target/surefire-reports/`        |
