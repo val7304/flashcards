@@ -1,6 +1,7 @@
 package com.example.flashcards.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.example.flashcards.dto.FlashcardDto;
@@ -72,9 +73,8 @@ class FlashcardServiceTest {
   @Test
   void testUpdateFlashcard_NotFound() {
     when(flashcardRepository.findById(1L)).thenReturn(Optional.empty());
-
-    assertThrows(
-        RuntimeException.class, () -> flashcardService.updateFlashcard(1L, new Flashcard()));
+    Flashcard flashcard = new Flashcard();
+    assertThrows(RuntimeException.class, () -> flashcardService.updateFlashcard(1L, flashcard));
   }
 
   @Test

@@ -9,7 +9,7 @@ class FlashcardsApplicationTest {
   @Test
   void testConstructor() {
     // Couvre le constructeur protégé
-    assertDoesNotThrow(() -> new FlashcardsApplication());
+    assertDoesNotThrow(FlashcardsApplication::new);
   }
 
   @Test

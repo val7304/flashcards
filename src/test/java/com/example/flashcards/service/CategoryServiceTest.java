@@ -1,6 +1,7 @@
 package com.example.flashcards.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.example.flashcards.dto.CategoryDto;
@@ -88,8 +89,8 @@ class CategoryServiceTest {
   @Test
   void testUpdateCategory_NotFound() {
     when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
-
-    assertThrows(RuntimeException.class, () -> categoryService.updateCategory(1L, new Category()));
+    Category category = new Category();
+    assertThrows(RuntimeException.class, () -> categoryService.updateCategory(1L, category));
   }
 
   @Test
