@@ -73,13 +73,14 @@ These rules are enforced automatically during the CI pipeline stages.
 
 ### Branch profile
 
-The project uses three Spring Boot profiles:
+*Each branch uses its own `application.properties` (default profile)*
 
-| Branch     | Profile   | Purpose                                 |
-|------------|-----------|-----------------------------------------|
-| develop    | `dev`     | Daily development + auto reset database |
-| staging    | `staging` | Close-to-production integration tests   |
-| main       | `prod`    | Production-like, persistent data        |
+| Branch    | application.properties | Purpose               |
+|-----------|------------------------|---------------------- |
+| develop   | dev config             | Daily development     |
+| staging   | staging config         | Integration tests     |
+| main      | prod config            | Production            |
+
 
 Each branch automatically loads the matching profile in CI/CD.
 
@@ -233,9 +234,9 @@ This ensures stable and reproducible CI test runs.
 
 ---
 
-### Production execution (`prod` profile)
-The `prod` profile is automatically activated when running inside Docker.
-It is never used during CI test phases.
+### Production execution (`main` branch)
+The `main` branch configuration is automatically used when running inside Docker.
+It is never used during CI test phases (which use H2 database).
 
 Designed for:
 - Persistent data

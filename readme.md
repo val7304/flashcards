@@ -4,7 +4,7 @@
 **Flashcards** is a Java Spring Boot application designed to manage flashcards and their categories.  
 It serves as a learning and demonstration project showcasing **DevOps** practices, **clean code** principles, and **CI/CD automation**.
 
-This repository follows a three-branch strategy, where each branch is associated with a dedicated default Spring profile.
+This repository follows a **three-branch strategy**, where each branch contains its own dedicated `application.properties` configuration.
 
 [![CI/CD](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
 [![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards/tags)
@@ -35,7 +35,7 @@ This repository follows a three-branch strategy, where each branch is associated
 
 - Full CRUD on Categories and Flashcards  
 - Extensible REST API  
-- Automatic sample data loading (`dev` profile only)
+- Automatic sample data loading (`dev` branch only)
 - Unit and integration tests using Spring Boot, JUnit 5, Mockito
 
 ---
@@ -55,15 +55,15 @@ This repository follows a three-branch strategy, where each branch is associated
 
 ---
 
-## Profiles & Data Management
+## Branches & Data Management
 
-This project follows a realistic database lifecycle strategy depending on the active Spring profile.
+This project follows a realistic database lifecycle strategy depending on the **active branch**.
 
-| Profile   | Database type           | Schema strategy | Data initialization               |
-|---------- |------------------------ |---------------- |---------------------------------- |
-| dev       | Local (ephemeral)       | create-drop     | `data.sql` executed automatically |
-| staging   | Persistent (local VM)   | update          | No automatic data loading         |
-| prod      | Persistent (production) | update          | No automatic data loading         |
+| Branch     | Database type          | Schema strategy | Data initialization              |
+|------------|------------------------|-----------------|----------------------------------|
+| `develop`  | Local (ephemeral)      | `create-drop`   | `data.sql` executed automatically|
+| `staging`  | Persistent (local VM)  | `update`        | No automatic data loading        |
+| `main`     | Persistent (production)| `update`        | No automatic data loading        |
 
 ### Important
 - In **production (`main`)**, the application **never modifies data automatically at startup**
@@ -171,18 +171,14 @@ psql -h <host> -U <user> -d flashcardsdb -f db/prod/init-data.sql
 
 ### Run the application
 
-#### Production profile
-
+1. Build: 
 ```sh
 ./mvnw clean install
-./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
 ```
-or use:
-
+and
 ```sh
-./mvnw clean install
-
-export SPRING_PROFILES_ACTIVE=prod
+java -jar target/flashcards-0.0.1-SNAPSHOT.jar 
+#or
 ./mvnw spring-boot:run
 ```
 
@@ -196,6 +192,7 @@ export SPRING_PROFILES_ACTIVE=prod
 ### Access the Application
 
 Base URLs: `http://localhost:8080`   return →  "Flashcards API is running"
+Healthpoint: `http://localhost:8080/actuator/health` return →  "status: "UP",groups: ["liveness","readiness"]}"
 
 > **Note:**
 > In the `develop` and `staging` branches, there is a minimal web user interface (HTML + JavaScript) for interacting with the API. 
@@ -228,7 +225,7 @@ http://localhost:8080/api/flashcards
 
 ### Data Initialization
 
-- In the **development profile**, `data.sql` automatically loads:
+- In the **develop branch**, `data.sql` automatically loads:
   - 5 categories
   - 25 flashcards
 
