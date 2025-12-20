@@ -171,11 +171,11 @@ psql -h <host> -U <user> -d flashcardsdb -f db/prod/init-data.sql
 
 ### Run the application
 
-1. Build: 
+Build: 
 ```sh
 ./mvnw clean install
 ```
-and
+and: 
 ```sh
 java -jar target/flashcards-0.0.1-SNAPSHOT.jar 
 #or
@@ -225,12 +225,9 @@ http://localhost:8080/api/flashcards
 
 ### Data Initialization
 
-- In the **develop branch**, `data.sql` automatically loads:
-  - 5 categories
-  - 25 flashcards
-
+- In the **develop branch**, `data.sql` automatically loads: 5 categories and 25 flashcards
 - In **staging and production**, data initialization is **disabled by design**
-  Initial data must be inserted manually using the provided SQL script
+  Initial data must be inserted manually using the `data-init.sql` script provided
 
 ---
 

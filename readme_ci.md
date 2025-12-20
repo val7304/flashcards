@@ -82,7 +82,7 @@ These rules are enforced automatically during the CI pipeline stages.
 | main      | prod config            | Production            |
 
 
-Each branch automatically loads the matching profile in CI/CD.
+Each branch automatically loads the matching profile in CI/CD
 
 ----
 
