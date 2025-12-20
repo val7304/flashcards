@@ -177,9 +177,9 @@ Build:
 ```
 and: 
 ```sh
-java -jar target/flashcards-0.0.1-SNAPSHOT.jar 
+./mvnw spring-boot:run 
 #or
-./mvnw spring-boot:run
+java -jar target/flashcards-0.0.1-SNAPSHOT.jar
 ```
 
 #### Behavior:
@@ -191,7 +191,7 @@ java -jar target/flashcards-0.0.1-SNAPSHOT.jar
 
 ### Access the Application
 
-Base URLs: `http://localhost:8080`   return →  "Flashcards API is running"
+Base URLs: `http://localhost:8080`   return →  the links used by the application
 Healthpoint: `http://localhost:8080/actuator/health` return →  "status: "UP",groups: ["liveness","readiness"]}"
 
 > **Note:**
