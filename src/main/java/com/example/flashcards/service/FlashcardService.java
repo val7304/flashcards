@@ -23,7 +23,7 @@ public class FlashcardService {
    * @return liste de toutes les flashcards
    */
   public List<Flashcard> getAllFlashcards() {
-    return flashcardRepository.findAll();
+    return flashcardRepository.findAllWithCategory();
   }
 
   /**
