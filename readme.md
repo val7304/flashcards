@@ -196,15 +196,12 @@ Build:
 and: 
 
 ```sh
-./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
-# or
 java -jar target/flashcards-0.0.1-SNAPSHOT.jar
 ```
 
 or use:  
 
 ```sh
-export SPRING_PROFILES_ACTIVE=prod
 ./mvnw spring-boot:run
 ```
 
