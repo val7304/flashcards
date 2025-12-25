@@ -6,7 +6,7 @@ This folder contains the files and scripts related to the CI/CD pipelines for th
 
 #### Production Build & Release Pipeline
 
-[![CI/CD](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
+[![CI/CD](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml)
 
 #### Docker Hub Registry 
 
@@ -22,8 +22,8 @@ This folder contains the files and scripts related to the CI/CD pipelines for th
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
 
 #### Continuous Integration (Branch) 
-![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/develop.yml/badge.svg?branch=develop)
-![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/staging.yml/badge.svg?branch=staging)
+![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/ci-develop.yml/badge.svg?branch=develop)
+![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml/badge.svg?branch=staging)
 
 > **Note:**  
 > Advanced pipelines are only executed on the `main` branch

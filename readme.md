@@ -6,7 +6,7 @@ It serves as a learning and demonstration project showcasing **DevOps** practice
 
 This repository follows a **three-branch strategy**. Each branch activates a different runtime configuration aligned with its environment (`dev`, `staging`, `prod`).
 
-[![CI/CD](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
+[![CI/CD](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml)
 [![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards/tags)
 [![Docker Pulls](https://img.shields.io/docker/pulls/valeriejeanne/flashcards)](https://hub.docker.com/r/valeriejeanne/flashcards)
 [![Docker Image Size](https://img.shields.io/docker/image-size/valeriejeanne/flashcards/latest)](https://hub.docker.com/r/valeriejeanne/flashcards)
@@ -21,8 +21,8 @@ This repository follows a **three-branch strategy**. Each branch activates a dif
 - [`develop`](https://github.com/val7304/flashcards/tree/develop) is dedicated to development.
 - [`staging`](https://github.com/val7304/flashcards/tree/staging) provides a safe environment close to production for integration, functional and API testing.
 
-![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/develop.yml/badge.svg?branch=develop)
-[![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/staging.yml)
+![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/ci-develop.yml/badge.svg?branch=develop)
+[![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml)
 ![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen)
 ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
 
@@ -181,10 +181,12 @@ Build:
 ```
 and: 
 ```sh
-export SPRING_PROFILES_ACTIVE=prod
+export SPRING_PROFILES_ACTIVE=dev
 ./mvnw spring-boot:run
-#or
-./mvnw spring-boot:run -Dspring-boot.run.profiles=[profile]
+```
+or use: 
+```sh 
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 #or
 java -jar target/flashcards-0.0.1-SNAPSHOT.jar
 ```
