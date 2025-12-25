@@ -1,3 +1,13 @@
+# dbdev & prod
+src/main/resources/db/dev/init-data.sql
+db/prod/
+
+# workflow dev & prod
+.github/workflows/cd-prod.yml
+.github/workflows/ci-develop.yml
+
+
+
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
