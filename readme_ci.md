@@ -6,7 +6,7 @@ This folder contains the files and scripts related to the CI/CD pipelines for th
 
 #### Production Build & Release Pipeline
 
-[![CI/CD](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
+[![CI/CD](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml)
 
 #### Docker Hub Registry 
 
@@ -22,8 +22,8 @@ This folder contains the files and scripts related to the CI/CD pipelines for th
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
 
 #### Continuous Integration (Branch) 
-![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/develop.yml/badge.svg?branch=develop)
-[![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/staging.yml)
+![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/ci-develop.yml/badge.svg?branch=develop)
+[![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml)
 
 #### 'Actions Runs' Badges
 ![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen)
@@ -53,7 +53,7 @@ Any violation fails the pipeline immediately.
 
 ```text
 flashcards/
- ├─ .github/workflows/main.yml       # main CD pipeline
+ ├─ .github/workflows/cd-prod.yml    # main CD pipeline
  ├─ src/test/java/                   # Unit & integration tests
  ├─ src/main/java/                   # Application source code
  ├─ src/main/resources/
@@ -88,12 +88,12 @@ Each branch automatically loads the matching profile in CI/CD
 
 ## CI Workflow
 
-location: `.github/workflows/main.yml`
+location: `.github/workflows/cd-prod.yml`
 
 The following workflow is triggered on `push` targeting the `main` branch:
 
 ```text
-.github/workflows/main.yml
+.github/workflows/cd-prod.yml
 ├─ Checkout & Maven cache                : Clone repository / restore dependencies
 ├─ Spotless check                        : Validate formatting with Spotless
 ├─ Static analysis                       : Checkstyle + SpotBugs + CodeQL
@@ -242,6 +242,10 @@ Designed for:
 - Persistent data
 - Docker-based deployments
 - Production parity
+
+> **Note:** CI/CD pipelines never populate production data.
+> Database initialization is always an explicit and controlled operation.
+
 
 #### Database initialization
 - `spring.sql.init.mode=never`

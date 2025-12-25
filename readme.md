@@ -6,7 +6,7 @@ It serves as a learning and demonstration project showcasing **DevOps** practice
 
 This repository follows a **three-branch strategy**, where each branch contains its own dedicated `application.properties` configuration.
 
-[![CI/CD](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
+[![CI/CD](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml)
 [![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards/tags)
 [![Docker Pulls](https://img.shields.io/docker/pulls/valeriejeanne/flashcards)](https://hub.docker.com/r/valeriejeanne/flashcards)
 [![Docker Image Size](https://img.shields.io/docker/image-size/valeriejeanne/flashcards/latest)](https://hub.docker.com/r/valeriejeanne/flashcards)
@@ -61,7 +61,7 @@ This project follows a realistic database lifecycle strategy depending on the **
 
 | Branch     | Database type          | Schema strategy | Data initialization              |
 |------------|------------------------|-----------------|----------------------------------|
-| `develop`  | Local (ephemeral)      | `create-drop`   | `data.sql` executed automatically|
+| `develop`  | Local                  | `create-drop`   | `data.sql` executed automatically|
 | `staging`  | Persistent (local VM)  | `update`        | No automatic data loading        |
 | `main`     | Persistent (production)| `update`        | No automatic data loading        |
 
@@ -77,7 +77,7 @@ This project follows a realistic database lifecycle strategy depending on the **
 FLASHCARDS/
 ├── .github
 │    └─ workflows
-│	    └─ main.yaml  
+│	    └─ cd-prod.yml  
 ├── ci-scripts
 │    └─ build.sh
 │    └─ docker-build.sh
@@ -113,6 +113,23 @@ FLASHCARDS/
 ---
 
 ## Installation & Setup
+
+### Important note about data
+
+Cloning the `main` branch does **not** provide any sample or production data by default.
+
+This is intentional and follows production best practices:
+- `main` represents a production-ready codebase
+- No data is created or modified automatically at startup
+- Databases are assumed to be pre-existing and managed externally
+
+If you want sample data:
+- use the `develop` branch (automatic data loading)
+- or initialize your own database manually using SQL scripts
+
+This design prevents accidental data loss and guarantees safe redeployments.
+
+---
 
 ### Clone the project
 
@@ -175,11 +192,20 @@ Build:
 ```sh
 ./mvnw clean install
 ```
+
 and: 
+
 ```sh
-./mvnw spring-boot:run 
-#or
+./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
+# or
 java -jar target/flashcards-0.0.1-SNAPSHOT.jar
+```
+
+or use:  
+
+```sh
+export SPRING_PROFILES_ACTIVE=prod
+./mvnw spring-boot:run
 ```
 
 #### Behavior:
@@ -191,11 +217,32 @@ java -jar target/flashcards-0.0.1-SNAPSHOT.jar
 
 ### Access the Application
 
-Base URLs: `http://localhost:8080`   return →  the links used by the application
-Healthpoint: `http://localhost:8080/actuator/health` return →  "status: "UP",groups: ["liveness","readiness"]}"
+#### Web Interface
 
-> **Note:**
-> In the `develop` and `staging` branches, there is a minimal web user interface (HTML + JavaScript) for interacting with the API. 
+Once the application is running, open: `http://localhost:8080`
+
+This page provides: A simple UI to list, search, create, update and delete:
+- Categories
+- Flashcards
+
+> Click-to-toggle or hide Flashcard answers
+> Visibility of category ID for each Flashcard
+
+> This UI is intentionally simple and framework-free (no React/Angular)
+
+as the project focuses on backend, CI/CD, and DevOps practices.
+
+**Notes on Frontend vs Backend responsibilities**
+
+- The **backend** remains API-first
+- The **frontend**:
+    * Is served from `src/main/resources/static`
+    * Uses fetch() to call REST endpoints
+
+> Exists only to improve developer experience and project discoverability
+> In a real-world scenario, this frontend could be: Replaced by a dedicated frontend application Or deployed separately (e.g., React + API gateway)
+
+---
 
 ### Access to the API
 
@@ -203,6 +250,9 @@ Healthpoint: `http://localhost:8080/actuator/health` return →  "status: "UP",g
 http://localhost:8080/api/categories
 http://localhost:8080/api/flashcards
 ```
+Healthpoint: `http://localhost:8080/actuator/health` return →  "status: "UP",groups: ["liveness","readiness"]}"
+
+---
 
 ### Endpoints
 

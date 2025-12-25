@@ -1,3 +1,7 @@
+# database assets (never versioned on main)
+db/
+src/main/resources/db/
+
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
