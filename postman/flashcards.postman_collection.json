@@ -1,0 +1,171 @@
+{
+    "info": {
+        "_postman_id": "d5ecd42f-0977-438f-8b23-edd5b1c390e3",
+        "name": "Flashcards API - Staging",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8081"
+        }
+    ],
+    "item": [
+        {
+            "name": "Get all flashcards",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/flashcards"
+            }
+        },
+        {
+            "name": "Search flashcards by question",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/flashcards/search?question=remove",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "flashcards",
+                        "search"
+                    ],
+                    "query": [
+                        {
+                            "key": "question",
+                            "value": "remove"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get all categories",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/categories"
+            }
+        },
+        {
+            "name": "Get category by ID",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/categories/1"
+            }
+        },
+        {
+            "name": "Search category by name",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/categories/search?name=git",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "categories",
+                        "search"
+                    ],
+                    "query": [
+                        {
+                            "key": "name",
+                            "value": "git"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Add flashcard",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"question\": \"test ADD flashcard\",\n  \"answer\": \"ADD test flashcard\",\n  \"category\": { \"id\": 1 }\n}"
+                },
+                "url": "{{baseUrl}}/api/flashcards"
+            }
+        },
+        {
+            "name": "Add category",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"name\": \"test\"\n}"
+                },
+                "url": "{{baseUrl}}/api/categories"
+            }
+        },
+        {
+            "name": "Modify category",
+            "request": {
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"name\": \"Keytool one-liner\"\n}"
+                },
+                "url": "{{baseUrl}}/api/categories/4"
+            }
+        },
+        {
+            "name": "Modify flashcard",
+            "request": {
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"question\": \"test PUT\",\n  \"answer\": \"PUT test\",\n  \"category\": { \"id\": 1 }\n}"
+                },
+                "url": "{{baseUrl}}/api/flashcards/25"
+            }
+        },
+        {
+            "name": "Delete category",
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{baseUrl}}/api/categories/6"
+            }
+        },
+        {
+            "name": "Delete flashcard",
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{baseUrl}}/api/flashcards/6"
+            }
+        }
+    ]
+}
