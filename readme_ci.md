@@ -319,12 +319,13 @@ Any violation fails the pipeline.
 ---
 
 ### Smoke tests (container validation)
+
 Before publishing to Docker Hub:
 - Container is started in CI
-- Spring Boot health check is executed
+- Spring Boot health check (`/actuator/health`) is executed
 - API endpoint (`/api/categories`) is validated
 
-Only runnable, production-ready images are published.
+This ensures that only runnable, production-ready images are published.
 
 ---
 
