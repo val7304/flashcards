@@ -1,6 +1,7 @@
 package com.example.flashcards.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.example.flashcards.dto.FlashcardDto;
@@ -8,7 +9,6 @@ import com.example.flashcards.entity.Category;
 import com.example.flashcards.entity.Flashcard;
 import com.example.flashcards.mapper.FlashcardMapper;
 import com.example.flashcards.repository.FlashcardRepository;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +36,7 @@ class FlashcardServiceTest {
     Flashcard f1 = new Flashcard(1L, "Q1", "A1", category);
     Flashcard f2 = new Flashcard(2L, "Q2", "A2", category);
 
-    when(flashcardRepository.findAll()).thenReturn(Arrays.asList(f1, f2));
+    when(flashcardRepository.findAllWithCategory()).thenReturn(List.of(f1, f2));
 
     List<Flashcard> flashcards = flashcardService.getAllFlashcards();
     List<FlashcardDto> dtoList = flashcards.stream().map(FlashcardMapper::toDto).toList();
