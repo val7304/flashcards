@@ -96,15 +96,13 @@ These rules are enforced automatically during the CI pipeline stages.
 
 ---
 
-### Branch profile
+### Branch, Profile & Environments
 
-*Each branch uses its own `application.properties` (default profile)*
-
-| Branch    | application.properties | Purpose               |
-|-----------|------------------------|---------------------- |
-| develop   | dev config             | Daily development     |
-| staging   | staging config         | Integration tests     |
-| main      | prod config            | Production            |
+| Branch    | Profil    | port       | Purpose                                 |
+|-----------|-----------|------------|---------------------------------------- |
+| develop   | dev       | 8080       | Continuous Integration (build + tests)  |
+| staging   | staging   | 8081       | Integration, QA & API testing           |
+| main      | prod      | 8080       | Production build, Docker & SonarCloud   |
 
 Each branch automatically loads the matching profile in CI/CD
 
@@ -112,7 +110,7 @@ Each branch automatically loads the matching profile in CI/CD
 
 ## CI Workflow
 
-location: `.github/workflows/staging.yml`
+location: `.github/workflows/ci-staging.yml`
 
 The following workflow is triggered on `push` and `pull requests` targeting the `staging` branch:
 
@@ -224,10 +222,7 @@ vulnerabilities and unsafe coding patterns at source code level.
 
 ### Notes for Staging CI  (Staging)
 
-> This branch is used for integration tests - not intended for production
-
-The `staging` branch runs **the complete QA pipeline**:
-**No Docker image and no SonarCloud scan are executed on this branch.**
+The `staging` branch runs **the complete QA pipeline**: **No Docker image and no SonarCloud scan are executed on this branch.**
 
 **`staging` profile** execution (staging branch):
 - Full API validation is performed using Newman
@@ -241,7 +236,8 @@ JUnit tests run using the dedicated test Spring profile (`src/test/resources/app
 - Fast and deterministic execution
 - No dependency on PostgreSQL
 
-> Checkstyle and SpotBugs must both pass with 0 issues before commit. 
+> Checkstyle and SpotBugs must both pass with 0 issues before commit
+
 > **Run tests:** all unit/integration tests must succeed before merge Compatible with CI/CD tools (GitHub Actions, Jenkins, GitLab CI)
 
 This ensures stable and reproducible CI test runs
@@ -300,10 +296,7 @@ Only runnable, production-ready images are published.
 
 ### CI/CD readiness
 - All unit and integration tests must pass before merge
-- Fully compatible with:
-  - GitHub Actions
-  - Jenkins
-  - GitLab CI
+- Fully compatible with other CICD platforms
 - CI scripts are centralized and reusable (`ci-scripts/`)
 
 ---
