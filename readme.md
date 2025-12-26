@@ -1,15 +1,28 @@
 # Flashcards Application 
 
+Flashcards is a Java Spring Boot application designed to manage flashcards and their categories.
+It serves as a learning and demonstration project showcasing DevOps practices, clean code principles, and CI/CD automation.
 
-[![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/staging.yml) 
-[![CI/CD](https://github.com/val7304/flashcards/actions/workflows/main.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/main.yml)
+This repository follows a three-branch strategy. Each branch activates a different runtime configuration aligned with its environment (`dev`, `staging`, `prod`)
 
-> **Note :**  
-> Advanced pipelines are only executed on the `main` branch. 
+[![CI/CD](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml)
+[![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards/tags)
+[![Docker Pulls](https://img.shields.io/docker/pulls/valeriejeanne/flashcards)](https://hub.docker.com/r/valeriejeanne/flashcards)
+[![Docker Image Size](https://img.shields.io/docker/image-size/valeriejeanne/flashcards/latest)](https://hub.docker.com/r/valeriejeanne/flashcards)
 
-> `staging` only executes: Build, Tests, Checkstyle, SpotBugs, Coverage, Postman/Newman.
+- `main` for production
+[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=coverage)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
 
-![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen) ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
+
+- [develop](https://github.com/val7304/flashcards/blob/develop) is dedicated to development
+- [staging](https://github.com/val7304/flashcards/tree/staging)  provides a safe environment close to production for integration, functional and API testing
+
+  [![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml) 
+  ![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/ci-develop.yml/badge.svg?branch=develop)
+  ![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen) ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
 
 > See also the [readme_CI](https://github.com/val7304/flashcards/blob/staging/readme_ci.md) for more information about CI.
 
@@ -20,9 +33,6 @@
 **Flashcards** is a Java Spring Boot application designed to manage flashcards and their categories.  
 It serves as a learning and demonstration project to practice **DevOps**, **clean code**, and **automation** concepts.
 
-The `staging` branch provides a safe environment close to production for integration, functional and API testing.
-
-
 ### Features
 
 - CRUD for categories and flashcards  
@@ -32,41 +42,51 @@ The `staging` branch provides a safe environment close to production for integra
 
 ### Technologies 
 
-| Layer    | Technology                        |
-| -------- | --------------------------------- |
-| Backend  | Java 17, Spring Boot 3            |
-| Build    | Maven Wrapper (`./mvnw`)          |
-| Database | PostgreSQL                        |
-| Testing  | JUnit 5, Mockito, Postman (Newman CLI) |
-| Quality  | Checkstyle, SpotBugs, JaCoCo      |
-| Security | Trivy FS scan (detects CVEs in dependencies and filesystem) |
-| CI       | GitHub Actions (staging pipeline) |
+| Layer    | Technology                                        |
+| -------- | ------------------------------------------------- |
+| Backend  | Java 17, Spring Boot 3                            |
+| Build    | Maven Wrapper (`./mvnw`)                          |
+| Database | PostgreSQL (runtime), H2 (tests)                  |
+| Testing  | JUnit 5, Mockito, Postman (Newman CLI)            |
+| Quality  | Checkstyle, SpotBugs, CodeQL, JaCoCo, SonarCloud  |
+| Security | Trivy (filesystem scan + Docker image scan)       |
+| CI       | GitHub Actions (staging pipeline)                 |
 
 
 ## Project structure
 
 ```text
-src/
- ├─ main/
- │   ├─ java/com/example/flashcards/
- │   │   ├─ controller/       # REST controllers
- │   │   ├─ dto/              # DTO for API exchanges
- │   │   ├─ entity/           # JPA entities
- │   │   ├─ mapper/           # Mapper
- │   │   ├─ entity/           # JPA entities
- │   │   ├─ service/          # Service
- │   │   └─ repository/       # JPA interfaces
- │   └─ resources/
- │       └─ application.properties  # common configuration (no active profile)
- ├─ db/
- │   └─ staging/
- │       └─ init-data.sql    # manual / CI staging init
- └─ test/
-     ├─ controller/           # Unit tests for controllers
-     ├─ service/              # Unit tests for services
-     ├─ integration/          # Integration tests
-     └─ resources/
-         └─ application-test.properties  # test profile
+FLASHCARDS/
+├── src/
+│	 ├─ main/                                   
+│	 │   ├─ java/com/example/flashcards/             # application source code
+│	 │   │   ├─ controller/                          # REST controllers
+│	 │   │   ├─ dto/                                 # DTO for API exchanges
+│	 │   │   ├─ entity/                              # JPA entities
+│	 │   │   ├─ mapper/                              # Mapper
+│	 │   │   ├─ repository/                          # JPA interfaces
+│	 │   │   ├─ service/                             # Service
+│	 │   │   └─ FlashcardsApplication.java                             
+│	 │   ├─ resources/
+│	 │   │   ├─ db/dev/                             # auto in dev
+│	 │   │   │      └─ init-data.sql                # datas for dev
+│	 │   │   ├─ application.properties              # common configuration
+│	 │   │   └─ application-[PROFILE].properties    # configuration profiles
+│	 │   ├─ static/
+│	 │   │   └─ index.html, app.js, styles.css      # simple static API webpage
+│	 ├─ db/
+│	 │   └─ [PROFILE]/                   
+│	 │     	 └─ init-data.sql                  # manual in staging/prod init
+│	 └─ test/java/com/example/flashcards/
+│		    ├─ controller/                     # Unit tests for controllers
+│		    ├─ dto/                            # Unit tests for dto
+│		    ├─ entity/                         # Unit tests for entities
+│		    ├─ integration/                    # Integration tests
+│		    ├─ mapper/                         # Unit tests for mapper
+│		    ├─ service/                        # Unit tests for service
+│		    └─ resources/                    
+│		           └─ application-test.properties	  # test profile
+└─── pom.xml
 ```
 
 ---
@@ -105,53 +125,73 @@ To override:
 export DB_USER=myuser
 export DB_PASSWORD=mypassword
 ```
+---
 
 ### Initialize the Database (Optional)
 
-```sh
-./init-db.sh
-```
+The `./init-db.sh` script checks for flashcardsdb, creating it if missing
 
 > This script is intended for local developers running PostgreSQL manually.
+> No manual initialization is required during CI
 
-> It is not used in CI and never executed in production environments.
+---
 
-### Database initialization (staging / prod)
+### Data Initialization (staging/main only)
 
 Staging and production databases are NOT initialized automatically by Spring Boot.
+In their environment, data is initialized manually using an idempotent SQL script
 
-Initial data must be loaded manually using SQL scripts:
+Script location: `db/staging/init-data.sql` 
 
 ```sh
-psql -h <host> -U postgres -d flashcardsdb -f db/staging/init-data.sql
+#psql -h <host> -U postgres -d flashcardsdb -f db/staging/init-data.sql
+psql -h localhost -U postgres -d flashcardsdb -f db/staging/init-data.sql
 ```
+** password: `pswd`
 
+> **Notes**
+> - Executed manually or via CI/CD, never by Spring Boot
+> - Safe to re-run if the script uses idempotent inserts (INSERT ... WHERE NOT EXISTS or ON CONFLICT DO NOTHING)
+> - Does NOT truncate or overwrite production data
+> - Fully compatible with PostgreSQL 16
 ---
 
 ### Run the application
 
-#### Default (Staging Profile)
-
+Build: 
 ```sh
 ./mvnw clean install
+```
+and: 
+```sh
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=staging
 ```
-
 or use:
-
 ```sh
-./mvnw clean install
-
 export SPRING_PROFILES_ACTIVE=staging
 ./mvnw spring-boot:run
 ```
 
-#### Behavior:
-- Database schema is updated, never dropped 
-- No automatic data initialization. Initial data must be loaded manually or via CI scripts
-- Tests run using the "test profile" with an embedded H2 database
-- Application runs on port 8081
-- Suitable for integration & functional API testing
+#### Runtime behavior by branch and profile
+
+Each Git branch enforces a specific Spring profile through configuration and CI.
+Runtime behavior (port, database lifecycle, actuator exposure) is therefore deterministic.
+
+`main` **Spring profile:** prod
+- Persistent data between runs (no automatic schema drop)
+- Application port: 8080
+- Designed for Docker and CI/CD usage
+- Actuator exposure: health only
+
+`staging` **Spring profile:** staging
+- Persistent data between runs
+- Application port: 8081
+- Actuator exposure: health/info
+
+`develop` **Spring profile:** dev
+- Database recreated on each startup
+- Application port: 8080
+- Actuator exposure: health/info
 
 ---
 
@@ -159,9 +199,7 @@ export SPRING_PROFILES_ACTIVE=staging
 
 #### Web Interface
 
-Once the application is running, open:
-
-http://localhost:8081
+Once the application is running, open: http://localhost:8081
 
 This page provides: A simple UI to list, search, create, update and delete:
 - Categories
@@ -185,14 +223,31 @@ as the project focuses on backend, CI/CD, and DevOps practices.
 > In a real-world scenario, this frontend could be: Replaced by a dedicated frontend application Or deployed separately (e.g., React + API gateway)
 
 ---
+### Actuator endpoints
 
-#### Base URLs:
+#### Health endpoint
+`http://localhost:8081/actuator/health`  Returns the application health status.
+Details are intentionally restricted (UP only) to avoid exposing sensitive information.
+
+#### Info endpoint
+
+`http://localhost:8081/actuator/info`   aggregates:
+* build metadata generated by spring-boot-maven-plugin
+* environment-specific properties prefixed with info.*
+
+> Exposure is profile-dependent and controlled via:
+
+> `management.info.*.enabled `
+> `management.endpoints.web.exposure.include`
+
+---
+
+### Access to the API
 
 ```sh
 http://localhost:8081/api/categories
 http://localhost:8081/api/flashcards
 ```
----
 
 ### API Endpoints
 
@@ -215,7 +270,7 @@ http://localhost:8081/api/flashcards
 
 ### Data Initialization
 
-`init-data.sql` loads:
+`init-data.sql` inserts:
 - 5 categories
 - 25 flashcards (5 per categories)
 
