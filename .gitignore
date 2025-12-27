@@ -1,6 +1,3 @@
-# pipeline prod in develop
-.github/workflows/cd-prod.yml
-
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
