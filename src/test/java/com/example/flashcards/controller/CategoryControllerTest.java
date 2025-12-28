@@ -13,8 +13,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = CategoryController.class)
@@ -24,10 +24,11 @@ class CategoryControllerTest {
 
   @Autowired private ObjectMapper objectMapper;
 
-  @MockitoBean private CategoryService categoryService;
+  @MockBean private CategoryService categoryService;
 
   @Test
   void shouldGetAllCategories() throws Exception {
+
     Category c = new Category();
     c.setId(1L);
     c.setName("Test Category");
@@ -48,6 +49,7 @@ class CategoryControllerTest {
 
   @Test
   void searchByName_returnsResults() throws Exception {
+
     when(categoryService.searchByName("algo"))
         .thenReturn(List.of(new CategoryDto(1L, "Algorithmes")));
 
@@ -61,6 +63,7 @@ class CategoryControllerTest {
 
   @Test
   void shouldCreateCategory() throws Exception {
+
     CategoryDto newDto = new CategoryDto();
     newDto.setName("New Category");
 

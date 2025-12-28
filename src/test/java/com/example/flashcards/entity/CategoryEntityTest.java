@@ -30,9 +30,7 @@ class CategoryEntityTest {
     assertEquals(1, internal.size());
 
     // returned list must be unmodifiable
-    Flashcard flashcard = new Flashcard();
-
-    assertThrows(UnsupportedOperationException.class, () -> internal.add(flashcard));
+    assertThrows(UnsupportedOperationException.class, () -> internal.add(new Flashcard()));
   }
 
   @Test

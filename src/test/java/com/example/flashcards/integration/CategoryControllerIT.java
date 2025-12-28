@@ -1,5 +1,6 @@
 package com.example.flashcards.integration;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -23,23 +24,21 @@ class CategoryControllerIT {
   @Autowired private ObjectMapper objectMapper;
 
   @Test
-  void shouldCreateAndGetCategories() throws Exception {
-    CategoryDto dto = new CategoryDto();
-    dto.setName("IntegrationTestCategory");
+  void testCreateAndGetCategory() throws Exception {
+    // 1. Create category
+    CategoryDto category = new CategoryDto(null, "IntegrationTestCategory");
+    String json = objectMapper.writeValueAsString(category);
 
-    // POST
     mockMvc
-        .perform(
-            post("/api/categories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
+        .perform(post("/api/categories").contentType(MediaType.APPLICATION_JSON).content(json))
         .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").isNumber())
         .andExpect(jsonPath("$.name").value("IntegrationTestCategory"));
 
-    // GET
+    // 2. Ensure category appears in list (any position)
     mockMvc
         .perform(get("/api/categories"))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+        .andExpect(jsonPath("$[*].name", hasItem("IntegrationTestCategory")));
   }
 }

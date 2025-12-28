@@ -1,10 +1,5 @@
-FROM eclipse-temurin:17-jre-jammy
-
-RUN useradd -r -u 1001 appuser
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY target/flashcards-*.jar app.jar
-RUN chown -R appuser:appuser /app
-USER appuser
-
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

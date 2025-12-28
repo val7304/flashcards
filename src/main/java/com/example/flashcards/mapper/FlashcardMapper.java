@@ -56,7 +56,11 @@ public final class FlashcardMapper {
     flashcard.setId(dto.getId());
     flashcard.setQuestion(dto.getQuestion());
     flashcard.setAnswer(dto.getAnswer());
-    flashcard.setCategory(category);
+    if (category != null) {
+      flashcard.setCategory(new Category(category.getId(), category.getName(), null));
+    } else {
+      flashcard.setCategory(null);
+    }
     return flashcard;
   }
 }

@@ -31,6 +31,7 @@ public class CategoryController {
    *
    * @param categoryService service de gestion des catégories
    */
+  // CHECKSTYLE:OFF: ParameterAssignment
   @SuppressFBWarnings(
       value = "EI_EXPOSE_REP2",
       justification = "Spring injects immutable service beans safely")
@@ -38,6 +39,8 @@ public class CategoryController {
   public CategoryController(final CategoryService categoryService) {
     this.categoryService = categoryService;
   }
+
+  // CHECKSTYLE:ON: ParameterAssignment
 
   /**
    * Récupère toutes les catégories.
@@ -76,7 +79,7 @@ public class CategoryController {
   }
 
   /**
-   * Crée une catégorie.
+   * Crée une catégorie par son nom.
    *
    * @param dto nom de la catégorie
    * @return catégorie créée

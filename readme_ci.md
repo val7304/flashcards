@@ -1,7 +1,8 @@
 # Flashcards CI/CD Pipeline Documentation
 
-This folder contains the files and scripts related to the CI/CD pipelines for the **Flashcards** project.
+This folder contains the files and scripts related to the CI/CD pipelines for the Flashcards project
 
+## Flashcards CI/CD Status
 ## Flashcards CI/CD Status
 
 #### Production Build & Release Pipeline
@@ -35,87 +36,108 @@ This folder contains the files and scripts related to the CI/CD pipelines for th
 
 ---
 
-## Code Quality Enforcement
+## Overview
 
-The CI pipeline enforces strict quality gates:
-
-- Spotless (formatting)
-- Checkstyle
-- SpotBugs
-- JaCoCo coverage
-- SonarCloud Quality Gate (main only)
-
-Any violation fails the pipeline immediately.
+The CI pipeline on `staging` automates:
+- Build & packaging (Maven)
+- Format code (Spotless)
+- Static application security testing (CodeQL)
+- Static code quality scanning (Checkstyle, SpotBugs)
+- Unit & integration tests (JUnit 5)
+- Coverage analysis (JaCoCo)
+- Execute API test collections (Postman/Newman)
+- Security scanning (Trivy)
+- Artifact publishing (JaCoCo reports)
 
 ---
 
 ## Project structure
 
-```text
-flashcards/
- ├─ .github/workflows/cd-prod.yml    # main CD pipeline
- ├─ src/test/java/                   # Unit & integration tests
- ├─ src/main/java/                   # Application source code
- ├─ src/main/resources/
- │             └─ application.properties
- ├─ config/checkstyle/                  
- ├─ db/prod/
- │      └─ init-data.sql           # manual / CI production init
- ├─ Dockerfile
- ├─ pom.xml
- └─ sonar-project.properties
+ ```text
+FLASHCARDS/
+ ├── .github/workflows/
+ │             ├─ cd-prod.yml        # CD pipeline (main)
+ │             └─ ci-[branch].yml    # CI pipeline (develop/staging)
+ ├── ci-scripts
+ │      ├─ build.sh
+ │      ├─ docker-build.sh
+ │      └─ test.sh
+ ├── config/checkstyle/
+ │   	       ├─ checkstyle-suppressions.xml
+ │   		   └─ checkstyle.xml 
+ ├── db/[profile]/                              # manual / CI staging & prod init
+ │		  └─ init-data.sql                      
+ ├── src/main/java/com/example/flashcards       # Application source code
+ │		        ├─ static/                
+ │		        └─ resources/                
+ │		             ├─ db/dev/init-data.sql    # datas for dev                
+ │		             ├─ static/                 # simple web API                
+ │		             └─ application.properties, application-[profile].properties                 
+ ├── src/test/java/com/example/flashcards/      # Unit & integration tests
+ │		            ├─ controller/                
+ │		            ├─ dto/                
+ │		            ├─ entity/                
+ │		            ├─ integration/                   
+ │		            ├─ mapper/               
+ │		            ├─ service/               
+ │		            └─ resources/                    
+ │		                └─ application-test.properties
+ ├── postman/
+ │     └─ flashcards.postman_collection.json  
+ ├── Dockerfile
+ ├── pom.xml
+ └── sonar-project.properties
 ```
 
 #### The pipeline uses the project's dedicated Checkstyle configuration
 These rules are enforced automatically during the CI pipeline stages.
 
---- 
-
-### Branch profile
-
-*Each branch uses its own `application.properties` (default profile)*
-
-| Branch    | application.properties | Purpose               |
-|-----------|------------------------|---------------------- |
-| develop   | dev config             | Daily development     |
-| staging   | staging config         | Integration tests     |
-| main      | prod config            | Production            |
-
-
-Each branch automatically loads the matching profile in CI/CD
-
-----
-
-## CI Workflow
-
-location: `.github/workflows/cd-prod.yml`
-
-The following workflow is triggered on `push` targeting the `main` branch:
-
-```text
-.github/workflows/cd-prod.yml
-├─ Checkout & Maven cache                : Clone repository / restore dependencies
-├─ Spotless check                        : Validate formatting with Spotless
-├─ Static analysis                       : Checkstyle + SpotBugs + CodeQL
-├─ Build & Tests                         : Unit + integration tests (JUnit 5)
-├─ Coverage (JaCoCo)                     : Generate XML report for CI
-├─ Security scan (Trivy filesystem)      : CVE detection on project dependencies
-├─ Build Docker image                    : Tagged with short SHA
-├─ Security scan (Trivy Docker image)    : CVE detection on final container image
-├─ Container smoke tests                 : Health check + API endpoint validation
-├─ Release tagging                       : Git release tag (vX.Y.Z)
-├─ Push Docker image to Docker Hub       : Version, short SHA and latest tags
-├─ SonarCloud analysis                   : JaCoCo upload + Quality Gate
-└─ Workspace cleanup                     : Final cleanup
-```
-
-Trivy is used to detect vulnerabilities both in:
-- project dependencies (filesystem scan)
-- the final Docker image (image scan)
+#### A **Postman collection** is included and can be used manually or within CI
 
 ---
 
-## Quality Gates Summary (all branches)
+### Branch, Profile & Environments
+
+| Branch    | Profil    | port       | Purpose                                 |
+|-----------|-----------|------------|---------------------------------------- |
+| develop   | dev       | 8080       | Continuous Integration (build + tests)  |
+| staging   | staging   | 8081       | Integration, QA & API testing           |
+| main      | prod      | 8080       | Production build, Docker & SonarCloud   |
+
+Each branch automatically loads the matching profile in CI/CD
+
+--- 
+
+## CI Workflow
+
+location: `.github/workflows/ci-staging.yml`
+
+The following workflow is triggered on `push` and `pull requests` targeting the `staging` branch:
+
+```text
+.github/workflows/staging.yml
+├─ Checkout & Maven cache           : Clone repository and restore Maven dependencies
+├─ Static analysis                  : Checkstyle + SpotBugs + CodeQL
+├─ PostgreSQL service               : Real PostgreSQL instance for integration tests
+├─ Build & Tests                    : Unit tests (H2) + integration tests (PostgreSQL service)
+├─ Coverage (JaCoCo)                : Generate XML and HTML coverage reports
+├─ Security scan (Trivy filesystem) : Detect CVEs in project dependencies and filesystem
+├─ Start Spring Boot (staging profile) : Launch on port 8081 for live API testing
+├─ API tests with Newman           : Execute Postman collection against running application
+├─ Upload artifacts                : Store Checkstyle, SpotBugs, logs, and coverage reports
+└─ Workspace cleanup               : Final cleanup of temporary files
+```
+
+--- 
+
+## CI/CD Platforms
+
+### GitHub Actions: Used for:
+`Build & tests`  `Code quality` `Security scanning` `API testing` `Artifact generation` 
+
+> The project structure and CI scripts are designed to be easily portable to others CI/CD platforms
+
+### Quality Gates Summary (all branches)
 
 | Branch  | Build/Test | Checkstyle | SpotBugs | Coverage | Trivy | Newman | Docker | SonarCloud |
 | ------- | ---------- | ---------- | -------- | -------- | ----- | ------ | ------ | ---------- |
@@ -127,63 +149,39 @@ Trivy is used to detect vulnerabilities both in:
 
 ---
 
-## SonarCloud Integration
+### Integration tests run with:
 
-This project uses SonarCloud to analyze code quality 
-
-The workflow:
-1. Generates JaCoCo XML coverage report
-2. Uploads it to the pipeline
-3. Runs `SonarSource/sonarqube-scan-action`
-4. SonarCloud reads `sonar-project.properties`
-5. Displays results (Bugs, Code Smells, Coverage, Duplications)
-
-SonarCloud is only triggered on the `main` branch because the free plan only supports this branch
-
-[See the full analysis on SonarCloud](https://sonarcloud.io/project/overview?id=val7304_flashcards)
+- @SpringBootTest
+- Real PostgreSQL service
+- Web environment on port 8081 (CI)
+- Application started with profile: `staging`
 
 ---
 
-## CI/CD Platforms
+## Run CI Locally (staging equivalent)
 
-### GitHub Actions: 
-- **GitHub Actions**  — Automated build and Docker publishing  
-- **Docker Hub**      — Stores ready-to-deploy images  
-- **ci-scripts/**     — Standardized shell scripts reusable across CI platforms  
-
-> The project structure and CI scripts are designed to be easily transferable in order to perform other scenarios on others CI/CD platforms
-
----
-
-## Tests Instructions & Code Quality
-
-#### Run locally:
-
-This project uses Spotless to enforce consistent code formatting.
+This project uses Spotless to enforce consistent code formatting. 
 
 The CI pipeline runs `./mvnw spotless:check`
 
-Before committing, 
-or if formatting issues are detected, apply fixes locally (before the clean verify cmd) to ensure formatting is correct:
+Before committing, or if formatting issues are detected, apply fixes locally (before the `clean verify` cmd) to ensure formatting is correct:
 
 ```sh
 ./mvnw spotless:apply
 ```
 
 Full pipeline equivalent:
-
 ```sh
-./mvnw clean verify
+./mvnw clean verify  
 ```
 
-#### Individual checks:
-
+Individual checks:
 ```sh
 ./mvnw spotless:apply
-./mvnw test
-./mvnw checkstyle:check
+./mvnw checkstyle:check 
 ./mvnw spotbugs:check
-./mvnw jacoco:report
+./mvnw test
+./mvnw jacoco:report   
 ```
 
 #### Reports Generated: local(developer): 
@@ -201,36 +199,48 @@ Full pipeline equivalent:
 
 ### Static Application Security (CodeQL)
 
-CodeQL is executed on the all branches to detect potential security
+CodeQL is executed on the `staging` branch to detect potential security
 vulnerabilities and unsafe coding patterns at source code level.
 
 > Results are published in GitHub Security → Code scanning alerts.
 
-### Reports Generated: in CI: 
+#### Reports Generated: in CI: 
 
-| Branch            | Report             | Location / Artifact                                                |
+| Branch            | Report             | Location / Artifact                       |
 | ----------------- | ------------------ | ------------------------------------------------------------------ |
-| develop           | JaCoCo XML         | `target/site/jacoco/` (XML uploaded as CI artifact)                |
+| develop           | JaCoCo HTML + XML  | `target/site/jacoco/` (XML uploaded as CI artifact)                |
 | staging           | JaCoCo HTML + XML  | `target/site/jacoco/jacoco.xml` (HTML + XML uploaded as artifacts) |
 | staging           | Application logs   | `spring.log` (uploaded as CI artifact)                             |
 | main              | JaCoCo XML only    | `target/site/jacoco/jacoco.xml` (for SonarCloud)                   |
 
-> JaCoCo XML is uploaded for SonarCloud usage
+> JaCoCo XML is uploaded for SonarCloud usage (on `main` only).
+
 > A **Trivy** report is available in the GitHub Actions logs under the job `Scan filesystem with Trivy` 
+> The report highlights vulnerable dependencies detected from your `pom.xml` and filesystem
 
 ---
 
-## Notes for `main` CI
+### Notes for Staging CI  (Staging)
 
-### Test execution (`test` profile)
-JUnit tests run using the dedicated `test` Spring profile
-(`src/test/resources/application-test.properties`).
+The `staging` branch runs **the complete QA pipeline**: **No Docker image and no SonarCloud scan are executed on this branch.**
 
+**`staging` profile** execution (staging branch):
+- Full API validation is performed using Newman
+- All logs and reports are uploaded, even on failure
+- The application runs on port 8081
+
+### Test execution (test profile)
+JUnit tests run using the dedicated test Spring profile (`src/test/resources/application-test.properties`)
+- Runs in all environments
 - In-memory H2 database
 - Fast and deterministic execution
 - No dependency on PostgreSQL
 
-This ensures stable and reproducible CI test runs.
+> Checkstyle and SpotBugs must both pass with 0 issues before commit
+
+> **Run tests:** all unit/integration tests must succeed before merge Compatible with CI/CD tools (GitHub Actions, Jenkins, GitLab CI)
+
+This ensures stable and reproducible CI test runs
 
 ---
 
@@ -242,10 +252,6 @@ Designed for:
 - Persistent data
 - Docker-based deployments
 - Production parity
-
-> **Note:** CI/CD pipelines never populate production data.
-> Database initialization is always an explicit and controlled operation.
-
 
 #### Database initialization
 - `spring.sql.init.mode=never`
@@ -290,10 +296,7 @@ Only runnable, production-ready images are published.
 
 ### CI/CD readiness
 - All unit and integration tests must pass before merge
-- Fully compatible with:
-  - GitHub Actions
-  - Jenkins
-  - GitLab CI
+- Fully compatible with other CICD platforms
 - CI scripts are centralized and reusable (`ci-scripts/`)
 
 ---
