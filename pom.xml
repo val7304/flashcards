@@ -229,6 +229,8 @@
                                     <element>BUNDLE</element>
                                     <excludes>
                                         <exclude>com/example/flashcards/dto/**</exclude>
+                                        <exclude>com/example/flashcards/entity/**</exclude>
+                                        <exclude>com/example/flashcards/mapper/**</exclude>
                                         <exclude>com/example/flashcards/FlashcardsApplication.class</exclude>
                                     </excludes>
                                     <limits>
