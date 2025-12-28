@@ -41,14 +41,14 @@ public class Category {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "category_id")
-  private Category category;
+  private Category parentCategory;
 
-  public Category getCategory() {
-    return category;
+  public Category getParentCategory() {
+    return parentCategory;
   }
 
-  public void setCategory(Category category) {
-    this.category = category;
+  public void setParentCategory(Category parentCategory) {
+    this.parentCategory = parentCategory;
   }
 
   /** Liste des flashcards associées à cette catégorie. */

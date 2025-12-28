@@ -15,8 +15,79 @@ class FlashcardMapperTest {
   }
 
   @Test
+  void toDto_happyPath_withCategory() {
+    Category cat = new Category();
+    cat.setId(3L);
+    cat.setName("CatX");
+
+    Flashcard f = new Flashcard();
+    f.setId(11L);
+    f.setQuestion("Q?");
+    f.setAnswer("A");
+    f.setCategory(cat);
+
+    FlashcardDto dto = FlashcardMapper.toDto(f);
+
+    assertEquals(11L, dto.getId());
+    assertEquals("Q?", dto.getQuestion());
+    assertEquals("A", dto.getAnswer());
+    assertEquals(3L, dto.getCategoryId()); // branche non-null couverte
+  }
+
+  @Test
+  void toDto_happyPath_withoutCategory() {
+    Flashcard f = new Flashcard();
+    f.setId(11L);
+    f.setQuestion("Q?");
+    f.setAnswer("A");
+    f.setCategory(null);
+
+    FlashcardDto dto = FlashcardMapper.toDto(f);
+
+    assertEquals(11L, dto.getId());
+    assertEquals("Q?", dto.getQuestion());
+    assertEquals("A", dto.getAnswer());
+    assertNull(dto.getCategoryId()); // branche null couverte
+  }
+
+  @Test
   void toEntity_null_returnsNull() {
     assertNull(FlashcardMapper.toEntity(null, null));
+  }
+
+  @Test
+  void toEntity_withCategory() {
+    Category cat = new Category();
+    cat.setId(3L);
+    cat.setName("CatX");
+
+    FlashcardDto dto = new FlashcardDto();
+    dto.setId(11L);
+    dto.setQuestion("Q?");
+    dto.setAnswer("A");
+
+    Flashcard f = FlashcardMapper.toEntity(dto, cat);
+
+    assertEquals(11L, f.getId());
+    assertEquals("Q?", f.getQuestion());
+    assertEquals("A", f.getAnswer());
+    assertNotNull(f.getCategory());
+    assertEquals(3L, f.getCategory().getId()); // branche if couverte
+  }
+
+  @Test
+  void toEntity_withoutCategory() {
+    FlashcardDto dto = new FlashcardDto();
+    dto.setId(11L);
+    dto.setQuestion("Q?");
+    dto.setAnswer("A");
+
+    Flashcard f = FlashcardMapper.toEntity(dto, null);
+
+    assertEquals(11L, f.getId());
+    assertEquals("Q?", f.getQuestion());
+    assertEquals("A", f.getAnswer());
+    assertNull(f.getCategory()); // branche else couverte
   }
 
   @Test
@@ -32,25 +103,16 @@ class FlashcardMapperTest {
     f.setCategory(cat);
 
     FlashcardDto dto = FlashcardMapper.toDto(f);
-    assertNotNull(dto);
-    assertEquals(11L, dto.getId());
-    assertEquals("Q?", dto.getQuestion());
-    assertEquals("A", dto.getAnswer());
-    assertEquals(3L, dto.getCategoryId());
-
     Flashcard back = FlashcardMapper.toEntity(dto, cat);
-    assertNotNull(back);
-    assertEquals(dto.getId(), back.getId());
-    assertEquals(dto.getQuestion(), back.getQuestion());
-    assertEquals(dto.getAnswer(), back.getAnswer());
 
-    // Le Flashcard.getCategory retourne une copie défensive : vérifier les champs
-    // et non l'identité
+    assertEquals(f.getId(), back.getId());
+    assertEquals(f.getQuestion(), back.getQuestion());
+    assertEquals(f.getAnswer(), back.getAnswer());
+
     Category returned = back.getCategory();
     assertNotNull(returned);
     assertEquals(cat.getId(), returned.getId());
     assertEquals(cat.getName(), returned.getName());
-    assertNotSame(
-        cat, returned, "getCategory() doit retourner une copie défensive, pas la même instance");
+    assertNotSame(cat, returned, "copie défensive");
   }
 }
