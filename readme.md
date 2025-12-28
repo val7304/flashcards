@@ -179,16 +179,24 @@ Build:
 ```sh
 ./mvnw clean install
 ```
-and: 
+
+Run (default: dev)
 ```sh
-export SPRING_PROFILES_ACTIVE=dev
 ./mvnw spring-boot:run
 ```
-or use: 
-```sh 
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
-#or
-java -jar target/flashcards-0.0.1-SNAPSHOT.jar
+
+or run with a specific profile
+```sh
+SPRING_PROFILES_ACTIVE=staging  ./mvnw spring-boot:run
+```
+or 
+```sh
+SPRING_PROFILES_ACTIVE=prod  ./mvnw spring-boot:run
+```
+
+Run the packaged JAR
+```sh
+java -jar target/flashcards-0.0.1-SNAPSHOT.jar  --spring.profiles.active=prod
 ```
 
 #### Runtime behavior by branch (Spring profile-based)
