@@ -1,0 +1,189 @@
+name: Prod Build, Analyze and Deploy Flashcards App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: write
+  actions: write
+  id-token: write
+  security-events: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: flashcardsdb
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pswd
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      IMAGE_NAME: flashcards
+      RELEASE_TAG: v0.${{ github.run_number }}.0
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Make scripts executable
+        run: |
+          chmod +x mvnw
+          chmod +x ci-scripts/*.sh
+
+      - name: Validate formatting with Spotless
+        run: ./mvnw -q spotless:check
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@1b168cd39490f61582a9beae412bb7057a6b2c4e
+        with:
+          languages: java
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+      - name: Run Maven build + tests + JaCoCo
+        run: ./mvnw -B clean verify jacoco:report
+
+      - name: Upload JaCoCo XML
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: jacoco-xml
+          path: target/site/jacoco/jacoco.xml
+
+      - name: SonarCloud analysis
+        run: |
+          ./mvnw sonar:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization=val7304 \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.qualitygate.wait=true \
+            -Dsonar.sourceEncoding=UTF-8 \
+            -Dsonar.securityAnalysisEnabled=false
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@1b168cd39490f61582a9beae412bb7057a6b2c4e
+
+      - name: Scan dependencies with Trivy
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          severity: HIGH,CRITICAL
+
+      - name: Compute short SHA
+        id: vars
+        run: echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Build Docker image
+        run: ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
+        with:
+          scan-type: image
+          image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: 1
+
+      - name: Run container for smoke tests
+        run: |
+          docker run -d --name flashcards-smoke \
+            --add-host=host.docker.internal:host-gateway \
+            -p 8080:8080 \
+            -e SPRING_PROFILES_ACTIVE=prod \
+            -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/flashcardsdb \
+            -e SPRING_DATASOURCE_USERNAME=postgres \
+            -e SPRING_DATASOURCE_PASSWORD=pswd \
+            $IMAGE_NAME:$IMAGE_TAG
+
+      - name: Wait for Spring Boot health endpoint
+        run: |
+          for i in {1..20}; do
+            if curl -sf http://localhost:8080/actuator/health > /dev/null; then
+              echo "Spring Boot is healthy"
+              exit 0
+            fi
+            sleep 3
+          done
+          docker logs flashcards-smoke
+          exit 1
+
+      - name: Smoke Test - Categories endpoint
+        run: |
+          for i in {1..3}; do
+            if curl -sf http://localhost:8080/api/categories > /dev/null; then
+              echo "API /categories OK"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "API smoke test FAILED"
+          exit 1
+
+      - name: Stop smoke test container
+        if: always()
+        run: |
+          docker stop flashcards-smoke || true
+          docker rm flashcards-smoke || true
+
+      - name: Create Git Tag for release
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${RELEASE_TAG}
+          git push origin ${RELEASE_TAG}
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Push image to Docker Hub
+        run: |
+          docker tag $IMAGE_NAME:$IMAGE_TAG ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
+          docker tag $IMAGE_NAME:$IMAGE_TAG ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:${RELEASE_TAG}
+          docker tag $IMAGE_NAME:$IMAGE_TAG ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:${RELEASE_TAG}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
+
+  cleanup:
+    runs-on: ubuntu-24.04
+    needs: build
+    if: always()
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      - run: chmod +x mvnw
+      - run: ./mvnw clean
+      
