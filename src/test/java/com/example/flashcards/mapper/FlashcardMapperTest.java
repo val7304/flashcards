@@ -11,13 +11,11 @@ class FlashcardMapperTest {
 
   @Test
   void toDto_null_returnsNull() {
-    // Couvre if (flashcard == null)
     assertNull(FlashcardMapper.toDto(null));
   }
 
   @Test
   void toDto_happyPath_withCategory() {
-    // Couvre ternaire flashcard.getCategory() != null
     Category cat = new Category();
     cat.setId(3L);
     cat.setName("CatX");
@@ -38,7 +36,6 @@ class FlashcardMapperTest {
 
   @Test
   void toDto_happyPath_withoutCategory() {
-    // Couvre ternaire flashcard.getCategory() == null
     Flashcard f = new Flashcard();
     f.setId(11L);
     f.setQuestion("Q?");
@@ -55,13 +52,11 @@ class FlashcardMapperTest {
 
   @Test
   void toEntity_null_returnsNull() {
-    // Couvre if (dto == null)
     assertNull(FlashcardMapper.toEntity(null, null));
   }
 
   @Test
   void toEntity_withCategory() {
-    // Couvre if (category != null) + new Category()
     Category cat = new Category();
     cat.setId(3L);
     cat.setName("CatX");
@@ -82,7 +77,6 @@ class FlashcardMapperTest {
 
   @Test
   void toEntity_withoutCategory() {
-    // Couvre else { setCategory(null) }
     FlashcardDto dto = new FlashcardDto();
     dto.setId(11L);
     dto.setQuestion("Q?");
@@ -96,7 +90,6 @@ class FlashcardMapperTest {
     assertNull(f.getCategory()); // branche else couverte
   }
 
-  // Ton test roundtrip excellent (on le garde)
   @Test
   void toDto_and_toEntity_roundtrip() {
     Category cat = new Category();

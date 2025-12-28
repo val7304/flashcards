@@ -10,19 +10,16 @@ class CategoryMapperTest {
 
   @Test
   void toDto_null_returnsNull() {
-    // Couvre le if (category == null)
     assertNull(CategoryMapper.toDto(null));
   }
 
   @Test
   void toEntity_null_returnsNull() {
-    // Couvre le if (dto == null)
     assertNull(CategoryMapper.toEntity(null));
   }
 
   @Test
   void toDto_happyPath() {
-    // Couvre new CategoryDto() + getters
     Category entity = new Category();
     entity.setId(7L);
     entity.setName("MyCat");
@@ -36,7 +33,6 @@ class CategoryMapperTest {
 
   @Test
   void toEntity_happyPath() {
-    // Couvre new Category() + setters
     CategoryDto dto = new CategoryDto();
     dto.setId(7L);
     dto.setName("MyCat");
@@ -48,7 +44,7 @@ class CategoryMapperTest {
     assertEquals("MyCat", entity.getName());
   }
 
-  // Ton test roundtrip (bonus, excellent pour la qualité)
+  // test roundtrip
   @Test
   void toDto_and_toEntity_roundtrip() {
     Category entity = new Category();
