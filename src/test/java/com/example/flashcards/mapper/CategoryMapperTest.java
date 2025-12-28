@@ -19,19 +19,42 @@ class CategoryMapperTest {
   }
 
   @Test
+  void toDto_happyPath() {
+    Category entity = new Category();
+    entity.setId(7L);
+    entity.setName("MyCat");
+
+    CategoryDto dto = CategoryMapper.toDto(entity);
+
+    assertNotNull(dto);
+    assertEquals(7L, dto.getId());
+    assertEquals("MyCat", dto.getName());
+  }
+
+  @Test
+  void toEntity_happyPath() {
+    CategoryDto dto = new CategoryDto();
+    dto.setId(7L);
+    dto.setName("MyCat");
+
+    Category entity = CategoryMapper.toEntity(dto);
+
+    assertNotNull(entity);
+    assertEquals(7L, entity.getId());
+    assertEquals("MyCat", entity.getName());
+  }
+
+  // test roundtrip
+  @Test
   void toDto_and_toEntity_roundtrip() {
     Category entity = new Category();
     entity.setId(7L);
     entity.setName("MyCat");
 
     CategoryDto dto = CategoryMapper.toDto(entity);
-    assertNotNull(dto);
-    assertEquals(7L, dto.getId());
-    assertEquals("MyCat", dto.getName());
-
     Category back = CategoryMapper.toEntity(dto);
-    assertNotNull(back);
-    assertEquals(dto.getId(), back.getId());
-    assertEquals(dto.getName(), back.getName());
+
+    assertEquals(entity.getId(), back.getId());
+    assertEquals(entity.getName(), back.getName());
   }
 }
