@@ -32,15 +32,15 @@ class CategoryEntityTest {
     assertEquals("Math", category.getName());
     assertNotNull(category.getFlashcards());
     assertTrue(category.getFlashcards().isEmpty());
-    assertNull(category.getCategory()); // relation parent par défaut null
+    assertNull(category.getParentCategory()); // relation parent par défaut null
   }
 
   @Test
   void relation_parent_category() {
     // Couvre @ManyToOne lazy + getter/setter custom
     Category parent = new Category(10L, "Parent", null);
-    category.setCategory(parent);
-    assertEquals(parent, category.getCategory());
+    category.setParentCategory(parent);
+    assertEquals(parent, category.getParentCategory());
   }
 
   @Test
