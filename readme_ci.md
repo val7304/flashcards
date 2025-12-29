@@ -81,6 +81,8 @@ FLASHCARDS/
  │		             ├─ static/                 # simple web API                
  │		             └─ application.properties, application-[profile].properties                 
  ├── src/test/java/com/example/flashcards/      # Unit & integration tests
+ │		            ├─ config/                  # security config
+ │		            │    └─ SecurityConfig.java # fix CodeQL issue Actuator(CI)
  │		            ├─ controller/                
  │		            ├─ dto/                
  │		            ├─ entity/                
@@ -101,7 +103,7 @@ These rules are enforced automatically during the CI pipeline stages.
 
 --- 
 
-### Branch, Profile & Environments
+## Branch, Profile & Environments
 
 | Branch    | profile   | port  | Purpose                                 |
 |-----------|-----------|-------|---------------------------------------- |
@@ -177,8 +179,12 @@ SonarCloud is only triggered on the `main` branch because the free plan only sup
 - **GitHub Actions**  — Automated build and Docker publishing  
 - **Docker Hub**      — Stores ready-to-deploy images  
 - **ci-scripts/**     — Standardized shell scripts reusable across CI platforms  
+- **SonarQube Cloud** — Display Quality Gates and global view on QA  
 
 > The project structure and CI scripts are designed to be easily transferable in order to perform other scenarios on others CI/CD platforms
+
+### Secrets management
+Sensitive runtime credentials (password, Docker, SonarCloud tokens and actuator admin password) are injected using GitHub Secrets.
 
 ---
 
