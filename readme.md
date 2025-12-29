@@ -1,10 +1,9 @@
 # Flashcards Application
 
-
 **Flashcards** is a Java Spring Boot application designed to manage flashcards and their categories.  
 It serves as a learning and demonstration project showcasing **DevOps** practices, **clean code** principles, and **CI/CD automation**.
 
-This repository follows a **three-branch strategy**. Each branch activates a different runtime configuration aligned with its environment (`dev`, `staging`, `prod`).
+This repository follows a **three-branch strategy**. Each branch activates a different runtime configuration aligned with its environment (`dev`, `staging`, `prod`)
 
 [![CI/CD](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml)
 [![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards/tags)
@@ -30,7 +29,7 @@ This repository follows a **three-branch strategy**. Each branch activates a dif
 
 ---
 
-### Features
+## Features
 
 - Full CRUD on Categories and Flashcards  
 - Extensible REST API  
@@ -39,7 +38,7 @@ This repository follows a **three-branch strategy**. Each branch activates a dif
 
 ---
 
-### Technologies 
+## Technologies 
 
 | Layer         | Technology                                         |
 |---------------|----------------------------------------------------|
@@ -58,15 +57,16 @@ This repository follows a **three-branch strategy**. Each branch activates a dif
 
 This project follows a realistic database lifecycle strategy depending on the **active branch**.
 
-| Branch     | Profile    | Database type          | Schema strategy | Data initialization              |
-|------------|------------|------------------------|-----------------|----------------------------------|
-| `develop`  | `dev`      | Local (non-persistent) | `create-drop`   | `data.sql` executed automatically|
-| `staging`  | `staging`  | Persistent (local VM)  | `update`        | No automatic data loading        |
-| `main`     | `prod`     | Persistent (production)| `update`        | No automatic data loading        |
+| Branch     | Profile    | Database type          | Schema strategy | Data initialization                   |
+|------------|------------|------------------------|-----------------|---------------------------------------|
+| `develop`  | `dev`      | Local (non-persistent) | `create-drop`   | `init-data.sql` executed automatically|
+| `staging`  | `staging`  | Persistent (local VM)  | `update`        | No automatic data loading             |
+| `main`     | `prod`     | Persistent (production)| `update`        | No automatic data loading             |
 
 ### Important
-- In **production (`main`)**, the application **never modifies data automatically at startup**
+- In **`staging`** and **production (`main`)**, the application **never modifies data automatically at startup**
 - Initial production data must be inserted **manually or via CI/CD**
+- See the [data-initialization](https://github.com/val7304/flashcards/blob/develop/readme.md#data-initialization-only-staging-and-main-branch) section
 
 ---
 
@@ -77,6 +77,7 @@ FLASHCARDS/
 ├── src/
 │	 ├─ main/                                   
 │	 │   ├─ java/com/example/flashcards/             # application source code
+│	 │   │   ├─ config/                              # security config: fix CodeQL issue Actuator(CI)
 │	 │   │   ├─ controller/                          # REST controllers
 │	 │   │   ├─ dto/                                 # DTO for API exchanges
 │	 │   │   ├─ entity/                              # JPA entities
@@ -88,7 +89,7 @@ FLASHCARDS/
 │	 │   │   ├─ db/dev/                             # auto in dev
 │	 │   │   │      └─ init-data.sql                # datas for dev
 │	 │   │   ├─ application.properties              # common configuration
-│	 │   │   └─ application-[PROFILE].properties    # configuration profile
+│	 │   │   └─ application-[PROFILE].properties    # configuration profile (3)
 │	 │   ├─ static/
 │	 │   │   └─ index.html, app.js, styles.css      # simple static API webpage
 │	 ├─ db/
@@ -116,13 +117,13 @@ FLASHCARDS/
 ### Clone the project
 
 ```sh
-git clone https://github.com/val7304/flashcards.git
+git clone -b develop https://github.com/val7304/flashcards.git
 cd flashcards
 ```
 
 --- 
 
-### Database configuration: 
+## Database configuration: 
 
 > The app connects automatically to a local PostgreSQL instance via environment variables.  
 
@@ -147,22 +148,32 @@ The `./init-db.sh` script checks for `flashcardsdb`, creating it if missing
 > In CI/CD pipelines, PostgreSQL is provided using a GitHub Actions service container (postgres:16).  
 > No manual initialization is required during CI.
 
-## Data Initialization (only staging/main branch)
+---
+
+### Data Initialization ( `develop` branch)
+
+In the **develop branch**, the sql script automatically loads: 5 categories and 25 flashcards (5 per categories)
+
+Script location: `src/main/resources/db/dev/init-data.sql`
+
+This allows:
+- Immediate API testing
+- Immediate usage of the Web UI after startup
+
+---
+
+### Data Initialization (only `staging` and `main` branch)
 
 In their environment, data is initialized manually using an idempotent SQL script
 
-Script location: `db/staging/init-data.sql`
-Script location: `db/prod/init-data.sql`
+- `staging` script location: `db/staging/init-data.sql`
+- `main` script location: `db/prod/init-data.sql`
 
-> In `dev` profile, the datas are loaded automatically via: `db/dev/init-data.sql`
-
-### Execution (one-time or controlled re-run) - only staging/main branch
+### Execution (one-time or controlled re-run) 
 
 ```bash
-#psql -h <host> -U <user> -d flashcardsdb -f db/[profile]/init-data.sql
-psql -h localhost -U postgres -d flashcardsdb -f db/prod/init-data.sql
+psql -h [host] -U [user] -d flashcardsdb -f db/[profile]/init-data.sql
 ```
-> password: pswd
 
 > **Notes**
 > - Executed manually or via CI/CD, never by Spring Boot
@@ -173,59 +184,38 @@ psql -h localhost -U postgres -d flashcardsdb -f db/prod/init-data.sql
 
 ---
 
-### Run the application
+## Run the application
 
-Build: 
-```sh
+Build 
+```bash
 ./mvnw clean install
 ```
 
-Run (default: dev)
-```sh
+& Run (default: dev)
+```bash
 ./mvnw spring-boot:run
 ```
 
-or run with a specific profile
-```sh
-SPRING_PROFILES_ACTIVE=staging  ./mvnw spring-boot:run
-```
-or 
-```sh
-SPRING_PROFILES_ACTIVE=prod  ./mvnw spring-boot:run
-```
+Or, run with a specific profile:  
+`SPRING_PROFILES_ACTIVE=staging  ./mvnw spring-boot:run` or `SPRING_PROFILES_ACTIVE=prod  ./mvnw spring-boot:run`
 
-Run the packaged JAR
-```sh
+Or, run the packaged JAR: 
+```bash
 java -jar target/flashcards-0.0.1-SNAPSHOT.jar  --spring.profiles.active=prod
 ```
 
-#### Runtime behavior by branch (Spring profile-based)
-
-Each branch enforces a specific Spring profile through configuration and CI.
-
-##### `main` (production profile)
-- Persistent data between runs (no automatic drop)
-- Application runs on port: 8080
-- Designed for Docker and CI/CD usage
-- Actuator: health probes exposed
-
-##### `staging`
-- Persistent data between runs
-- Application runs on port: 8081
-- Actuator: info and health probes exposed
-
-##### `develop`
-- Database recreated on each startup
-- Application runs on port: 8080
-- Actuator: info and health probes exposed
+If you wish to test restricted access to the actuator, refer to the [actuator-security](#actuator-security) section
 
 ---
 
-### Access the Application
+## Access the Application
 
-#### Web Interface
+### Web Interface
 
-Once the application is running, open: `http://localhost:8080`
+Once the application is running, open: `http://localhost:8080` 
+- `develop` and `main` run on port `8080`
+- `staging` runs on port `8081` 
+
 
 This page provides: 
 A simple UI to list, search, create, update and delete:
@@ -242,12 +232,11 @@ Visibility of category ID for each Flashcard
 
 ---
 
-#### Notes on Frontend vs Backend responsibilities
+### Notes on Frontend vs Backend responsibilities
 
 **The backend** remains API-first
 
 **The frontend**:
-
 - Is served from src/main/resources/static
 - Uses fetch() to call REST endpoints
 - Exists only to improve developer experience and project discoverability
@@ -259,40 +248,48 @@ Or deployed separately (e.g., React + API gateway)
 
 ---
 
-#### Base URLs
+## Actuator Security
 
-- Base URL: `http://localhost:8080`  
-  Serves a static web page allowing interactive usage of the API (alternative to curl or Postman)
+Spring Boot Actuator endpoints are secured to prevent unauthorized access
+to sensitive runtime information.
 
-- Health endpoint:  
-  `http://localhost:8080/actuator/health`  
-  Returns application and infrastructure health status
+### Exposure rules
 
-- Info endpoint:  
-  `http://localhost:8080/actuator/info`  
-  Exposes application metadata and build information (depending on the active profile)
+- `/actuator/health`
+  - Public
+  - Used for health checks and container readiness
+- `/actuator/info`
+  - Public
+  - Exposes build and application metadata
+- All other `/actuator/**` endpoints
+  - **Protected**
+  - Require authentication with the `ADMIN` role
 
-> Note:  
-> `/actuator/info` aggregates:
-> - build metadata generated by `spring-boot-maven-plugin`
-> - environment-specific properties prefixed with `info.*`
-> Exposure is profile-dependent and controlled via `management.info.*.enabled`
+### Authentication
 
+Actuator endpoints are protected using **HTTP Basic authentication**
+
+The administrator credentials are provided **via environment variables**
+
+| Variable                | Description                         |
+|-------------------------|-------------------------------------|
+| `SPRING_SECURITY_PSWD`  | Admin password for Actuator access  |
+
+A non-sensitive default password is used **only for local development** convenience
+
+### Local development example
+
+```bash
+SPRING_SECURITY_PSWD=my-secret ./mvnw spring-boot:run
+```
+> The actual password value must never be committed or documented
+
+> In CI and production environments, the variable is injected securely
 ---
 
-`db/prod/init-data.sql` insert:
-- 5 categories
-- 25 flashcards (5 per categories)
+## Access to the API
 
-> db datas is the same on all environments
-
-This allows:
-- Immediate API testing
-- Immediate usage of the Web UI after startup
-
----
-
-### Access to the API
+### API Base Urls
 
 ```sh
 http://localhost:8080/api/categories
@@ -318,23 +315,15 @@ http://localhost:8080/api/flashcards
 
 ---
 
-### Data Initialization
+## Usage Scenario (via cURL)
 
-- In the **develop branch**, `data.sql` automatically loads: 5 categories and 25 flashcards
-- In **staging and production**, data initialization is **disabled by design**
-  Initial data must be inserted manually using the `data-init.sql` script provided
-
----
-
-### Usage Scenario (via cURL)
-
-#### 1. Get all categories
+### 1. Get all categories
 
 ```sh 
 curl -s http://localhost:8080/api/categories
 ```
 
-### Optional: JSON pretty-print
+#### Optional: JSON pretty-print
 
 For a nicer output, you may install `jq` and run:
 
@@ -342,7 +331,7 @@ For a nicer output, you may install `jq` and run:
 curl -s http://localhost:8080/api/categories | jq
 ```
 
-#### 2. Create a new category
+### 2. Create a new category
 > returns: new ID (example: {"id":6,"name":"new category"})
 ```sh
 curl -X POST http://localhost:8080/api/categories \
@@ -352,7 +341,7 @@ curl -X POST http://localhost:8080/api/categories \
          }'
 ```
 
-#### 3. Create a flashcard inside this new category
+### 3. Create a flashcard inside this new category
 > returns: new flashcard ID (example: {"id":25,"question":"My question","answer":"My answer","categoryId":6})
 ```sh
 curl -X POST http://localhost:8080/api/flashcards \
@@ -364,12 +353,12 @@ curl -X POST http://localhost:8080/api/flashcards \
   }'
 ```
 
-#### 4. List all flashcards
+### 4. List all flashcards
 ```sh
 curl -s http://localhost:8080/api/flashcards
 ```
 
-#### 5. Update flashcard (example: {"id":25,"question":"My corrected question","answer":"My corrected answer","categoryId":4})
+### 5. Update flashcard (example: {"id":25,"question":"My corrected question","answer":"My corrected answer","categoryId":4})
 ```sh
 curl -X PUT http://localhost:8080/api/flashcards/25 \
   -H "Content-Type: application/json" \
@@ -380,12 +369,12 @@ curl -X PUT http://localhost:8080/api/flashcards/25 \
   }'
 ```
 
-#### 6. Delete flashcard 25
+### 6. Delete flashcard 25
 ```sh
 curl -X DELETE http://localhost:8080/api/flashcards/25
 ```
 
-#### 7. Delete category 6
+### 7. Delete category 6
 ```sh
 curl -X DELETE http://localhost:8080/api/categories/6
 ```

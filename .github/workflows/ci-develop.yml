@@ -31,6 +31,7 @@ jobs:
 
     env:
       SPRING_PROFILES_ACTIVE: dev
+      SPRING_SECURITY_PSWD: ${{ secrets.SPRING_SECURITY_PSWD }}
 
     steps:
       - name: Checkout code
