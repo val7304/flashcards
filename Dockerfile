@@ -1,10 +1,8 @@
-FROM eclipse-temurin:17-jre-jammy
+FROM gcr.io/distroless/java17-debian12
 
-RUN useradd -r -u 1001 appuser
 WORKDIR /app
 COPY target/flashcards-*.jar app.jar
-RUN chown -R appuser:appuser /app
-USER appuser
 
+USER nonroot
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
