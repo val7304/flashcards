@@ -37,6 +37,18 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(EndpointRequest.toAnyEndpoint())
                     .hasRole("ADMIN")
+                    .requestMatchers(
+                        "/",
+                        "/index.html",
+                        "/favicon.ico",
+                        "/error",
+                        "/style.css",
+                        "/app.js",
+                        "/static/**",
+                        "/css/**",
+                        "/js/**",
+                        "/webjars/**")
+                    .permitAll()
                     .requestMatchers("/api/**")
                     .permitAll()
                     .anyRequest()
