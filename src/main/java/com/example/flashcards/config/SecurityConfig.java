@@ -18,34 +18,44 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-  @Value("${SPRING_SECURITY_PSWD:dev-password}")
-  private String adminPassword;
+    @Value("${SPRING_SECURITY_PSWD:dev-password}")
+    private String adminPassword;
 
-  @Bean
-  public UserDetailsService userDetailsService() {
-    UserDetails admin =
-        User.withUsername("admin").password("{noop}" + adminPassword).roles("ADMIN").build();
+    @Bean
+    public UserDetailsService userDetailsService() {
+        UserDetails admin = User.withUsername("admin").password("{noop}" + adminPassword).roles("ADMIN").build();
 
-    return new InMemoryUserDetailsManager(admin);
-  }
+        return new InMemoryUserDetailsManager(admin);
+    }
 
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers(EndpointRequest.to("health", "info"))
-                    .permitAll()
-                    .requestMatchers(EndpointRequest.toAnyEndpoint())
-                    .hasRole("ADMIN")
-                    .requestMatchers("/api/**")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated())
-        .httpBasic(Customizer.withDefaults())
-        .sessionManagement(
-            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"));
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(
+                auth -> auth.requestMatchers(EndpointRequest.to("health", "info"))
+                        .permitAll()
+                        .requestMatchers(EndpointRequest.toAnyEndpoint())
+                        .hasRole("ADMIN")
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/favicon.ico",
+                                "/error",
+                                "/style.css",
+                                "/app.js",
+                                "/static/**",
+                                "/css/**",
+                                "/js/**",
+                                "/webjars/**")
+                        .permitAll()
+                        .requestMatchers("/api/**")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
+                .httpBasic(Customizer.withDefaults())
+                .sessionManagement(
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"));
 
-    return http.build();
-  }
+        return http.build();
+    }
 }
