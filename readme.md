@@ -1,7 +1,7 @@
 # Flashcards Application 
 
 Flashcards is a Java Spring Boot application designed to manage flashcards and their categories.
-It serves as a learning and demonstration project showcasing DevOps practices, clean code principles, and CI/CD automation.
+It serves as a learning and demonstration project showcasing **DevOps practices**, **clean code** principles, and **CI/CD automation**
 
 This repository follows a three-branch strategy. Each branch activates a different runtime configuration aligned with its environment (`dev`, `staging`, `prod`)
 
@@ -17,8 +17,8 @@ This repository follows a three-branch strategy. Each branch activates a differe
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
 
 
-- [develop](https://github.com/val7304/flashcards/blob/develop) is dedicated to development
-- [staging](https://github.com/val7304/flashcards/tree/staging)  provides a safe environment close to production for integration, functional and API testing
+- [`develop`](https://github.com/val7304/flashcards/blob/develop) is dedicated to development
+- [`staging`](https://github.com/val7304/flashcards/tree/staging)  provides a safe environment close to production for integration, functional and API testing
 
   [![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml) 
   ![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/ci-develop.yml/badge.svg?branch=develop)
@@ -28,19 +28,16 @@ This repository follows a three-branch strategy. Each branch activates a differe
 
 ---
 
-## Overview
+## Features
 
-**Flashcards** is a Java Spring Boot application designed to manage flashcards and their categories.  
-It serves as a learning and demonstration project to practice **DevOps**, **clean code**, and **automation** concepts.
+- Full CRUD on Categories and Flashcards
+- Extensible REST API
+- Automatic sample data loading (dev branch only)
+- Unit and integration tests using Spring Boot, JUnit 5, Mockito
 
-### Features
+---
 
-- CRUD for categories and flashcards  
-- Clean architecture with service + controller layers 
-- PostgreSQL database 
-- Automated CI for quality and integration validation
-
-### Technologies 
+## Technologies 
 
 | Layer    | Technology                                        |
 | -------- | ------------------------------------------------- |
@@ -52,6 +49,25 @@ It serves as a learning and demonstration project to practice **DevOps**, **clea
 | Security | Trivy (filesystem scan + Docker image scan)       |
 | CI       | GitHub Actions (staging pipeline)                 |
 
+---
+
+## Branches, Profiles & Data Management
+This project follows a realistic database lifecycle strategy depending on the active branch.
+
+
+| Branch    |  Profile	| Database type              | Schema strategy	| Data initialization                    |
+|-----------|-----------| -------------------------- | ----------------	| ---------------------------------------|
+|`develop`  |`dev`      | Local (non-persistent)     | create-drop   	| `init-data.sql` executed automatically |
+|`staging`  |`staging`  | Persistent (local VM)      | update   	    | No automatic data loading              |
+|`main`     |`prod`     | Persistent (production)    | update   	    | No automatic data loading              |
+
+### Important 
+
+- In `staging` and `production` (main), the application never modifies data automatically at startup
+- Initial production data must be inserted manually or via CI/CD
+- See the [data-initialization](#data-initialization-develop-branch)  section
+
+---
 
 ## Project structure
 
@@ -60,6 +76,7 @@ FLASHCARDS/
 ├── src/
 │	 ├─ main/                                   
 │	 │   ├─ java/com/example/flashcards/             # application source code
+│	 │   │   ├─ config/                              # security config: fix CodeQL issue Actuator(CI)
 │	 │   │   ├─ controller/                          # REST controllers
 │	 │   │   ├─ dto/                                 # DTO for API exchanges
 │	 │   │   ├─ entity/                              # JPA entities
@@ -71,7 +88,7 @@ FLASHCARDS/
 │	 │   │   ├─ db/dev/                             # auto in dev
 │	 │   │   │      └─ init-data.sql                # datas for dev
 │	 │   │   ├─ application.properties              # common configuration
-│	 │   │   └─ application-[PROFILE].properties    # configuration profiles
+│	 │   │   └─ application-[PROFILE].properties    # configuration profile (3)
 │	 │   ├─ static/
 │	 │   │   └─ index.html, app.js, styles.css      # simple static API webpage
 │	 ├─ db/
@@ -83,23 +100,26 @@ FLASHCARDS/
 │		    ├─ entity/                         # Unit tests for entities
 │		    ├─ integration/                    # Integration tests
 │		    ├─ mapper/                         # Unit tests for mapper
-│		    ├─ service/                        # Unit tests for service
+│		    ├─ service/                        # Unit tests for mapper
 │		    └─ resources/                    
 │		           └─ application-test.properties	  # test profile
 └─── pom.xml
 ```
+**PROFILE:** `dev`/`staging`/`prod`
+
+Tests reach [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=coverage)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards) 
 
 ---
 
 ## Installation & Setup (Staging)
 
-## Requirements
+### Requirements
 - Java 17+
 - Maven Wrapper (included)
 - PostgreSQL 16 
 - Git
 
-###  Clone the project
+### Clone the project
 
 ```sh
 git clone -b staging https://github.com/val7304/flashcards.git
@@ -109,9 +129,7 @@ cd flashcards
 
 ### Database configuration: 
 
-> The application requires a running local PostgreSQL instance when using the `staging` profile. 
-
-> The application connects automatically to a local PostgreSQL instance via environments variables.
+> The application connects automatically to a local PostgreSQL instance via environments variables
 
 Default credentials (Spring configuration):
 
@@ -127,27 +145,41 @@ export DB_PASSWORD=mypassword
 ```
 ---
 
-### Initialize the Database (Optional)
+## Initialize the Database
 
-The `./init-db.sh` script checks for flashcardsdb, creating it if missing
+The `./init-db.sh` script checks for `flashcardsdb`, creating it if missing
 
-> This script is intended for local developers running PostgreSQL manually.
+> `init-db.sh` is required only for local development when PostgreSQL is not managed by Docker or CI
+
+> In CI/CD pipelines, PostgreSQL is provided using a GitHub Actions service container (postgres:16)
+
 > No manual initialization is required during CI
 
 ---
 
-### Data Initialization (staging/main only)
+## Data Initialization (`develop` branch)
+In the develop branch, the sql script automatically loads: 5 categories and 25 flashcards (5 per categories)
 
-Staging and production databases are NOT initialized automatically by Spring Boot.
+Script location: `src/main/resources/db/dev/init-data.sql`
+
+This allows:
+- Immediate API testing
+- Immediate usage of the Web UI after startup
+
+---
+
+## Data Initialization (`staging` & `main` branches)
+
 In their environment, data is initialized manually using an idempotent SQL script
 
-Script location: `db/staging/init-data.sql` 
+- `staging` script location: `db/staging/init-data.sql`
+- `main` script location: `db/prod/init-data.sql`
+
+### Execution (one-time or controlled re-run)
 
 ```sh
-#psql -h <host> -U postgres -d flashcardsdb -f db/staging/init-data.sql
-psql -h localhost -U postgres -d flashcardsdb -f db/staging/init-data.sql
+psql -h <host> -U postgres -d flashcardsdb -f db/staging/init-data.sql
 ```
-** password: `pswd`
 
 > **Notes**
 > - Executed manually or via CI/CD, never by Spring Boot
@@ -156,61 +188,52 @@ psql -h localhost -U postgres -d flashcardsdb -f db/staging/init-data.sql
 > - Fully compatible with PostgreSQL 16
 ---
 
-### Run the application
+## Run the application
 
 Build: 
-```sh
+```bash
 ./mvnw clean install
 ```
-and: 
-```sh
-./mvnw spring-boot:run -Dspring-boot.run.profiles=staging
-```
-or use:
-```sh
-export SPRING_PROFILES_ACTIVE=staging
+
+& Run (default: dev)
+
+```bash
 ./mvnw spring-boot:run
 ```
 
-#### Runtime behavior by branch and profile
+Or, run with a specific profile:
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=staging
+```
+Or, run the packaged JAR:
+```bash
+java -jar target/flashcards-0.0.1-SNAPSHOT.jar  --spring.profiles.active=prod
+```
 
-Each Git branch enforces a specific Spring profile through configuration and CI.
-Runtime behavior (port, database lifecycle, actuator exposure) is therefore deterministic.
-
-`main` **Spring profile:** prod
-- Persistent data between runs (no automatic schema drop)
-- Application port: 8080
-- Designed for Docker and CI/CD usage
-- Actuator exposure: health only
-
-`staging` **Spring profile:** staging
-- Persistent data between runs
-- Application port: 8081
-- Actuator exposure: health/info
-
-`develop` **Spring profile:** dev
-- Database recreated on each startup
-- Application port: 8080
-- Actuator exposure: health/info
+If you wish to test restricted access to the actuator, refer to the [actuator-security](#actuator-security) section
 
 ---
 
-### Access the Application
+## Access the Application
 
-#### Web Interface
+### Web Interface
 
 Once the application is running, open: http://localhost:8081
+
+- `develop` and `main` run on port `8080`
+- `staging` runs on port `8081`
 
 This page provides: A simple UI to list, search, create, update and delete:
 - Categories
 - Flashcards
 
-> Click-to-toggle or hide Flashcard answers
-> Visibility of category ID for each Flashcard
+Click-to-toggle or hide Flashcard answers
 
-> This UI is intentionally simple and framework-free (no React/Angular)
+Visibility of category ID for each Flashcard
 
-as the project focuses on backend, CI/CD, and DevOps practices.
+> This UI is intentionally simple and framework-free (no React/Angular) as the project focuses on backend, CI/CD, and DevOps practices.
+
+---
 
 **Notes on Frontend vs Backend responsibilities**
 
@@ -218,31 +241,53 @@ as the project focuses on backend, CI/CD, and DevOps practices.
 - The **frontend**:
     * Is served from `src/main/resources/static`
     * Uses fetch() to call REST endpoints
+    * Exists only to improve developer experience and project discoverability
 
-> Exists only to improve developer experience and project discoverability
-> In a real-world scenario, this frontend could be: Replaced by a dedicated frontend application Or deployed separately (e.g., React + API gateway)
+In a real-world scenario, this frontend could be: 
 
----
-### Actuator endpoints
-
-#### Health endpoint
-`http://localhost:8081/actuator/health`  Returns the application health status.
-Details are intentionally restricted (UP only) to avoid exposing sensitive information.
-
-#### Info endpoint
-
-`http://localhost:8081/actuator/info`   aggregates:
-* build metadata generated by spring-boot-maven-plugin
-* environment-specific properties prefixed with info.*
-
-> Exposure is profile-dependent and controlled via:
-
-> `management.info.*.enabled `
-> `management.endpoints.web.exposure.include`
+Replaced by a dedicated frontend application Or deployed separately (e.g., React + API gateway)
 
 ---
+## Actuator Security
 
-### Access to the API
+Spring Boot Actuator endpoints are secured to prevent unauthorized access to sensitive runtime information
+
+### Exposure rules
+- `/actuator/health`
+    * Public
+    * Used for health checks and container readiness
+- `/actuator/info`
+    * Public
+    * Exposes build and application metadata
+- All other `/actuator/**` endpoints
+    * Protected
+    * Require authentication with the `ADMIN` role
+
+### Authentication
+Actuator endpoints are protected using HTTP Basic authentication
+
+The administrator credentials are provided via environment variables
+
+| Variable               | 	Description                                           |
+|------------------------|--------------------------------------------------------|
+|`SPRING_SECURITY_PSWD`  | Admin password for Actuator access                     |
+	
+A non-sensitive default password is used only for local development convenience
+
+### Local development example
+
+```bash
+SPRING_SECURITY_PSWD=my-secret ./mvnw spring-boot:run
+```
+> The actual password value must never be committed or documented
+
+> In CI and production environments, the variable is injected securely
+
+---
+
+## Access to the API
+
+### API Base Urls
 
 ```sh
 http://localhost:8081/api/categories
@@ -268,22 +313,14 @@ http://localhost:8081/api/flashcards
 
 ---
 
-### Data Initialization
+## Usage Scenario (via cURL)
 
-`init-data.sql` inserts:
-- 5 categories
-- 25 flashcards (5 per categories)
-
----
-
-### Usage Scenario (via cURL)
-
-#### 1. Get all categories
+### 1. Get all categories
 ```sh 
 curl -s http://localhost:8081/api/categories
 ```
 
-#### 2. Create a new category
+### 2. Create a new category
 > returns: new ID (example: 6)
 ```sh
 curl -X POST http://localhost:8081/api/categories \
@@ -293,7 +330,7 @@ curl -X POST http://localhost:8081/api/categories \
          }'
 ```
 
-#### 3. Create a flashcard inside this new category
+### 3. Create a flashcard inside this new category
 > returns: new flashcard ID (example: 25)
 ```sh
 curl -X POST http://localhost:8081/api/flashcards \
@@ -305,12 +342,12 @@ curl -X POST http://localhost:8081/api/flashcards \
          }'
 ```
 
-#### 4. List all flashcards
+### 4. List all flashcards
 ```sh
 curl -s http://localhost:8081/api/flashcards | jq 
 ```
 
-#### 5. Update flashcard 25
+### 5. Update flashcard 25
 ```sh
 curl -X PUT http://localhost:8081/api/flashcards/25 \
      -H "Content-Type: application/json" \
@@ -321,12 +358,12 @@ curl -X PUT http://localhost:8081/api/flashcards/25 \
          }'
 ```
 
-#### 6. Delete flashcard 25
+### 6. Delete flashcard 25
 ```sh
 curl -X DELETE http://localhost:8081/api/flashcards/25
 ```
 
-#### 7. Delete category 6
+### 7. Delete category 6
 ```sh
 curl -X DELETE http://localhost:8081/api/categories/6 
 ```
@@ -335,23 +372,23 @@ curl -X DELETE http://localhost:8081/api/categories/6
 
 ## Local Pre-Commit Validation
 
-This project uses Spotless to enforce consistent code formatting.
+This project uses **Spotless** to enforce consistent code formatting.
 Before committing, or if formatting issues are detected, apply fixes locally to ensure formatting is correct:
 
 ```sh
-### Code formatting
 ./mvnw spotless:apply
 ```
 
-> Spotless fails the build if formatting rules are violated.
+> Spotless fails the build if formatting rules are violated
 
-> Run `spotless:apply` before any `clean test` or `clean verify` to avoid failures.
+> Run `spotless:apply` before any `clean test` or `clean verify` to avoid failures
 
 Before pushing:
 
 ```sh
-./mvnw clean verify   # full validation
+./mvnw clean verify  
 ```
+
 Ensure:
 
 ✔ All tests pass  
@@ -360,6 +397,10 @@ Ensure:
 ✔ Coverage OK   
 
 > Ensures that the `staging` branch remains reliable for integration and API testing.
+
+All validations are also enforced in CI
+
+See also the [readme_CI](https://github.com/val7304/flashcards/blob/staging/readme_ci.md) for full CI details
 
 ---
 
