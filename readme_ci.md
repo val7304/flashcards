@@ -3,7 +3,6 @@
 This folder contains the files and scripts related to the CI/CD pipelines for the Flashcards project
 
 ## Flashcards CI/CD Status
-## Flashcards CI/CD Status
 
 #### Production Build & Release Pipeline
 
@@ -22,7 +21,7 @@ This folder contains the files and scripts related to the CI/CD pipelines for th
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=coverage)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
 
-#### Continuous Integration (Branch) 
+#### Continuous Integration (Branches) 
 ![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/ci-develop.yml/badge.svg?branch=develop)
 [![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml)
 
@@ -74,6 +73,8 @@ FLASHCARDS/
  │		             ├─ static/                 # simple web API                
  │		             └─ application.properties, application-[profile].properties                 
  ├── src/test/java/com/example/flashcards/      # Unit & integration tests
+ │		            ├─ config/                  # security config
+ │		            │    └─ SecurityConfig.java # fix CodeQL issue Actuator(CI)
  │		            ├─ controller/                
  │		            ├─ dto/                
  │		            ├─ entity/                
@@ -127,17 +128,13 @@ The following workflow is triggered on `push` and `pull requests` targeting the 
 ├─ Upload artifacts                : Store Checkstyle, SpotBugs, logs, and coverage reports
 └─ Workspace cleanup               : Final cleanup of temporary files
 ```
+**Trivy** is used to detect vulnerabilities both in:
+- project dependencies (filesystem scan)
+- the final Docker image (image scan)
 
 --- 
 
-## CI/CD Platforms
-
-### GitHub Actions: Used for:
-`Build & tests`  `Code quality` `Security scanning` `API testing` `Artifact generation` 
-
-> The project structure and CI scripts are designed to be easily portable to others CI/CD platforms
-
-### Quality Gates Summary (all branches)
+## Quality Gates Summary (all branches)
 
 | Branch  | Build/Test | Checkstyle | SpotBugs | Coverage | Trivy | Newman | Docker | SonarCloud |
 | ------- | ---------- | ---------- | -------- | -------- | ----- | ------ | ------ | ---------- |
@@ -149,18 +146,45 @@ The following workflow is triggered on `push` and `pull requests` targeting the 
 
 ---
 
+## SonarCloud Integration (only on `main`)
+This project uses SonarCloud to analyze code quality
+
+The ci/cd workflow:
+
+- Generates JaCoCo XML coverage report
+- Uploads it to the pipeline
+- Runs SonarSource/sonarqube-scan-action
+- SonarCloud reads sonar-project.properties
+- Displays results (Bugs, Code Smells, Coverage, Duplications)
+- SonarCloud is only triggered on the `main` branch because the free plan only supports this branch
+
+--- 
+
+## CI/CD Platforms
+
+### GitHub Actions: Used for:
+`Build & tests`  `Code quality` `Security scanning` `API testing` `Artifact generation` 
+
+> The project structure and CI scripts are designed to be easily transferable in order to perform other scenarios on others CI/CD platforms
+
+### Secrets management
+Sensitive runtime credentials (password, Docker, SonarCloud tokens and actuator admin password) are injected using GitHub Secrets.
+
+---
+
+## Tests Instructions & Code Quality
+
 ### Integration tests run with:
 
 - @SpringBootTest
 - Real PostgreSQL service
 - Web environment on port 8081 (CI)
-- Application started with profile: `staging`
 
 ---
 
 ## Run CI Locally (staging equivalent)
 
-This project uses Spotless to enforce consistent code formatting. 
+This project uses **Spotless** to enforce consistent code formatting. 
 
 The CI pipeline runs `./mvnw spotless:check`
 
@@ -202,7 +226,7 @@ Individual checks:
 CodeQL is executed on the `staging` branch to detect potential security
 vulnerabilities and unsafe coding patterns at source code level.
 
-> Results are published in GitHub Security → Code scanning alerts.
+- Results are published in `GitHub Security` → `Code scanning alerts`
 
 #### Reports Generated: in CI: 
 
@@ -213,24 +237,22 @@ vulnerabilities and unsafe coding patterns at source code level.
 | staging           | Application logs   | `spring.log` (uploaded as CI artifact)                             |
 | main              | JaCoCo XML only    | `target/site/jacoco/jacoco.xml` (for SonarCloud)                   |
 
-> JaCoCo XML is uploaded for SonarCloud usage (on `main` only).
-
-> A **Trivy** report is available in the GitHub Actions logs under the job `Scan filesystem with Trivy` 
-> The report highlights vulnerable dependencies detected from your `pom.xml` and filesystem
+- **JaCoCo** XML is uploaded for SonarCloud usage (on `main` only)
+- A **Trivy** report is available in the `GitHub Actions` logs under the job `Scan filesystem` with Trivy
 
 ---
 
-### Notes for Staging CI  (Staging)
+## Notes for Staging CI  (Staging)
 
 The `staging` branch runs **the complete QA pipeline**: **No Docker image and no SonarCloud scan are executed on this branch.**
 
-**`staging` profile** execution (staging branch):
+**`staging` profile** execution (`staging` branch):
 - Full API validation is performed using Newman
 - All logs and reports are uploaded, even on failure
 - The application runs on port 8081
 
-### Test execution (test profile)
-JUnit tests run using the dedicated test Spring profile (`src/test/resources/application-test.properties`)
+### Test execution (`test` profile)
+JUnit tests run using the dedicated `test` Spring profile (`src/test/resources/application-test.properties`)
 - Runs in all environments
 - In-memory H2 database
 - Fast and deterministic execution
