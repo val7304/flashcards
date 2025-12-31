@@ -14,7 +14,6 @@ permissions:
 jobs:
   build-test-static-analysis:
     runs-on: ubuntu-24.04
-
     services:
       postgres:
         image: postgres:16
@@ -23,7 +22,7 @@ jobs:
         env:
           POSTGRES_DB: flashcardsdb
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: pswd
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -98,7 +97,6 @@ jobs:
 
       - name: Start Spring Boot application
         run: |
-          ./mvnw -q -DskipTests package
           nohup java \
             -Dspring.profiles.active=staging \
             -Dserver.port=8081 \
@@ -151,6 +149,82 @@ jobs:
             -e postman/local.postman_environment.json \
             --reporters cli,junit \
             --reporter-junit-export newman-error.xml
+
+      - name: Upload Newman JUnit reports
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: newman-reports
+          path: |
+            newman-functional.xml
+            newman-error.xml
+
+      - name: Stop Spring Boot
+        if: always()
+        run: pkill -f 'java -jar' || true
+        
+  load-test:
+    runs-on: ubuntu-24.04
+    needs: build-test-static-analysis
+    if: github.event_name == 'push'
+
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: flashcardsdb
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+
+    env:
+      SPRING_PROFILES_ACTIVE: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build application
+        run: ./mvnw -q -DskipTests package
+
+      - name: Start Spring Boot
+        run: |
+          nohup java \
+            -Dspring.profiles.active=staging \
+            -Dserver.port=8081 \
+            -jar target/*.jar > spring.log 2>&1 &
+
+          for i in {1..30}; do
+            nc -z localhost 8081 && break
+            sleep 2
+          done
+
+      - name: Run k6 load test
+        uses: grafana/k6-action@a15e2072ede004e8d46141e33d7f7dad8ad08d9d
+        env:
+          K6_WEB_DASHBOARD: "true"
+        with:
+          path: load-test/flashcards.js
+          flags: |
+            --vus 50
+            --duration 2m
+            -e BASE_URL=http://localhost:8081
+
+      - name: Upload k6 results
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: k6-report
+          path: |
+            k6-summary.json
+            k6-report-*.json
 
       - name: Stop Spring Boot
         if: always()
