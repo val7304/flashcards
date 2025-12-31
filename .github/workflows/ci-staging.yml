@@ -142,14 +142,16 @@ jobs:
         run: |
           newman run postman/flashcards.postman_collection.json \
             -e postman/local.postman_environment.json \
-            --reporters cli
+            --reporters cli,junit \
+            --reporter-junit-export newman-functional.xml
 
       - name: Run API Tests - Error cases
         run: |
           newman run postman/flashcards_error_cases.postman_collection.json \
             -e postman/local.postman_environment.json \
-            --reporters cli
-      
+            --reporters cli,junit \
+            --reporter-junit-export newman-error.xml
+
       - name: Stop Spring Boot
         if: always()
         run: pkill -f 'java -jar' || true
