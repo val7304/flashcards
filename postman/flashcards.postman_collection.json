@@ -1,171 +1,807 @@
 {
-    "info": {
-        "_postman_id": "d5ecd42f-0977-438f-8b23-edd5b1c390e3",
-        "name": "Flashcards API - Staging",
-        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-    },
-    "variable": [
-        {
-            "key": "baseUrl",
-            "value": "http://localhost:8081"
-        }
-    ],
-    "item": [
-        {
-            "name": "Get all flashcards",
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": "{{baseUrl}}/api/flashcards"
-            }
-        },
-        {
-            "name": "Search flashcards by question",
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                    "raw": "{{baseUrl}}/api/flashcards/search?question=remove",
-                    "host": [
-                        "{{baseUrl}}"
-                    ],
-                    "path": [
-                        "api",
-                        "flashcards",
-                        "search"
-                    ],
-                    "query": [
-                        {
-                            "key": "question",
-                            "value": "remove"
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "name": "Get all categories",
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": "{{baseUrl}}/api/categories"
-            }
-        },
-        {
-            "name": "Get category by ID",
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": "{{baseUrl}}/api/categories/1"
-            }
-        },
-        {
-            "name": "Search category by name",
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                    "raw": "{{baseUrl}}/api/categories/search?name=git",
-                    "host": [
-                        "{{baseUrl}}"
-                    ],
-                    "path": [
-                        "api",
-                        "categories",
-                        "search"
-                    ],
-                    "query": [
-                        {
-                            "key": "name",
-                            "value": "git"
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "name": "Add flashcard",
-            "request": {
-                "method": "POST",
-                "header": [
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json"
-                    }
-                ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n  \"question\": \"test ADD flashcard\",\n  \"answer\": \"ADD test flashcard\",\n  \"category\": { \"id\": 1 }\n}"
-                },
-                "url": "{{baseUrl}}/api/flashcards"
-            }
-        },
-        {
-            "name": "Add category",
-            "request": {
-                "method": "POST",
-                "header": [
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json"
-                    }
-                ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n  \"name\": \"test\"\n}"
-                },
-                "url": "{{baseUrl}}/api/categories"
-            }
-        },
-        {
-            "name": "Modify category",
-            "request": {
-                "method": "PUT",
-                "header": [
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json"
-                    }
-                ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n  \"name\": \"Keytool one-liner\"\n}"
-                },
-                "url": "{{baseUrl}}/api/categories/4"
-            }
-        },
-        {
-            "name": "Modify flashcard",
-            "request": {
-                "method": "PUT",
-                "header": [
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json"
-                    }
-                ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n  \"question\": \"test PUT\",\n  \"answer\": \"PUT test\",\n  \"category\": { \"id\": 1 }\n}"
-                },
-                "url": "{{baseUrl}}/api/flashcards/25"
-            }
-        },
-        {
-            "name": "Delete category",
-            "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": "{{baseUrl}}/api/categories/6"
-            }
-        },
-        {
-            "name": "Delete flashcard",
-            "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": "{{baseUrl}}/api/flashcards/6"
-            }
-        }
-    ]
+	"info": {
+		"_postman_id": "d5ecd42f-0977-438f-8b23-edd5b1c390e3",
+		"name": "flashcards",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "9271057"
+	},
+	"item": [
+		{
+			"name": "add categories",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Category created\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response is JSON\", function () {\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"const json = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Category ID is present\", function () {\r",
+							"    pm.expect(json).to.have.property(\"id\");\r",
+							"    pm.expect(json.id).to.be.a(\"number\");\r",
+							"});\r",
+							"\r",
+							"pm.environment.set(\"categoryId\", json.id);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"test\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/api/categories",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"categories"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get category by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Category retrieved\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const json = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Correct category returned\", function () {\r",
+							"    pm.expect(json.id).to.eql(Number(pm.environment.get(\"categoryId\")));\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base-url}}/api/categories/{{categoryId}}",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"categories",
+						"{{categoryId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "modify categories",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"categoryId is defined and valid\", function () {\r",
+							"    const id = pm.environment.get(\"categoryId\");\r",
+							"    pm.expect(id).to.exist;\r",
+							"    pm.expect(id).to.match(/^\\d+$/);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/vnd.api+json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Keytool one-liner\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/api/categories/{{categoryId}}",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"categories",
+						"{{categoryId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get category by id after update",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Category retrieved after an update\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const json = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Correct category returned\", function () {\r",
+							"    pm.expect(json.id).to.eql(Number(pm.environment.get(\"categoryId\")));\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base-url}}/api/categories/{{categoryId}}",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"categories",
+						"{{categoryId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get category by name",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Search categories returns 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response is JSON array\", function () {\r",
+							"    pm.response.to.be.json;\r",
+							"    pm.expect(pm.response.json()).to.be.an(\"array\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"All categories match search term\", function () {\r",
+							"    const term = pm.request.url.query.get(\"name\").toLowerCase();\r",
+							"    const results = pm.response.json();\r",
+							"\r",
+							"    results.forEach(category => {\r",
+							"        pm.expect(category.name.toLowerCase()).to.include(term);\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Category object structure is valid\", function () {\r",
+							"    const results = pm.response.json();\r",
+							"\r",
+							"    if (results.length > 0) {\r",
+							"        pm.expect(results[0]).to.have.property(\"id\");\r",
+							"        pm.expect(results[0]).to.have.property(\"name\");\r",
+							"    }\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base-url}}/api/categories/search?name={{categorySearchTerm}}",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"categories",
+						"search"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "{{categorySearchTerm}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete categorie",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Category deleted\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/vnd.api+json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "file",
+					"file": {}
+				},
+				"url": {
+					"raw": "{{base-url}}/api/categories/{{categoryId}}",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"categories",
+						"{{categoryId}}"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get categories",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Deleted category is not present anymore\", function () {\r",
+							"    const categories = pm.response.json();\r",
+							"    const deletedId = Number(pm.environment.get(\"categoryId\"));\r",
+							"\r",
+							"    const exists = categories.some(c => c.id === deletedId);\r",
+							"    pm.expect(exists).to.be.false;\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base-url}}/api/categories",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"categories"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add flashcards",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Flashcard created\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const json = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Response is JSON\", function () {\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Flashcard ID is present\", function () {\r",
+							"    pm.expect(json.id).to.be.a(\"number\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Flashcard fields are correct\", function () {\r",
+							"    pm.expect(json.question).to.eql(\"test ADD flashcard\");\r",
+							"    pm.expect(json.answer).to.eql(\"ADD test flashcard\");\r",
+							"    pm.expect(json.categoryId).to.eql(1);\r",
+							"});\r",
+							"\r",
+							"// Chaînage\r",
+							"pm.environment.set(\"flashcardId\", json.id);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"question\": \"test ADD flashcard\",\r\n  \"answer\": \"ADD test flashcard\",\r\n  \"categoryId\": 1\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/api/flashcards",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"flashcards"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get flashcard by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Flashcard retrieved\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const json = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Correct flashcard returned\", function () {\r",
+							"    pm.expect(json.id).to.eql(Number(pm.environment.get(\"flashcardId\")));\r",
+							"    pm.expect(json.question).to.exist;\r",
+							"    pm.expect(json.answer).to.exist;\r",
+							"    pm.expect(json.categoryId).to.exist;\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/api/flashcards/{{flashcardId}}",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"flashcards",
+						"{{flashcardId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "modify flahcards",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Flashcard updated\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const json = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Flashcard content updated\", function () {\r",
+							"    pm.expect(json.question).to.eql(\"test PUT\");\r",
+							"    pm.expect(json.answer).to.eql(\"PUT test\");\r",
+							"    pm.expect(json.categoryId).to.eql(1);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/vnd.api+json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"question\": \"test PUT\",\r\n  \"answer\": \"PUT test\",\r\n  \"categoryId\": 1\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/api/flashcards/{{flashcardId}}",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"flashcards",
+						"{{flashcardId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get flashcard by id after update",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Flashcard retrieved after update\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Updated values are persisted\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json.question).to.eql(\"test PUT\");\r",
+							"    pm.expect(json.answer).to.eql(\"PUT test\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/api/flashcards/{{flashcardId}}",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"flashcards",
+						"{{flashcardId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get flashcards by word in question",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Search flashcards returns 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response is JSON array\", function () {\r",
+							"    pm.response.to.be.json;\r",
+							"    pm.expect(pm.response.json()).to.be.an(\"array\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"All flashcards match search term\", function () {\r",
+							"    const term = pm.request.url.query.get(\"question\").toLowerCase();\r",
+							"    const results = pm.response.json();\r",
+							"\r",
+							"    results.forEach(card => {\r",
+							"        pm.expect(card.question.toLowerCase()).to.include(term);\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base-url}}/api/flashcards/search?question={{wordInQuestion}}",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"flashcards",
+						"search"
+					],
+					"query": [
+						{
+							"key": "question",
+							"value": "branch",
+							"disabled": true
+						},
+						{
+							"key": "question",
+							"value": "{{wordInQuestion}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete flashcard",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Flashcard deleted\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/vnd.api+json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/api/flashcards/{{flashcardId}}",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"flashcards",
+						"{{flashcardId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get flashcards",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Deleted flashcard is not present anymore\", function () {\r",
+							"    const list = pm.response.json();\r",
+							"    const id = Number(pm.environment.get(\"flashcardId\"));\r",
+							"\r",
+							"    const found = list.some(fc => fc.id === id);\r",
+							"    pm.expect(found).to.eql(false);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base-url}}/api/flashcards",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"flashcards"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base-url",
+			"value": ""
+		},
+		{
+			"key": "categorySearchTerm",
+			"value": ""
+		},
+		{
+			"key": "categoryId",
+			"value": ""
+		},
+		{
+			"key": "Id",
+			"value": ""
+		}
+	]
 }
