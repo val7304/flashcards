@@ -207,16 +207,14 @@ jobs:
             sleep 2
           done
 
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
       - name: Run k6 load test
-        uses: grafana/k6-action@a15e2072ede004e8d46141e33d7f7dad8ad08d9d
-        env:
-          K6_WEB_DASHBOARD: "true"
+        uses: grafana/run-k6-action@v1.3.1
         with:
           path: load-test/flashcards.js
-          flags: |
-            --vus 50
-            --duration 2m
-            -e BASE_URL=http://localhost:8081
+          flags: --vus 50 --duration 2m
 
       - name: Upload k6 results
         if: always()
