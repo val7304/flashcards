@@ -31,7 +31,6 @@ export default function () {
         'cat OK': (r) => r.status === 200 || r.status === 201,
     });
 
-
     // if OK → create flashcard
     if (resCat.status === 201) {
         const catId = resCat.json('id');
