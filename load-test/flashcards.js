@@ -26,6 +26,8 @@ export default function () {
 
     // create categorie
     const resCat = http.post(`${BASE_URL}/api/categories`, payload, params);
+    console.log(`Cat status: ${resCat.status}`);
+    console.log(`Cat body preview: ${resCat.body?.substring(0, 100)}`);
 
     check(resCat, {
         'cat OK': (r) => r.status === 200 || r.status === 201,
@@ -34,7 +36,10 @@ export default function () {
     // Flashcard only if categorie OK
     if ((resCat.status === 200 || resCat.status === 201) && resCat.body) {
         try {
-            const catId = resCat.json('id');
+            const responseJson = resCat.json();
+            console.log(`Full JSON: ${JSON.stringify(responseJson)}`);
+            const catId = responseJson.id || responseJson.categoryId;
+            console.log(`Extracted catId: "${catId}" (type: ${typeof catId})`);
 
             // Vérifie que catId est valide
             if (catId && catId !== null && catId !== undefined) {
