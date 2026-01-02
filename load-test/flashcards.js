@@ -16,52 +16,79 @@ export const options = {
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8081';
 
 export default function () {
-    const payload = JSON.stringify({
+
+    const params = {
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    };
+
+    /* =========================
+       CREATE CATEGORY
+       ========================= */
+
+    const categoryPayload = JSON.stringify({
         name: `cat-${Math.random()}`,
     });
 
-    const params = {
-        headers: { 'Content-Type': 'application/json' },
-    };
-
-    // 1. Créer catégorie
-    const resCat = http.post(`${BASE_URL}/api/categories`, payload, params);
-    console.log(`Cat status: ${resCat.status}`);
-    console.log(`Cat body preview: ${resCat.body?.substring(0, 100)}`);
+    const resCat = http.post(
+        `${BASE_URL}/api/categories`,
+        categoryPayload,
+        params
+    );
 
     check(resCat, {
-        'cat OK': (r) => r.status === 200 || r.status === 201,
+        'create category OK': (r) => r.status === 200 || r.status === 201,
     });
 
-    // 2. EXTRAIRE catId → Flashcard
-    if ((resCat.status === 200 || resCat.status === 201) && resCat.body) {
-        try {
-            const responseJson = resCat.json();
-            const catId = responseJson.id;  // ✅ DÉCLARÉ ICI
-
-            console.log(`Tentative flashcard avec catId=${catId}`);
-
-            const resFlash = http.post(`${BASE_URL}/api/flashcards`, {
-                categoryId: catId,  // ✅ Maintenant valide
-                front: "question test k6",
-                back: "réponse test k6"
-            }, params);
-
-            console.log(`Flash status: ${resFlash.status}`);
-            console.log(`Flash body preview: ${resFlash.body?.substring(0, 100)}`);
-
-            check(resFlash, {
-                'flashcard OK': (r) => r.status === 200 || r.status === 201,
-            });
-        } catch (e) {
-            console.log(`JSON error: ${e}`);
-        }
-    } else {
-        console.log(`Skip flashcard: cat status ${resCat.status}`);
+    if (!(resCat.status === 200 || resCat.status === 201)) {
+        return; // stop iteration
     }
 
-    // 3. GETs
-    http.get(`${BASE_URL}/api/categories`);
-    http.get(`${BASE_URL}/api/flashcards`);
+    let catId;
+    try {
+        catId = resCat.json('id');
+    } catch (e) {
+        console.log(`Category JSON parse error: ${e}`);
+        return;
+    }
+
+    /* =========================
+       CREATE FLASHCARD
+       ========================= */
+
+    const flashcardPayload = JSON.stringify({
+        categoryId: catId,
+        front: 'question test k6',
+        back: 'réponse test k6',
+    });
+
+    // Optionnel mais recommandé sous charge
+    sleep(0.05);
+
+    const resFlash = http.post(
+        `${BASE_URL}/api/flashcards`,
+        flashcardPayload,
+        params
+    );
+
+    check(resFlash, {
+        'create flashcard OK': (r) => r.status === 200 || r.status === 201,
+    });
+
+    /* =========================
+       READ OPERATIONS
+       ========================= */
+
+    const resGetCats = http.get(`${BASE_URL}/api/categories`);
+    check(resGetCats, {
+        'get categories OK': (r) => r.status === 200,
+    });
+
+    const resGetFlashcards = http.get(`${BASE_URL}/api/flashcards`);
+    check(resGetFlashcards, {
+        'get flashcards OK': (r) => r.status === 200,
+    });
+
     sleep(1);
 }
