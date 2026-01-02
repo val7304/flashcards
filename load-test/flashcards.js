@@ -32,7 +32,7 @@ export default function () {
     });
 
     // if OK → create flashcard
-    if (resCat.status === 201) {
+    if (resCat.status === 200 || resCat.status === 201) {
         const catId = resCat.json('id');
 
         const resFlash = http.post(`${BASE_URL}/api/flashcards`, {
@@ -45,7 +45,7 @@ export default function () {
             'flashcard 201': r => r.status === 201
         });
     } else {
-        console.log(`Catégorie échouée: ${resCat.status}`);
+        console.log(`Categorie failure: ${resCat.status}`);
     }
 
     // GETs
