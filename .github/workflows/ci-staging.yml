@@ -213,22 +213,11 @@ jobs:
       - name: Setup k6
         uses: grafana/setup-k6-action@ffe7d7290dfa715e48c2ccc924d068444c94bde2  #v1.1.0
 
-      - name: Run k6 load test
-        uses: grafana/run-k6-action@v1.3.1
+      - name: Run k6 LOCAL (staging)
         env:
-          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
-          K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
-        with:
-          path: load-test/flashcards.js
-          flags: --vus 50 --duration 2m
-          cloud-run-locally: false
-          cloud-comment-on-pr: true
+          BASE_URL: http://localhost:8081
+        run: k6 run load-test/flashcards.js --vus 50 --duration 2m --out json=k6-report.json 
       
-      - name: Print test run IDs
-        run: echo "Test run IDs - $TEST_RUN_IDS"
-        env:
-          TEST_RUN_IDS: ${{ steps.run_k6.outputs.testRunIds }}
-
       - name: Stop Spring Boot
         if: always()
         run: pkill -f 'java -jar' || true
