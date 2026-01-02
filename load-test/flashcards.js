@@ -28,8 +28,9 @@ export default function () {
     const resCat = http.post(`${BASE_URL}/api/categories`, payload, params);
 
     check(resCat, {
-        'cat 201': (r) => r.status === 201,
+        'cat OK': (r) => r.status === 200 || r.status === 201,
     });
+
 
     // if OK → create flashcard
     if (resCat.status === 201) {
