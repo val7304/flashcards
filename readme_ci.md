@@ -53,49 +53,47 @@ This structure highlights CI/CD-relevant files and directories. The full applica
 
  ```text
 FLASHCARDS/
- ├── .github/workflows/
- │             ├─ cd-prod.yml        # CI/CD pipeline (main)
- │             └─ ci-[branch].yml    # CI pipeline (on branch: develop/staging)
- ├── ci-scripts                      # (main only)
- │      ├─ build.sh
- │      ├─ docker-build.sh
- │      └─ test.sh
- ├── config/checkstyle/
- │   	       ├─ checkstyle-suppressions.xml
- │   		   └─ checkstyle.xml 
- ├── db/[profile]/                      
- │		  └─ init-data.sql                      
- ├── src/main/java/com/      
- │           example/flashcards/        # Application source code
- │		              ├─ static/        # simple web API 
- │		              │    ├─ application.properties  
- │		              │    └─ application-[profile].properties   
- │		              └─ resources/                
- │		                    └─ db/dev/init-data.sql    # datas for dev                
- │              
- ├── src/test/java/com/example/                 # Unit & integration tests
- │                  flashcards/                 
- │		            ├─ config/                  # security config
- │		            │    └─ SecurityConfig.java # fix CodeQL issue Actuator(CI)
- │		            ├─ controller/                
- │		            ├─ dto/                
- │		            ├─ entity/                
- │		            ├─ integration/                   
- │		            ├─ mapper/               
- │		            ├─ service/               
- │		            └─ resources/                    
- │		                └─ application-test.properties
- │
- ├── load-test/                        # run k6 load-tests (staging)
- │     └─ flashcards.js  
- ├── postman/                          # run API test Postman/Newman(staging)
- │     ├─ flashcards_error_cases.postman_collection.json  
- │     ├─ flashcards.postman_collection.json   # Functional tests
- │     └─ local.postman_environment.json  
- ├── Dockerfile
- ├── init-db.sh
- ├── pom.xml
- └── sonar-project.properties
+├── .github/workflows/
+│   ├── cd-prod.yml          # CD (main)
+│   └── ci-[branch].yml      # CI (develop / staging)
+├── ci-scripts/              # main only
+│   ├── build.sh
+│   ├── docker-build.sh
+│   └── test.sh
+├── config/
+│   └── checkstyle/
+│       ├── checkstyle.xml
+│       └── checkstyle-suppressions.xml
+├── db/
+│   └── [profile]/init-data.sql
+├── src/
+│   ├── main/
+│   │   ├── java/.../flashcards/   # application code
+│   │   └── resources/
+│   │       ├── application.properties
+│   │       ├── application-[profile].properties
+│   │       └── db/dev/init-data.sql
+│   └── test/
+│       ├── java/.../flashcards/
+│       │   ├── config/            # security (CodeQL fix)
+│       │   ├── controller/
+│       │   ├── dto/
+│       │   ├── entity/
+│       │   ├── integration/
+│       │   ├── mapper/
+│       │   └── service/
+│       └── resources/
+│           └── application-test.properties
+├── load-test/               # k6 (staging)
+│   └── flashcards.js
+├── postman/                 # Newman (staging)
+│   ├── flashcards.postman_collection.json
+│   ├── flashcards_error_cases.postman_collection.json
+│   └── local.postman_environment.json
+├── Dockerfile
+├── init-db.sh
+├── pom.xml
+└── sonar-project.properties
 ```
 
 #### The pipeline uses the project's dedicated Checkstyle configuration
