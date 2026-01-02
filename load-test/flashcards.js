@@ -26,25 +26,30 @@ export default function () {
 
     // create categorie
     const resCat = http.post(`${BASE_URL}/api/categories`, payload, params);
-    const catId = resCat.json('id');
 
     check(resCat, {
         'cat 201': (r) => r.status === 201,
     });
 
+    // if OK → create flashcard
+    if (resCat.status === 201) {
+        const catId = resCat.json('id');
+
+        const resFlash = http.post(`${BASE_URL}/api/flashcards`, {
+            categoryId: catId,
+            front: "question?",
+            back: "réponse"
+        }, params);
+
+        check(resFlash, {
+            'flashcard 201': r => r.status === 201
+        });
+    } else {
+        console.log(`Catégorie échouée: ${resCat.status}`);
+    }
+
+    // GETs
     http.get(`${BASE_URL}/api/categories`);
-    sleep(1);
-
-    //  create flashcard in this categorie
-    const resFlash = http.post(`${BASE_URL}/api/flashcards`, {
-        categoryId: catId,
-        front: "question?", back: "réponse"
-    }, params);
-
-    check(resFlash, {
-        'flashcard 201': r => r.status === 201
-    });
-
     http.get(`${BASE_URL}/api/flashcards`);
     sleep(1);
 }
