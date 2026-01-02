@@ -211,22 +211,23 @@ jobs:
           done
 
       - name: Setup k6
-        uses: grafana/setup-k6-action@v1
+        uses: grafana/setup-k6-action@ffe7d7290dfa715e48c2ccc924d068444c94bde2  #v1.1.0
 
       - name: Run k6 load test
         uses: grafana/run-k6-action@v1.3.1
+        env:
+          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+          K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
         with:
           path: load-test/flashcards.js
           flags: --vus 50 --duration 2m
-
-      - name: Upload k6 results
-        if: always()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
-        with:
-          name: k6-report
-          path: |
-            k6-summary.json
-            k6-report-*.json
+          cloud-run-locally: false
+          cloud-comment-on-pr: true
+      
+      - name: Print test run IDs
+        run: echo "Test run IDs - $TEST_RUN_IDS"
+        env:
+          TEST_RUN_IDS: ${{ steps.run_k6.outputs.testRunIds }}
 
       - name: Stop Spring Boot
         if: always()

@@ -24,13 +24,27 @@ export default function () {
         headers: { 'Content-Type': 'application/json' },
     };
 
-    const res = http.post(`${BASE_URL}/api/categories`, payload, params);
+    // create categorie
+    const resCat = http.post(`${BASE_URL}/api/categories`, payload, params);
+    const catId = resCat.json('id');
 
-    check(res, {
-        'status is 200 or 201': (r) => r.status === 200 || r.status === 201,
+    check(resCat, {
+        'cat 201': (r) => r.status === 201,
     });
 
     http.get(`${BASE_URL}/api/categories`);
+    sleep(1);
 
+    //  create flashcard in this categorie
+    const resFlash = http.post(`${BASE_URL}/api/flashcards`, {
+        categoryId: catId,
+        front: "question?", back: "réponse"
+    }, params);
+
+    check(resFlash, {
+        'flashcard 201': r => r.status === 201
+    });
+
+    http.get(`${BASE_URL}/api/flashcards`);
     sleep(1);
 }
