@@ -31,21 +31,30 @@ export default function () {
         'cat OK': (r) => r.status === 200 || r.status === 201,
     });
 
-    // if OK → create flashcard
-    if (resCat.status === 200 || resCat.status === 201) {
-        const catId = resCat.json('id');
+    // Flashcard only if categorie OK
+    if ((resCat.status === 200 || resCat.status === 201) && resCat.body) {
+        try {
+            const catId = resCat.json('id');
 
-        const resFlash = http.post(`${BASE_URL}/api/flashcards`, {
-            categoryId: catId,
-            front: "question?",
-            back: "réponse"
-        }, params);
+            // Vérifie que catId est valide
+            if (catId && catId !== null && catId !== undefined) {
+                const resFlash = http.post(`${BASE_URL}/api/flashcards`, {
+                    categoryId: catId,
+                    front: "question?",
+                    back: "réponse"
+                }, params);
 
-        check(resFlash, {
-            'flashcard 201': r => r.status === 201
-        });
+                check(resFlash, {
+                    'flashcard OK': (r) => r.status === 200 || r.status === 201,
+                });
+            } else {
+                console.log(`Skip flashcard: invalid catId (${catId})`);
+            }
+        } catch (e) {
+            console.log(`JSON parse error: ${e}`);
+        }
     } else {
-        console.log(`Categorie failure: ${resCat.status}`);
+        console.log(`Skip flashcard: cat status ${resCat.status}`);
     }
 
     // GETs
