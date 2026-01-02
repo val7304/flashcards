@@ -24,7 +24,7 @@ export default function () {
         headers: { 'Content-Type': 'application/json' },
     };
 
-    // create categorie
+    // 1. Créer catégorie
     const resCat = http.post(`${BASE_URL}/api/categories`, payload, params);
     console.log(`Cat status: ${resCat.status}`);
     console.log(`Cat body preview: ${resCat.body?.substring(0, 100)}`);
@@ -33,36 +33,34 @@ export default function () {
         'cat OK': (r) => r.status === 200 || r.status === 201,
     });
 
-    // Flashcard only if categorie OK
+    // 2. EXTRAIRE catId → Flashcard
     if ((resCat.status === 200 || resCat.status === 201) && resCat.body) {
         try {
             const responseJson = resCat.json();
-            console.log(`Full JSON: ${JSON.stringify(responseJson)}`);
-            const catId = responseJson.id || responseJson.categoryId;
-            console.log(`Extracted catId: "${catId}" (type: ${typeof catId})`);
+            const catId = responseJson.id;  // ✅ DÉCLARÉ ICI
 
-            // Vérifie que catId est valide
-            if (catId && catId !== null && catId !== undefined) {
-                const resFlash = http.post(`${BASE_URL}/api/flashcards`, {
-                    categoryId: catId,
-                    front: "question?",
-                    back: "réponse"
-                }, params);
+            console.log(`Tentative flashcard avec catId=${catId}`);
 
-                check(resFlash, {
-                    'flashcard OK': (r) => r.status === 200 || r.status === 201,
-                });
-            } else {
-                console.log(`Skip flashcard: invalid catId (${catId})`);
-            }
+            const resFlash = http.post(`${BASE_URL}/api/flashcards`, {
+                categoryId: catId,  // ✅ Maintenant valide
+                front: "question test k6",
+                back: "réponse test k6"
+            }, params);
+
+            console.log(`Flash status: ${resFlash.status}`);
+            console.log(`Flash body preview: ${resFlash.body?.substring(0, 100)}`);
+
+            check(resFlash, {
+                'flashcard OK': (r) => r.status === 200 || r.status === 201,
+            });
         } catch (e) {
-            console.log(`JSON parse error: ${e}`);
+            console.log(`JSON error: ${e}`);
         }
     } else {
         console.log(`Skip flashcard: cat status ${resCat.status}`);
     }
 
-    // GETs
+    // 3. GETs
     http.get(`${BASE_URL}/api/categories`);
     http.get(`${BASE_URL}/api/flashcards`);
     sleep(1);
