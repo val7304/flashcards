@@ -26,7 +26,7 @@ This repository follows a three-branch strategy. Each branch activates a differe
   ![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/ci-develop.yml/badge.svg?branch=develop)
   ![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen) ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
 
-> See also the [readme_CI](https://github.com/val7304/flashcards/blob/staging/readme_ci.md) for more information about CI.
+> See also the [readme_CI](https://github.com/val7304/flashcards/blob/main/readme_ci.md) for more information about CI.
 
 ---
 
