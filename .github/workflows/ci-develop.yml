@@ -13,22 +13,6 @@ permissions:
 jobs:
   build-and-test:
     runs-on: ubuntu-24.04
-
-    services:
-      postgres:
-        image: postgres:16
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_DB: flashcardsdb
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: pswd
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-
     env:
       SPRING_PROFILES_ACTIVE: dev
       SPRING_SECURITY_PSWD: ${{ secrets.SPRING_SECURITY_PSWD }}
@@ -56,13 +40,6 @@ jobs:
         uses: github/codeql-action/init@1b168cd39490f61582a9beae412bb7057a6b2c4e
         with:
           languages: java
-
-      - name: Wait for PostgreSQL
-        run: |
-          until pg_isready -h localhost -p 5432 -U postgres; do
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
 
       - name: Run Maven clean verify (Checkstyle + SpotBugs + tests)
         run: ./mvnw -B clean verify jacoco:report
