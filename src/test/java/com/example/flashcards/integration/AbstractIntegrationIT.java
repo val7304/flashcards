@@ -1,6 +1,7 @@
 package com.example.flashcards.integration;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -12,6 +13,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @SpringBootTest
 @ActiveProfiles("it")
+@AutoConfigureMockMvc
 @SuppressFBWarnings(
     value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE",
     justification = "Lifecycle managed by Testcontainers/JUnit")
