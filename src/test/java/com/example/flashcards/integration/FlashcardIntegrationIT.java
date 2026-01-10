@@ -15,9 +15,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("it")
 @AutoConfigureMockMvc
-class FlashcardIntegrationTest {
+class FlashcardIntegrationIT {
 
   @Autowired private MockMvc mockMvc;
 
@@ -90,5 +90,16 @@ class FlashcardIntegrationTest {
     mockMvc
         .perform(get("/api/flashcards/" + createdFlashcard.getId()))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void testCreateFlashcardWithInvalidCategory() throws Exception {
+    FlashcardDto invalid = new FlashcardDto(null, "Q?", "A", 999L); // ID inexistant
+    mockMvc
+        .perform(
+            post("/api/flashcards")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalid)))
+        .andExpect(status().is4xxClientError()); // ou ce que tu veux
   }
 }
