@@ -32,6 +32,8 @@
         <spotless.plugin.version>2.43.0</spotless.plugin.version>
 
         <jacoco.check.skip>false</jacoco.check.skip>
+
+        <skipITs>false</skipITs>
     </properties>
 
     <dependencyManagement>
@@ -282,12 +284,16 @@
             <!-- failsafe -->
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.5.3</version>
+                <configuration>
+                    <skipITs>${skipITs}</skipITs>
+                </configuration>
                 <executions>
                     <execution>
-                    <goals>
-                        <goal>integration-test</goal>
-                        <goal>verify</goal>
-                    </goals>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
                     </execution>
                 </executions>
                 </plugin>
@@ -311,5 +317,15 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+
+    <!-- Skip integration tests (used in develop CI) -->
+    <profile>
+        <id>skip-it</id>
+        <properties>
+            <skipITs>true</skipITs>
+        </properties>
+    </profile>
+</profiles>
 
 </project>
