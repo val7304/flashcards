@@ -1,5 +1,6 @@
 package com.example.flashcards.integration;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -10,13 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
-@ActiveProfiles("test")
 @AutoConfigureMockMvc
-class CategoryIntegrationTest {
+class CategoryIntegrationIT extends AbstractIntegrationIT {
 
   @Autowired private MockMvc mockMvc;
 
@@ -66,5 +65,22 @@ class CategoryIntegrationTest {
 
     // 5. Ensure Deleted
     mockMvc.perform(get("/api/categories/" + created.getId())).andExpect(status().isNotFound());
+  }
+
+  @Test
+  void testSearchByName() throws Exception {
+    // 1. Créer catégorie (sans récupérer la réponse)
+    mockMvc
+        .perform(
+            post("/api/categories")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new CategoryDto(null, "Science"))))
+        .andExpect(status().isOk());
+
+    // 2. Vérifier search
+    mockMvc
+        .perform(get("/api/categories/search").param("name", "Scie"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[*].name", hasItem("Science")));
   }
 }

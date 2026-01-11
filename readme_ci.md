@@ -1,275 +1,230 @@
 # Flashcards CI/CD Pipeline Documentation
 
-This folder contains the files and scripts related to the CI/CD pipelines for the Flashcards project
+This document describes the CI/CD pipelines and quality gates for the Flashcards project.
 
-## Flashcards CI/CD Status
-
-#### Continuous Integration (Branches) 
-
-![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/ci-develop.yml/badge.svg?branch=develop)
-[![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml)
-
-#### Production Build & Release Pipeline
+### Status
 
 [![CI/CD](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml)
-
-#### Docker Hub Registry 
-[![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards/tags)
-
-#### SonarCloud Quality gate
-
+![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/ci-develop.yml/badge.svg?branch=develop)
+[![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml)
 [![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=coverage)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=val7304_flashcards&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
-
-
----
-
-## Overview
-
-
-The CI pipeline enforces strict quality gates:
-
-- Build & packaging (Maven)
-- Format code (Spotless)
-- Static application security testing (CodeQL)
-- Static code quality scanning (Checkstyle, SpotBugs)
-- Unit & integration tests (JUnit 5)
-- Coverage analysis (JaCoCo)
-- Execute API test collections (Postman/Newman)
-- Execute load test (k6)
-- Security scanning (Trivy)
-- Artifact publishing (JaCoCo reports)
-- SonarCloud Quality Gate (main only)
-
-Any violation fails the pipeline immediately. It serves as the quality gate before merging
-
----
-
-## Project structure
-
-This structure highlights CI/CD-relevant files and directories. The full application structure is documented in the main README.
-
- ```text
-FLASHCARDS/
-├── .github/workflows/
-│   ├── cd-prod.yml          # CD (main)
-│   └── ci-[branch].yml      # CI (develop / staging)
-├── ci-scripts/              # main only
-│   ├── build.sh
-│   ├── docker-build.sh
-│   └── test.sh
-├── config/
-│   └── checkstyle/
-│       ├── checkstyle.xml
-│       └── checkstyle-suppressions.xml
-├── db/
-│   └── [profile]/init-data.sql
-├── src/
-│   ├── main/
-│   │   ├── java/.../flashcards/   # application code
-│   │   └── resources/
-│   │       ├── application.properties
-│   │       ├── application-[profile].properties
-│   │       └── db/dev/init-data.sql
-│   └── test/
-│       ├── java/.../flashcards/
-│       │   ├── config/            # security (CodeQL fix)
-│       │   ├── controller/
-│       │   ├── dto/
-│       │   ├── entity/
-│       │   ├── integration/
-│       │   ├── mapper/
-│       │   └── service/
-│       └── resources/
-│           └── application-test.properties
-├── load-test/               # k6 (staging)
-│   └── flashcards.js
-├── postman/                 # Newman (staging)
-│   ├── flashcards.postman_collection.json
-│   ├── flashcards_error_cases.postman_collection.json
-│   └── local.postman_environment.json
-├── Dockerfile
-├── init-db.sh
-├── pom.xml
-└── sonar-project.properties
-```
-
-#### The pipeline uses the project's dedicated Checkstyle configuration
-These rules are enforced automatically during the CI pipeline stages.
-
-#### A **Postman collection** is included and can be used manually or within CI
 
 ---
 
 ### Branch, Profile & Environments
 
-| Branch    | Profil      | port       | Purpose                                 |
-|-----------|-------------|------------|---------------------------------------- |
-| develop   | `dev`       | 8080       | Continuous Integration (build + tests)  |
-| staging   | `staging`   | 8081       | Integration, QA & API testing           |
-| main      | `prod`      | 8080       | Production build, Docker & SonarCloud   |
+| Branch  | Profile | Port | Purpose                                |
+| ------- | ------- | ---- | -------------------------------------- |
+| develop | dev     | 8080 | Continuous Integration (build + tests) |
+| staging | staging | 8081 | Integration, QA & API testing          |
+| main    | prod    | 8080 | Production build, Docker & SonarCloud  |
 
 Each branch automatically loads the matching profile in CI/CD
 
 --- 
 
-## CI Workflow
+## CI/CD Project Files
+
+This structure highlights CI/CD-relevant files and directories. 
+For the full application structure, see the main [ReadMe](./readme.md)
+
+
+ ```text
+FLASHCARDS/
+├── .github/workflows/
+│   ├── cd-prod.yml           # CI/CD (main)
+│   ├── ci-develop.yml        # CI (develop)
+│   └── ci-staging.yml        # CI (staging)
+├── ci-scripts/               # main only
+│   ├── build.sh
+│   ├── docker-build.sh
+│   └── test.sh
+├── config/checkstyle/
+│   ├── checkstyle.xml
+│   └── checkstyle-suppressions.xml
+├── load-test/                # k6 (staging)
+│   └── flashcards.js
+├── postman/                  # Newman (staging)
+│   ├── flashcards.postman_collection.json
+│   ├── flashcards_error_cases.postman_collection.json
+│   └── local.postman_environment.json
+├── Dockerfile
+├── init-db.sh
+├── sonar-project.properties
+└── pom.xml
+```
+
+---
+
+## CI Workflows
 
 These workflows are triggered during `push` and `pull requests` targeting their own branch
 
 ### ci-develop
 
-Location on `develop` branch: `.github/workflows/ci-develop.yml`
+Location on `develop` branch, path: `.github/workflows/ci-develop.yml`
 
 ```text
 .github/workflows/ci-develop.yml
-├─ Checkout & Maven cache           : Clone repository and restore Maven dependencies
-├─ Spotless check                   : Validate formatting with Spotless
-├─ Static analysis                  : Checkstyle + SpotBugs + CodeQL
-├─ PostgreSQL service               : Real PostgreSQL instance for integration tests
-├─ Build & Tests                    : Unit tests (H2) + integration tests (PostgreSQL)
-├─ Coverage (JaCoCo)                : Generate XML coverage reports
-├─ Security scan (Trivy filesystem) : Detect CVEs in project dependencies and filesystem
-└─ Upload artifacts                 : Store coverage report
+├─ Checkout & Maven cache 
+├─ Spotless check  
+├─ Static analysis: Checkstyle, SpotBugs, CodeQL
+├─ PostgreSQL service : PostgreSQL via Testcontainers
+├─ Tests (H2, unit + integration with Testcontainers)
+├─ Coverage (JaCoCo XML)
+├─ Trivy filesystem scan
+└─ Upload coverage artifacts
 ```
 
 ### ci-staging
 
-Location on `staging` branch: `.github/workflows/ci-staging.yml`
-> It contains all the steps used in `ci-develop` +  
+Location on `staging` branch, path: `.github/workflows/ci-staging.yml`
+
+> Includes all `ci-develop` step plus:  
 
 ```text
 .github/workflows/ci-staging.yml
-├─ Start Spring Boot         : Launch on port 8081 for live API testing
-├─ API tests with Newman     : Execute Postman collection against running application
-├─ Load tests with k6        : Execute load test in K6
-└─ Upload artifacts          : Store Newman report, Springboot logs, and coverage reports
+├─ Start Spring Boot on port 8081 (profile staging)
+├─ PostgreSQL service         
+├─ API tests with Newman     
+├─ Load tests with k6        
+└─ Upload Newman reports, logs, coverage          
 ```
-
-## CI/CD Workflow
 
 ### cd-prod
 
-Location on `main` branch: `.github/workflows/cd-prod.yml`
-> It contains all the steps used in `ci-develop` +  
+Location on `main` branch, path: `.github/workflows/cd-prod.yml`
+
+> Includes all `ci-develop` step plus:  
 
 ```text
 .github/workflows/cd-prod.yml
-├─ Build Docker image                    : Tagged with short SHA
-├─ Security scan (Trivy Docker image)    : CVE detection on final container image
-├─ Container smoke tests                 : Health check + API endpoint validation
-├─ Release tagging                       : Git release tag (vX.Y.Z)
-├─ Push Docker image to Docker Hub       : Version, short SHA and latest tags
-├─ SonarCloud analysis                   : JaCoCo upload + Quality Gate
-└─ Workspace cleanup                     : Final cleanup
+├─ PostgreSQL service
+├─ Build Docker image (tagged with short SHA, semantic version, latest)
+├─ Security scan (Trivy image scan) 
+├─ Container Smoke tests (Spring Boot health check executed + API endpoint validated)
+├─ Release tagging (e.g. v0.87.0)
+├─ Push image to Docker Hub
+├─ SonarCloud analysis  (JaCoCo XML)
+└─ Workspace cleanup    (Optional)
 ```
 
-**Trivy** is used to detect vulnerabilities both in:
-- project dependencies (filesystem scan)
-- the final Docker image (image scan)
-
 --- 
+
+### Testing Strategy (CI Focus)
+
+This project applies a clear separation between unit tests and integration tests.
+
+#### Unit tests
+- Scope: controller, service, mapper, DTO, entity
+- Profile: test, DB: H2
+- Execution: local + CI (all branches)
+
+#### Integration tests
+- Location: `src/test/java/.../integration`
+- Profile: it, DB: PostgreSQL 16 via Testcontainers
+- Execution: local (Docker) + CI (all branches)
+
+Testcontainers provides production-like behavior and reproducible execution in CI.
+
+---
 
 ## Quality Gates Summary (all branches)
 
+The CI pipeline enforces strict quality gates:
+
+`Build & packaging` `Code formatting` `Static analysis` `Unit & integration tests` 
+
+`Coverage analysis` `API tests` `Load tests` `Security scanning ` `SonarCloud Quality Gate` 
+
+
 | Branch  | Build/Test | Checkstyle | SpotBugs | Coverage | Trivy | Newman | k6     | Docker | SonarCloud |
 | ------- | ---------- | ---------- | -------- | -------- | ----- | ------ | ------ | ------ | ---------- |
-| develop | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ❌     |❌     | ❌        |
-| staging | ✔         | ✔          | ✔        | ✔       | ✔     | ✔     | ✔      |❌     | ❌        |
-| main    | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ❌     |✔      | ✔         |
+| develop | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ❌     |❌     | ❌         |
+| staging | ✔         | ✔          | ✔        | ✔       | ✔     | ✔     | ✔      |❌     | ❌         |
+| main    | ✔         | ✔          | ✔        | ✔       | ✔     | ❌    | ❌     |✔      | ✔          |
 
-> **JaCoCo Coverage** reports are generated on all branches.
-> **SonarCloud** is only triggered on the `main` branch because the free plan only supports this branch
+
+> **JaCoCo Coverage** reports are generated on all branches
+
+> **SonarCloud** is only triggered on the `main` branch (free plan)
 
 --- 
 
-## CI/CD Platforms
-
-### GitHub Actions: Used for:
-`Build & tests`  `Code quality` `Security scanning` `API testing` `Artifact generation` 
-
-> The project structure and CI scripts are designed to be easily transferable in order to perform other scenarios on others CI/CD platforms
-
-### Secrets management
-Sensitive runtime credentials (password, Docker, SonarCloud tokens and actuator admin password) are injected using GitHub Secrets.
-
----
-
-## API Testing with Newman (CI)
+### API Testing with Newman (CI)
 
 The `staging` CI pipeline executes Postman API tests automatically using Newman
 
-### Execution details
-
 - The application is started with the `staging` profile 
 - PostgreSQL is provided via a GitHub Actions service container
-- Newman executes all API collections against http://localhost:8081
+- Newman executes all API collections against `http://localhost:8081`
 - Tests include both functional scenarios and error cases
-
-### Failure policy
-
-- Any failing API test fails the pipeline
-- API tests act as a functional quality gate
-- All reports are uploaded as CI artifacts, even on failure
-
-### These reports are compatible with:
-
-- CI test visualization
-- Future integration with test dashboards
+- All reports are uploaded as CI artifacts, even on failure. These reports are compatible with:
+    - CI test visualization
+    - Future integration with test dashboards
 
 ---
 
-## Load Testing with k6 (CI)
+### Load Testing with k6 (Grafana)
 
-The `staging` pipeline includes automated load testing using k6
+The `staging` pipeline includes automated load testing using **k6** to
+validate application stability and performance under concurrent load.
 
-### Purpose
+- Load tests are executed **locally via k6 OSS**
+- Results are generated in JSON format
+- Grafana Cloud is not used yet (no public endpoint available)
+- The setup is fully compatible with future Grafana Cloud integration
 
-k6 tests ensure that:
+#### Test scenario
 
-- The application remains stable under concurrent load
-- Performance regressions are detected early
-- Error rates remain under defined thresholds
+- Target environment: `staging` - Application profile: `staging`
+- Database: PostgreSQL 16 
+- Virtual users: 50  - Duration: 2 minutes
+- Test coverage: 
+  - Create category, flashcard
+  - List categories, flashcards
 
-### Execution strategy
+#### Performance thresholds
 
-- Executed after successful build and API tests
-- Runs against a real running Spring Boot application
-- Uses the same PostgreSQL instance as API tests
-- Uses the staging configuration profile
+The pipeline enforces strict performance thresholds:
 
-### Threshold enforcement
+| Metric                | Threshold        |
+|----------------------|------------------ |
+| http_req_duration    | p(95) < 500 ms    |
+| http_req_failed      | < 1%              |
 
-The pipeline fails if:
-- `http_req_failed` ≥ 1%
-- `http_req_duration p(95)` ≥ 500 ms
+The pipeline fails immediately if any threshold is exceeded
 
-k6 returns a non-zero exit code when thresholds are exceeded, which:
-- Immediately fails the CI job
-- Prevents promotion to further stages
+#### Sample results (local execution)
+
+| p(95) http_req_duration   |     21.01 ms  | 
+| http_req_failed           |       0.00 %  | 
+| requests                  |   ~183 req/s  | 
+| iterations                |   5,529       | 
+| checks success rate       |   100%        | 
 
 ---
 
-## Run CI Locally 
+## Local CI-like Execution
 
-The CI pipeline runs `./mvnw spotless:check`, this section mirrors the developer pre-commit validation described in the main README, but reflects the exact CI execution order.
+The CI pipeline runs `./mvnw spotless:check`, this section mirrors the developer pre-commit validation described in the main README, 
+but reflects the exact CI execution order
 
 ```bash
 ./mvnw spotless:apply
 ./mvnw clean verify  
 ```
 
-**Individual checks**:
+**Individual checks:**
 
 ```bash
+./mvnw -Dspring.profiles.active=it test 
 ./mvnw checkstyle:check 
 ./mvnw spotbugs:check
 ./mvnw jacoco:report   
 ```
 
-#### Reports Generated: local(developer): 
+#### Reports: local(developer): 
 
 | Report             | Location / Artifact               |
 | ------------------ | --------------------------------- |
@@ -289,85 +244,22 @@ vulnerabilities and unsafe coding patterns at source code level.
 
 - Results are published in `GitHub Security` → `Code scanning alerts`
 
-#### Reports Generated: in CI: 
+### Reports Generated in CI: 
 
 | Branch            | Report             | Location / Artifact                       |
 | ----------------- | ------------------ | ------------------------------------------------------------------ |
 | develop           | JaCoCo HTML + XML  | `target/site/jacoco/` (XML uploaded as CI artifact)                |
 | staging           | JaCoCo HTML + XML  | `target/site/jacoco/jacoco.xml` (HTML + XML uploaded as artifacts) |
-| staging           | Newman-reports     | `newman-reports.zip` (uploaded as CI artifact)                             |
+| staging           | Newman-reports     | `newman-reports.zip` (uploaded as CI artifact)                     |
 | staging           | Application logs   | `spring.log` (uploaded as CI artifact)                             |
 | main              | JaCoCo XML only    | `target/site/jacoco/jacoco.xml` (for SonarCloud)                   |
 
-
 - **JaCoCo** XML is uploaded for SonarCloud usage (on `main` only)
+
 - A **Trivy** report is available in the `GitHub Actions` logs under the job `Scan filesystem` with Trivy
-- A **newman-reports** report artifact is available in the `GitHub Actions`, it contains 2 xml file: newman-functional.xml and newman-error.xml
 
----
+- A **newman-reports** report artifact is available in the `GitHub Actions`, it contains 2 xml file: `newman-functional.xml` and `newman-error.xml`
 
-## Notes for CI  
-
-**`dev` profile** execution (`develop` branch):
-- Recreates the schema on each startup (create-drop)
-- Reloads demo data from db/dev/init-data.sql
-- The application runs on port 8080
-
-**`staging` profile** execution (`staging` branch):
-- Full API validation is performed using Newman
-- All logs and reports are uploaded, even on failure
-- The application runs on port 8081
-
-### Test execution (`test` profile)
-JUnit tests run using the dedicated `test` Spring profile (`src/test/resources/application-test.properties`)
-- Runs in all environments
-- In-memory H2 database
-- Fast and deterministic execution
-- No dependency on PostgreSQL
-
-> Spotless, Checkstyle and SpotBugs must both pass with 0 issues before commit
-
-> **Run tests:** all unit/integration tests must succeed before merge Compatible with CI/CD tools 
-
----
-
-## Production execution (`main` branch)
-The `main` branch configuration is automatically used when running inside Docker.
-It is never used during CI test phases (which use H2 database).
-
-Designed for:
-- Persistent data
-- Docker-based deployments
-- Production parity
-
-#### Database initialization
-- `spring.sql.init.mode=never`
-- No schema or data mutation at startup
-- Production data initialized explicitly via SQL scripts (`db/prod/`)
-
-This guarantees safe redeployments and prevents accidental data loss.
-
----
-
-### Image versioning & traceability
-Each successful CI run produces three Docker tags:
-- **Release tag** (e.g. `v0.87.0`) — semantic version
-- **Short Git SHA** — immutable audit & rollback reference
-- **latest** — most recent production build
-
-All tags reference the same image digest
-
----
-
-### Smoke tests (container validation)
-Before publishing to Docker Hub:
-- Container is started in CI
-- Spring Boot health check is executed
-- API endpoint (`/api/categories`) is validated
-
-Only runnable, production-ready images are published.
-
----
 
 ### CI/CD readiness
 - All unit and integration tests must pass before merge

@@ -13,22 +13,6 @@ permissions:
 jobs:
   build-and-test:
     runs-on: ubuntu-24.04
-
-    services:
-      postgres:
-        image: postgres:16
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_DB: flashcardsdb
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: pswd
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-
     env:
       SPRING_PROFILES_ACTIVE: dev
       SPRING_SECURITY_PSWD: ${{ secrets.SPRING_SECURITY_PSWD }}
@@ -57,15 +41,8 @@ jobs:
         with:
           languages: java
 
-      - name: Wait for PostgreSQL
-        run: |
-          until pg_isready -h localhost -p 5432 -U postgres; do
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
-
-      - name: Run Maven clean verify (Checkstyle + SpotBugs + tests)
-        run: ./mvnw -B clean verify jacoco:report
+      - name: Run Maven clean verify (Checkstyle + SpotBugs + tests -no integration tests)
+        run: ./mvnw -B clean verify -Pskip-it jacoco:report
 
       - name: Upload JaCoCo report
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
