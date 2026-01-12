@@ -1,5 +1,6 @@
 package com.example.flashcards.integration;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -14,9 +15,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
-@ActiveProfiles("test")
 @AutoConfigureMockMvc
-class CategoryIntegrationTest {
+@ActiveProfiles("it")
+class CategoryIntegrationIT {
 
   @Autowired private MockMvc mockMvc;
 
@@ -24,7 +25,7 @@ class CategoryIntegrationTest {
 
   @Test
   void testCRUDCategory() throws Exception {
-    // 1. Create Category
+    // Create Category
     CategoryDto newCategory = new CategoryDto(null, "Science");
     String categoryJson = objectMapper.writeValueAsString(newCategory);
 
@@ -43,7 +44,7 @@ class CategoryIntegrationTest {
 
     CategoryDto created = objectMapper.readValue(response, CategoryDto.class);
 
-    // 2. Read Category
+    // Read Category
     mockMvc
         .perform(get("/api/categories/" + created.getId()))
         .andExpect(status().isOk())
@@ -61,10 +62,27 @@ class CategoryIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("Biology"));
 
-    // 4. Delete Category
+    // Delete Category
     mockMvc.perform(delete("/api/categories/" + created.getId())).andExpect(status().isOk());
 
-    // 5. Ensure Deleted
+    // Ensure Deleted
     mockMvc.perform(get("/api/categories/" + created.getId())).andExpect(status().isNotFound());
+  }
+
+  @Test
+  void testSearchByName() throws Exception {
+    // Create categorie (without retrieved response)
+    mockMvc
+        .perform(
+            post("/api/categories")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new CategoryDto(null, "Science"))))
+        .andExpect(status().isOk());
+
+    // Check search
+    mockMvc
+        .perform(get("/api/categories/search").param("name", "Scie"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[*].name", hasItem("Science")));
   }
 }
