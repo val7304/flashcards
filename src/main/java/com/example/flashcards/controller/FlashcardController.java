@@ -9,6 +9,7 @@ import com.example.flashcards.service.FlashcardService;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 /** Contrôleur REST pour la gestion des flashcards. */
 @RestController
@@ -98,7 +100,8 @@ public class FlashcardController {
     Category category =
         categoryService
             .getCategoryById(dto.getCategoryId())
-            .orElseThrow(() -> new RuntimeException("Category not found"));
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
     Flashcard saved = flashcardService.createFlashcard(FlashcardMapper.toEntity(dto, category));
     return FlashcardMapper.toDto(saved);
   }
@@ -115,7 +118,8 @@ public class FlashcardController {
     Category category =
         categoryService
             .getCategoryById(dto.getCategoryId())
-            .orElseThrow(() -> new RuntimeException("Category not found"));
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
     Flashcard updated =
         flashcardService.updateFlashcard(id, FlashcardMapper.toEntity(dto, category));
     return FlashcardMapper.toDto(updated);
