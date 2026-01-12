@@ -69,7 +69,6 @@ Location on `develop` branch, path: `.github/workflows/ci-develop.yml`
 ├─ Checkout & Maven cache 
 ├─ Spotless check  
 ├─ Static analysis: Checkstyle, SpotBugs, CodeQL
-├─ PostgreSQL service : PostgreSQL via Testcontainers
 ├─ Tests (H2, unit + integration with Testcontainers)
 ├─ Coverage (JaCoCo XML)
 ├─ Trivy filesystem scan
@@ -85,9 +84,9 @@ Location on `staging` branch, path: `.github/workflows/ci-staging.yml`
 ```text
 .github/workflows/ci-staging.yml
 ├─ Start Spring Boot on port 8081 (profile staging)
-├─ PostgreSQL service         
+├─ PostgreSQL service : PostgreSQL via Testcontainers
 ├─ API tests with Newman     
-├─ Load tests with k6        
+├─ Load tests with Grafana k6 (local)        
 └─ Upload Newman reports, logs, coverage          
 ```
 
