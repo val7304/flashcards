@@ -19,7 +19,7 @@ This document describes the CI/CD pipelines and quality gates for the Flashcards
 | staging | staging | 8081 | Integration, QA & API testing          |
 | main    | prod    | 8080 | Production build, Docker & SonarCloud  |
 
-Each branch automatically loads the matching profile in CI/CD
+Each CI pipeline explicitly activates the appropriate Spring profile depending on the execution context (tests vs runtime)
 
 --- 
 
@@ -69,7 +69,7 @@ Location on `develop` branch, path: `.github/workflows/ci-develop.yml`
 ├─ Checkout & Maven cache 
 ├─ Spotless check  
 ├─ Static analysis: Checkstyle, SpotBugs, CodeQL
-├─ Tests (H2, unit + integration with Testcontainers)
+├─ Tests (H2, unit + integration)
 ├─ Coverage (JaCoCo XML)
 ├─ Trivy filesystem scan
 └─ Upload coverage artifacts
@@ -84,11 +84,14 @@ Location on `staging` branch, path: `.github/workflows/ci-staging.yml`
 ```text
 .github/workflows/ci-staging.yml
 ├─ Start Spring Boot on port 8081 (profile staging)
-├─ PostgreSQL service : PostgreSQL via Testcontainers
 ├─ API tests with Newman     
 ├─ Load tests with Grafana k6 (local)        
 └─ Upload Newman reports, logs, coverage          
 ```
+PostgreSQL service:
+- Provided as a GitHub Actions service container
+- Injected via environment variables
+- Overrides H2 configuration from application-it.properties
 
 ### cd-prod
 
@@ -112,7 +115,7 @@ Location on `main` branch, path: `.github/workflows/cd-prod.yml`
 
 ### Testing Strategy (CI Focus)
 
-This project applies a clear separation between unit tests and integration tests.
+This project applies a clear separation between unit tests and integration tests
 
 #### Unit tests
 - Scope: controller, service, mapper, DTO, entity
@@ -121,10 +124,12 @@ This project applies a clear separation between unit tests and integration tests
 
 #### Integration tests
 - Location: `src/test/java/.../integration`
-- Profile: it, DB: PostgreSQL 16 via Testcontainers
-- Execution: local (Docker) + CI (all branches)
-
-Testcontainers provides production-like behavior and reproducible execution in CI.
+- Execution local + develop:
+    - Profile: `it`
+    - Database: H2 (in-memory, defined in `application-it.properties`)
+- Execution staging / main:
+    - Profile: `it`
+    - Database: PostgreSQL 16 (provided by CI service container and environment variables)
 
 ---
 
@@ -222,6 +227,10 @@ but reflects the exact CI execution order
 ./mvnw spotbugs:check
 ./mvnw jacoco:report   
 ```
+> **Note**: When running locally without Docker, integration tests use H2
+
+> When Docker/Testcontainers are enabled, PostgreSQL is used automatically
+
 
 #### Reports: local(developer): 
 

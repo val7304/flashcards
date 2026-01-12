@@ -37,16 +37,18 @@ Each branch represents a fully isolated environment with its own Spring profile,
 - Extensible REST API
 - Automatic sample data loading (`develop` branch only)
 - Unit and integration tests with Spring Boot, JUnit 5, Mockito
+    - Unit tests use `test` profile
+    - Integration tests use `it` profile
 
 ---
 
 ## Technologies
 
-| Layer    | Technology                                                              |
-|----------|-------------------------------------------------------------------------|
+| Layer    | Technology                                                             |
+|----------|------------------------------------------------------------------------|
 | Backend  | Java 17, Spring Boot 3                                                 |
 | Build    | Maven Wrapper (`./mvnw`)                                               |
-| Database | PostgreSQL 16 (runtime & integration tests), H2 (unit tests)           |
+| Database | PostgreSQL 16 (app, integration tests), H2 (unit tests)                |
 | Testing  | JUnit 5, Mockito, Postman (Newman CLI), Grafana k6 (load tests)        |
 | Quality  | Checkstyle, SpotBugs, CodeQL, JaCoCo, SonarCloud                       |
 | Security | Trivy (filesystem scan + Docker image scan)                            |
@@ -57,11 +59,11 @@ Each branch represents a fully isolated environment with its own Spring profile,
 
 ## Branches, Profiles & Data
 
-| Branch    | Profile  | Database type            | Schema strategy | Data initialization                 |
-|-----------|----------|--------------------------|----------------|-------------------------------------|
-| `develop` | `dev`    | Local (non-persistent)   | create-drop    | `init-data.sql` executed automatically |
-| `staging` | `staging`| Persistent (local VM)    | update         | No automatic data loading           |
-| `main`    | `prod`   | Persistent (production)  | update         | No automatic data loading           |
+| Branch    | Profile  | Database type            | Schema strategy | Data initialization                    |
+|-----------|----------|--------------------------|-----------------|--------------------------------------- |
+| `develop` | `dev`    | Local (non-persistent)   | create-drop     | `init-data.sql` executed automatically |
+| `staging` | `staging`| Persistent (local VM)    | update          | No automatic data loading              |
+| `main`    | `prod`   | Persistent (production)  | update          | No automatic data loading              |
 
 - In `staging` and `main`, the application never modifies data automatically at startup.
 - Initial production data must be inserted manually or via CI/CD.
@@ -105,8 +107,8 @@ FLASHCARDS/
 │       ├─ mapper/
 │       ├─ service/
 │       └─ resources/
-│           ├─ application-it.properties
-│           └─ application-test.properties
+│           ├─ application-it.properties    # it profile
+│           └─ application-test.properties  # test profile 
 └── pom.xml
 ```
 **profile:** `dev`/`staging`/`prod`
@@ -157,12 +159,9 @@ The `./init-db.sh` script checks for `flashcardsdb`, creating it if missing
 
 > In CI/CD, PostgreSQL is provided via Testcontainers (integration tests) or a service container (staging); no manual init is needed
 
----
-
 ## Data Initialization
 
 - **develop**: Location: `src/main/resources/db/dev/init-data.sql` (5 categories, 25 flashcards) auto-loaded
-
 - **staging**: Location: `db/staging/init-data.sql` (manual or CI/CD)
 - **main**   : Location: `db/prod/init-data.sql` (manual or CI/CD)
 
@@ -226,11 +225,11 @@ SPRING_SECURITY_PSWD=your-secret ./mvnw spring-boot:run
 | staging | 8081 |
 | prod    | 8080 |
 
-> use the default port for the active profile
-
 ### Web Interface
 
 Simple UI to list, search, create, update, and delete categories and flashcards: http://localhost:8080
+
+> use the default port for the active profile
 
 > This UI is intentionally framework-free (no React/Angular).
 
