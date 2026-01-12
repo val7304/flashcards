@@ -41,8 +41,8 @@ jobs:
         with:
           languages: java
 
-      - name: Run Maven clean verify (Checkstyle + SpotBugs + tests -no integration tests)
-        run: ./mvnw -B clean verify -Pskip-it jacoco:report
+      - name: Run Maven clean verify (Checkstyle + SpotBugs)
+        run: ./mvnw -B clean verify jacoco:report
 
       - name: Upload JaCoCo report
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f

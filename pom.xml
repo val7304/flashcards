@@ -30,10 +30,7 @@
         <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
         <jacoco.plugin.version>0.8.11</jacoco.plugin.version>
         <spotless.plugin.version>2.43.0</spotless.plugin.version>
-
         <jacoco.check.skip>false</jacoco.check.skip>
-
-        <skipITs>false</skipITs>
     </properties>
 
     <dependencyManagement>
@@ -115,20 +112,6 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-
 
         <!-- Lombok -->
         <dependency>
@@ -285,9 +268,6 @@
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.5.3</version>
-                <configuration>
-                    <skipITs>${skipITs}</skipITs>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -317,15 +297,4 @@
             </plugin>
         </plugins>
     </build>
-    <profiles>
-
-    <!-- Skip integration tests (used in develop CI) -->
-    <profile>
-        <id>skip-it</id>
-        <properties>
-            <skipITs>true</skipITs>
-        </properties>
-    </profile>
-</profiles>
-
 </project>
