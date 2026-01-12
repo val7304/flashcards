@@ -1,9 +1,10 @@
 # Flashcards Application 
 
 Flashcards is a Java Spring Boot application designed to manage flashcards and their categories.
-It serves as a learning and demonstration project showcasing **DevOps practices**, **clean code** principles, and **CI/CD automation**
+It serves as a learning and demonstration project showcasing **DevOps practices**, **clean code** principles, and end-to-end **CI/CD automation**
 
-This repository follows a three-branch strategy. Each branch activates a different runtime configuration aligned with its environment (`dev`, `staging`, `prod`)
+This repository follows a three-branch strategy. 
+Each branch represents a fully isolated environment with its own Spring profile, database lifecycle, and CI behavior
 
 [![CI/CD](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/cd-prod.yml)
 [![Docker Image](https://img.shields.io/docker/v/valeriejeanne/flashcards?sort=semver)](https://hub.docker.com/r/valeriejeanne/flashcards/tags)
@@ -26,7 +27,7 @@ This repository follows a three-branch strategy. Each branch activates a differe
   ![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/ci-develop.yml/badge.svg?branch=develop)
   ![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen) ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
 
-> See also the [readme_CI](https://github.com/val7304/flashcards/blob/staging/readme_ci.md) for more information about CI.
+> See [readme_ci.md](./readme_ci.md) for detailed CI/CD pipeline documentation.
 
 ---
 
@@ -34,80 +35,81 @@ This repository follows a three-branch strategy. Each branch activates a differe
 
 - Full CRUD on Categories and Flashcards
 - Extensible REST API
-- Automatic sample data loading (`dev` branch only)
-- Unit and integration tests using Spring Boot, JUnit 5, Mockito
+- Automatic sample data loading (`develop` branch only)
+- Unit and integration tests with Spring Boot, JUnit 5, Mockito
+    - Unit tests use `test` profile
+    - Integration tests use `it` profile
 
 ---
 
-## Technologies 
+## Technologies
 
-| Layer    | Technology                                        |  
-| -------- | ------------------------------------------------- |
-| Backend  | Java 17, Spring Boot 3                            |
-| Build    | Maven Wrapper (`./mvnw`)                          |
-| Database | PostgreSQL (runtime), H2 (tests)                  |
-| Testing  | JUnit 5, Mockito, Postman (Newman CLI)            |
-| Quality  | Checkstyle, SpotBugs, CodeQL, JaCoCo, SonarCloud  |
-| Security | Trivy (filesystem scan + Docker image scan)       |
-| CI       | GitHub Actions (develop/staging pipeline)         |
-| CI/CD    | GitHub Actions, Docker Hub(cd-prod pipeline)      |
+| Layer    | Technology                                                             |
+|----------|------------------------------------------------------------------------|
+| Backend  | Java 17, Spring Boot 3                                                 |
+| Build    | Maven Wrapper (`./mvnw`)                                               |
+| Database | PostgreSQL 16 (app, integration tests), H2 (unit tests)                |
+| Testing  | JUnit 5, Mockito, Postman (Newman CLI), Grafana k6 (load tests)        |
+| Quality  | Checkstyle, SpotBugs, CodeQL, JaCoCo, SonarCloud                       |
+| Security | Trivy (filesystem scan + Docker image scan)                            |
+| CI       | GitHub Actions (develop/staging pipelines)                             |
+| CI/CD    | GitHub Actions + Docker Hub (production pipeline)                      |
 
 ---
 
-## Branches, Profiles & Data Management
+## Branches, Profiles & Data
 
-This project follows a realistic database lifecycle strategy depending on the active branch.
+| Branch    | Profile  | Database type            | Schema strategy | Data initialization                    |
+|-----------|----------|--------------------------|-----------------|--------------------------------------- |
+| `develop` | `dev`    | Local (non-persistent)   | create-drop     | `init-data.sql` executed automatically |
+| `staging` | `staging`| Persistent (local VM)    | update          | No automatic data loading              |
+| `main`    | `prod`   | Persistent (production)  | update          | No automatic data loading              |
 
-| Branch    |  Profile	| Database type              | Schema strategy	| Data initialization                    |
-|-----------|-----------| -------------------------- | ----------------	| ---------------------------------------|
-|`develop`  |`dev`      | Local (non-persistent)     | create-drop   	| `init-data.sql` executed automatically |
-|`staging`  |`staging`  | Persistent (local VM)      | update   	    | No automatic data loading              |
-|`main`     |`prod`     | Persistent (production)    | update   	    | No automatic data loading              |
-
-### Important 
-
-- In `staging` and `production` (main), the application never modifies data automatically at startup
-- Initial production data must be inserted manually or via CI/CD
+- In `staging` and `main`, the application never modifies data automatically at startup.
+- Initial production data must be inserted manually or via CI/CD.
 - See the [data-initialization](#data-initialization-develop-branch)  section
 
+### Testing Overview
+
+The project distinguishes clearly between unit tests and integration tests.
+- Detailed CI execution is documented in [readme_CI](./readme_ci.md#testing-strategy)
+
 ---
 
-## Project structure
+## Project Structure (App)
 
 ```text
 FLASHCARDS/
 ├── src/
-│	 ├─ main/java/com/example/flashcards/            # application source code
-│	 │   │      ├─ config/                           # security config
-│	 │   │      ├─ controller/                       # REST controllers
-│	 │   │      ├─ dto/                              # DTO for API exchanges
-│	 │   │      ├─ entity/                           # JPA entities
-│	 │   │      ├─ mapper/                           # Mapper
-│	 │   │      ├─ repository/                       # JPA interfaces
-│	 │   │      ├─ service/                          # Service
-│	 │   │      └─ FlashcardsApplication.java                             
-│	 │   ├─ resources/
-│	 │   │   ├─ db/dev/                             # auto-loads of datas (dev)
-│	 │   │   │      └─ init-data.sql                # datas for dev
-│	 │   │   ├─ application.properties              # common configuration
-│	 │   │   └─ application-[profile].properties    # configuration profile (3)
-│	 │   ├─ static/
-│	 │   │   └─ index.html, app.js, styles.css      # simple static API webpage
-│	 ├─ db/
-│	 │   └─ [profile]/                   
-│	 │     	 └─ init-data.sql                  # manual data entry (staging/prod) 
-│	 ├─ load-test/                             # k6 script (load testing - only staging)                   
-│	 ├─ postman/                               # Execute API test collections (only staging)                   
-│	 └─ test/java/com/example/flashcards/
-│		    ├─ controller/                     # Unit tests for controllers
-│		    ├─ dto/                            # Unit tests for dto
-│		    ├─ entity/                         # Unit tests for entities
-│		    ├─ integration/                    # Integration tests
-│		    ├─ mapper/                         # Unit tests for mapper
-│		    ├─ service/                        # Unit tests for mapper
-│		    └─ resources/                    
-│		           └─ application-test.properties	  # test profile
-└─── pom.xml
+│   ├─ main/java/com/example/flashcards/
+│   │   ├─ config/          # security config
+│   │   ├─ controller/      # REST controllers
+│   │   ├─ dto/             # DTOs for API exchanges
+│   │   ├─ entity/          # JPA entities
+│   │   ├─ mapper/          # mappers
+│   │   ├─ repository/      # JPA repositories
+│   │   ├─ service/         # services
+│   │   └─ FlashcardsApplication.java
+│   ├─ resources/
+│   │   ├─ db/dev/          # auto-loaded dev data
+│   │   │   └─ init-data.sql
+│   │   ├─ application.properties
+│   │   └─ application-[profile].properties
+│   ├─ static/
+│   │   └─ index.html, app.js, styles.css
+│   ├─ db/
+│   │   └─ [profile]/init-data.sql  # manual data for staging/prod
+│   └─ test/java/com/example/flashcards/
+│       ├─ controller/
+│       ├─ dto/
+│       ├─ entity/
+│       ├─ integration/
+│       ├─ mapper/
+│       ├─ service/
+│       └─ resources/
+│           ├─ application-it.properties    # it profile
+│           └─ application-test.properties  # test profile 
+└── pom.xml
 ```
 **profile:** `dev`/`staging`/`prod`
 
@@ -133,16 +135,16 @@ cd flashcards
 
 ### Database configuration: 
 
-> The application connects automatically to a local PostgreSQL instance via environments variables
+> The application connects to a local PostgreSQL instance via environment variables:
 
 Default credentials (Spring configuration):
 
-```
+```text
 spring.datasource.username=${DB_USER:postgres}
 spring.datasource.password=${DB_PASSWORD:pswd}
 ```
 
-To override:
+Override if needed:
 ```bash
 export DB_USER=myuser
 export DB_PASSWORD=mypassword
@@ -153,43 +155,23 @@ export DB_PASSWORD=mypassword
 
 The `./init-db.sh` script checks for `flashcardsdb`, creating it if missing
 
-> `init-db.sh` is required only for local development when PostgreSQL is not managed by Docker or CI
+> Required only for local development when PostgreSQL is not managed by Docker or CI
 
-> In CI/CD pipelines, PostgreSQL is provided using a GitHub Actions service container (postgres:16)
+> In CI/CD, PostgreSQL is provided via Testcontainers (integration tests) or a service container (staging); no manual init is needed
 
-> No manual initialization is required during CI
+## Data Initialization
 
----
+- **develop**: Location: `src/main/resources/db/dev/init-data.sql` (5 categories, 25 flashcards) auto-loaded
+- **staging**: Location: `db/staging/init-data.sql` (manual or CI/CD)
+- **main**   : Location: `db/prod/init-data.sql` (manual or CI/CD)
 
-## Data Initialization (`develop` branch)
-In the develop branch, the sql script automatically loads: 5 categories and 25 flashcards (5 per categories)
-
-Script location: `src/main/resources/db/dev/init-data.sql`
-
-This allows:
-- Immediate API testing
-- Immediate usage of the Web UI after startup
-
----
-
-## Data Initialization (`staging` & `main` branches)
-
-In their environment, data is initialized manually using an idempotent SQL script
-
-- `staging` script location: `db/staging/init-data.sql`
-- `main` script location: `db/prod/init-data.sql`
-
-### Execution (one-time or controlled re-run)
+### Run scripts on staging / prod:
 
 ```bash
-psql -h [host] -U postgres -d flashcardsdb -f db/[PROFILE]/init-data.sql
+psql -h [host] -U postgres -d flashcardsdb -f db/[profile]/init-data.sql
 ```
+> Scripts are idempotent-safe and do not truncate production data
 
-> **Notes**
-> - Executed manually or via CI/CD, never by Spring Boot
-> - Safe to re-run if the script uses idempotent inserts (INSERT ... WHERE NOT EXISTS or ON CONFLICT DO NOTHING)
-> - Does NOT truncate or overwrite production data
-> - Fully compatible with PostgreSQL 16
 ---
 
 ## Run the application
@@ -206,14 +188,32 @@ Build:
 
 Or, run with a specific profile:
 ```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=[PROFILE]
-```
-Or, run the packaged JAR:
-```bash
-java -jar target/flashcards-0.0.1-SNAPSHOT.jar  --spring.profiles.active=[PROFILE]
+./mvnw spring-boot:run -Dspring-boot.run.profiles=[profile]
+# or
+java -jar target/flashcards-0.0.1-SNAPSHOT.jar --spring.profiles.active=[profile]
 ```
 
 If you wish to test restricted access to the actuator, refer to the [actuator-security](#actuator-security) section
+
+---
+
+## Actuator Security
+
+Spring Boot Actuator endpoints are secured to prevent unauthorized access to sensitive runtime information
+
+### Exposure rules
+- `/actuator/health` exposed on all branches, public
+- `/actuator/info`   exposed and public on `develop` and `staging`
+- All other `/actuator/**` endpoints 
+    * exposed only on `develop` - `staging`, require ADMIN via HTTP Basic auth
+    
+### Authentication
+Admin password is provided via SPRING_SECURITY_PSWD (never committed)
+Example:
+
+```bash
+SPRING_SECURITY_PSWD=your-secret ./mvnw spring-boot:run
+```
 
 ---
 
@@ -225,81 +225,13 @@ If you wish to test restricted access to the actuator, refer to the [actuator-se
 | staging | 8081 |
 | prod    | 8080 |
 
-> use the default port for the active profile
-
 ### Web Interface
 
-Once the application is running, open: http://localhost:8080
-
-This page provides: A simple UI to list, search, create, update and delete:
-- Categories
-- Flashcards
-
-Click-to-toggle or hide Flashcard answers
-
-Visibility of category ID for each Flashcard
-
-> This UI is intentionally simple and framework-free (no React/Angular) as the project focuses on backend, CI/CD, and DevOps practices.
-
----
-
-**Notes on Frontend vs Backend responsibilities**
-
-- The **backend** remains API-first
-- The **frontend**:
-    * Is served from `src/main/resources/static`
-    * Uses fetch() to call REST endpoints
-    * Exists only to improve developer experience and project discoverability
-
-In a real-world scenario, this frontend could be: 
-
-Replaced by a dedicated frontend application Or deployed separately (e.g., React + API gateway)
-
----
-## Actuator Security
-
-Spring Boot Actuator endpoints are secured to prevent unauthorized access to sensitive runtime information
-
-### Exposure rules
-- `/actuator/health` 
-    * Available in all branches
-    * Public
-    * Used for health checks and container readiness
-- `/actuator/info` 
-    * available in: `develop` - `staging`
-    * Public
-    * Exposes build and application metadata
-- All other `/actuator/**` endpoints 
-    * available in: `develop` - `staging`
-    * Protected
-    * Require authentication with the `ADMIN` role
-
-### Authentication
-Actuator endpoints are protected using HTTP Basic authentication
-
-The administrator credentials are provided via environment variables
-
-| Variable               | 	Description                                           |
-|------------------------|--------------------------------------------------------|
-|`SPRING_SECURITY_PSWD`  | Admin password for Actuator access                     |
-	
-A non-sensitive default password is used only for local development convenience
-
-### Local development example
-
-```bash
-SPRING_SECURITY_PSWD=your-secret ./mvnw spring-boot:run
-```
-
-> The actual password value must never be committed or documented
-
-> In CI and production environments, the variable is injected securely
-
----
-
-## Access to the API
+Simple UI to list, search, create, update, and delete categories and flashcards: http://localhost:8080
 
 > use the default port for the active profile
+
+> This UI is intentionally framework-free (no React/Angular).
 
 ### API Base Urls
 
@@ -308,7 +240,7 @@ http://localhost:8080/api/categories
 http://localhost:8080/api/flashcards
 ```
 
-### API Endpoints
+### Main endpoints:
 
 | Method | Endpoint                                 | Description              |
 | ------ | ---------------------------------------- | ------------------------ |
@@ -327,7 +259,7 @@ http://localhost:8080/api/flashcards
 
 ---
 
-## Usage Scenario (via cURL)
+## Example Usage (Scenario cURL)
 
 > Use the default port for the active profile
 
@@ -354,13 +286,13 @@ curl -X POST http://localhost:8080/api/flashcards \
      -d '{
            "question": "My question",
            "answer": "My answer",
-           "categoryId": 6 }
+           "categoryId": 6
          }'
 ```
 
 ### 4. List all flashcards
 ```bash
-curl -s http://localhost:8080/api/flashcards | jq 
+curl -s http://localhost:8080/api/flashcards
 ```
 
 ### 5. Update flashcard 25
