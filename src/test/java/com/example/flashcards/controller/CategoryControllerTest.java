@@ -15,77 +15,82 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = CategoryController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@ActiveProfiles("test")
 class CategoryControllerTest {
 
-  @Autowired private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-  @Autowired private ObjectMapper objectMapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-  @MockitoBean private CategoryService categoryService;
+    @MockitoBean
+    private CategoryService categoryService;
 
-  @Test
-  void shouldGetAllCategories() throws Exception {
+    @Test
+    void shouldGetAllCategories() throws Exception {
 
-    Category c = new Category();
-    c.setId(1L);
-    c.setName("Test Category");
+        Category c = new Category();
+        c.setId(1L);
+        c.setName("Test Category");
 
-    when(categoryService.getAllCategories()).thenReturn(List.of(c));
+        when(categoryService.getAllCategories()).thenReturn(List.of(c));
 
-    mockMvc
-        .perform(get("/api/categories").accept(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].id").value(1))
-        .andExpect(jsonPath("$[0].name").value("Test Category"));
+        mockMvc
+                .perform(get("/api/categories").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].name").value("Test Category"));
 
-    verify(categoryService, times(1)).getAllCategories();
-    verifyNoMoreInteractions(categoryService);
-  }
+        verify(categoryService, times(1)).getAllCategories();
+        verifyNoMoreInteractions(categoryService);
+    }
 
-  @Test
-  void searchByName_returnsResults() throws Exception {
+    @Test
+    void searchByName_returnsResults() throws Exception {
 
-    when(categoryService.searchByName("algo"))
-        .thenReturn(List.of(new CategoryDto(1L, "Algorithmes")));
+        when(categoryService.searchByName("algo"))
+                .thenReturn(List.of(new CategoryDto(1L, "Algorithmes")));
 
-    mockMvc
-        .perform(get("/api/categories/search").param("name", "algo"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].name").value("Algorithmes"));
-  }
+        mockMvc
+                .perform(get("/api/categories/search").param("name", "algo"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].name").value("Algorithmes"));
+    }
 
-  @Test
-  void shouldCreateCategory() throws Exception {
+    @Test
+    void shouldCreateCategory() throws Exception {
 
-    CategoryDto newDto = new CategoryDto();
-    newDto.setName("New Category");
+        CategoryDto newDto = new CategoryDto();
+        newDto.setName("New Category");
 
-    Category saved = new Category();
-    saved.setId(5L);
-    saved.setName("New Category");
+        Category saved = new Category();
+        saved.setId(5L);
+        saved.setName("New Category");
 
-    when(categoryService.createCategory(any(Category.class))).thenReturn(saved);
+        when(categoryService.createCategory(any(Category.class))).thenReturn(saved);
 
-    mockMvc
-        .perform(
-            post("/api/categories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(newDto)))
-        .andExpect(status().isOk())
-        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.id").value(5))
-        .andExpect(jsonPath("$.name").value("New Category"));
+        mockMvc
+                .perform(
+                        post("/api/categories")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(newDto)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(5))
+                .andExpect(jsonPath("$.name").value("New Category"));
 
-    verify(categoryService, times(1)).createCategory(any(Category.class));
-    verifyNoMoreInteractions(categoryService);
-  }
+        verify(categoryService, times(1)).createCategory(any(Category.class));
+        verifyNoMoreInteractions(categoryService);
+    }
 }
