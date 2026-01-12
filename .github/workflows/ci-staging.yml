@@ -31,9 +31,6 @@ jobs:
           --health-retries 10
 
     env:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/flashcardsdb
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }} 
       SPRING_SECURITY_PSWD: ${{ secrets.SPRING_SECURITY_PSWD }}
 
     steps:
@@ -181,7 +178,6 @@ jobs:
           POSTGRES_DB: flashcardsdb
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-
     env:
       SPRING_PROFILES_ACTIVE: staging
 
