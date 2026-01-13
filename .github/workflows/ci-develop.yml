@@ -14,7 +14,7 @@ jobs:
   build-and-test:
     runs-on: ubuntu-24.04
     env:
-      SPRING_PROFILES_ACTIVE: it
+      SPRING_PROFILES_ACTIVE: dev
       SPRING_SECURITY_PSWD: ${{ secrets.SPRING_SECURITY_PSWD }}
       SPRING_DATASOURCE_URL: jdbc:h2:mem:itdb;DB_CLOSE_DELAY=-1
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
