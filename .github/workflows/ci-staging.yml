@@ -80,7 +80,7 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/flashcardsdb
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-        run: ./mvnw -B verify -DskipTests
+        run: ./mvnw -B verify -DskipUnitTests=true
 
       - name: Upload JaCoCo report (HTML + XML)
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
