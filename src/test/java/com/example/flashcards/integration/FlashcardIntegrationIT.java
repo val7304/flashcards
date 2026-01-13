@@ -15,9 +15,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("it")
 @AutoConfigureMockMvc
-class FlashcardIntegrationTest {
+class FlashcardIntegrationIT {
 
   @Autowired private MockMvc mockMvc;
 
@@ -25,7 +25,7 @@ class FlashcardIntegrationTest {
 
   @Test
   void testCRUDFLashcard() throws Exception {
-    // 1. Create Category for Flashcard
+    // Create Category for Flashcard
     CategoryDto category = new CategoryDto(null, "Math");
     String categoryJson = objectMapper.writeValueAsString(category);
 
@@ -42,7 +42,7 @@ class FlashcardIntegrationTest {
 
     CategoryDto createdCategory = objectMapper.readValue(categoryResponse, CategoryDto.class);
 
-    // 2. Create Flashcard
+    // Create Flashcard
     FlashcardDto newFlashcard = new FlashcardDto(null, "2+2?", "4", createdCategory.getId());
     String flashcardJson = objectMapper.writeValueAsString(newFlashcard);
 
@@ -61,13 +61,13 @@ class FlashcardIntegrationTest {
 
     FlashcardDto createdFlashcard = objectMapper.readValue(flashcardResponse, FlashcardDto.class);
 
-    // 3. Read Flashcard
+    // Read Flashcard
     mockMvc
         .perform(get("/api/flashcards/" + createdFlashcard.getId()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.question").value("2+2?"));
 
-    // 4. Update Flashcard
+    // Update Flashcard
     FlashcardDto updatedFlashcard =
         new FlashcardDto(createdFlashcard.getId(), "3+3?", "6", createdCategory.getId());
     String updatedJson = objectMapper.writeValueAsString(updatedFlashcard);
@@ -81,14 +81,25 @@ class FlashcardIntegrationTest {
         .andExpect(jsonPath("$.question").value("3+3?"))
         .andExpect(jsonPath("$.answer").value("6"));
 
-    // 5. Delete Flashcard
+    // Delete Flashcard
     mockMvc
         .perform(delete("/api/flashcards/" + createdFlashcard.getId()))
         .andExpect(status().isOk());
 
-    // 6. Ensure Deleted
+    // Ensure Deleted
     mockMvc
         .perform(get("/api/flashcards/" + createdFlashcard.getId()))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void testCreateFlashcardWithInvalidCategory() throws Exception {
+    FlashcardDto invalid = new FlashcardDto(null, "Q?", "A", 999L); // ID inexistant
+    mockMvc
+        .perform(
+            post("/api/flashcards")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalid)))
+        .andExpect(status().is4xxClientError()); // ou ce que tu veux
   }
 }
