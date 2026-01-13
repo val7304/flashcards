@@ -69,9 +69,18 @@ jobs:
             sleep 2
           done
       
-      - name: Run JUnit tests + Jacoco coverage
+      - name: Run Unit Tests
+        env:
+          SPRING_PROFILES_ACTIVE: test
+        run: ./mvnw -B clean test jacoco:report
 
-        run: ./mvnw -B clean verify jacoco:report
+      - name: Run Integration Tests
+        env:
+          SPRING_PROFILES_ACTIVE: it
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/flashcardsdb
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        run: ./mvnw -B verify -DskipTests
 
       - name: Upload JaCoCo report (HTML + XML)
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
