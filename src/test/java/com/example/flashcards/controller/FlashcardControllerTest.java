@@ -1,12 +1,16 @@
 package com.example.flashcards.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -24,11 +28,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = FlashcardController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@ActiveProfiles("test")
 class FlashcardControllerTest {
 
   @Autowired private MockMvc mockMvc;
@@ -80,6 +86,23 @@ class FlashcardControllerTest {
   }
 
   @Test
+  void shouldReturnAllFlashcards() throws Exception {
+    Flashcard flashcard = new Flashcard();
+    flashcard.setId(1L);
+
+    when(flashcardService.getAllFlashcards()).thenReturn(List.of(flashcard));
+
+    mockMvc.perform(get("/api/flashcards")).andExpect(status().isOk());
+  }
+
+  @Test
+  void getById_returns404_whenNotFound() throws Exception {
+    when(flashcardService.getFlashcardById(99L)).thenReturn(Optional.empty());
+
+    mockMvc.perform(get("/api/flashcards/99")).andExpect(status().isNotFound());
+  }
+
+  @Test
   void shouldCreateFlashcard() throws Exception {
     FlashcardDto newDto = new FlashcardDto();
     newDto.setQuestion("Quelle est la capitale de la France ?");
@@ -113,6 +136,93 @@ class FlashcardControllerTest {
 
     verify(categoryService, times(1)).getCategoryById(1L);
     verify(flashcardService, times(1)).createFlashcard(any(Flashcard.class));
+    verifyNoMoreInteractions(categoryService, flashcardService);
+  }
+
+  @Test
+  void shouldDeleteFlashcard() throws Exception {
+    doNothing().when(flashcardService).deleteFlashcard(10L);
+
+    mockMvc.perform(delete("/api/flashcards/10")).andExpect(status().isOk());
+
+    verify(flashcardService, times(1)).deleteFlashcard(10L);
+    verifyNoMoreInteractions(flashcardService);
+  }
+
+  @Test
+  void shouldReturn404_whenCreatingFlashcard_withUnknownCategory() throws Exception {
+    FlashcardDto dto = new FlashcardDto();
+    dto.setQuestion("Q");
+    dto.setAnswer("A");
+    dto.setCategoryId(99L);
+
+    when(categoryService.getCategoryById(99L)).thenReturn(Optional.empty());
+
+    mockMvc
+        .perform(
+            post("/api/flashcards")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isNotFound());
+
+    verify(categoryService).getCategoryById(99L);
+    verifyNoMoreInteractions(categoryService, flashcardService);
+  }
+
+  @Test
+  void shouldReturn404_whenUpdatingFlashcard_withUnknownCategory() throws Exception {
+    FlashcardDto dto = new FlashcardDto();
+    dto.setQuestion("Q");
+    dto.setAnswer("A");
+    dto.setCategoryId(99L);
+
+    when(categoryService.getCategoryById(99L)).thenReturn(Optional.empty());
+
+    mockMvc
+        .perform(
+            put("/api/flashcards/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isNotFound());
+
+    verify(categoryService).getCategoryById(99L);
+    verifyNoMoreInteractions(categoryService, flashcardService);
+  }
+
+  @Test
+  void shouldUpdateFlashcard() throws Exception {
+    FlashcardDto dto = new FlashcardDto();
+    dto.setQuestion("Updated question");
+    dto.setAnswer("Updated answer");
+    dto.setCategoryId(1L);
+
+    Category cat = new Category();
+    cat.setId(1L);
+    cat.setName("Cat 1");
+
+    Flashcard updated = new Flashcard();
+    updated.setId(1L);
+    updated.setQuestion("Updated question");
+    updated.setAnswer("Updated answer");
+    updated.setCategory(cat);
+
+    when(categoryService.getCategoryById(1L)).thenReturn(Optional.of(cat));
+    when(flashcardService.updateFlashcard(eq(1L), any(Flashcard.class))).thenReturn(updated);
+
+    mockMvc
+        .perform(
+            put("/api/flashcards/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").value(1))
+        .andExpect(jsonPath("$.question").value("Updated question"))
+        .andExpect(jsonPath("$.answer").value("Updated answer"))
+        .andExpect(jsonPath("$.categoryId").value(1));
+
+    verify(categoryService).getCategoryById(1L);
+    verify(flashcardService).updateFlashcard(eq(1L), any(Flashcard.class));
     verifyNoMoreInteractions(categoryService, flashcardService);
   }
 }
