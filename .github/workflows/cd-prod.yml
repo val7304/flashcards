@@ -113,6 +113,9 @@ jobs:
         id: vars
         run: echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
+      - name: Build application JAR (skip tests)
+        run: ./mvnw -B package -DskipTests
+
       - name: Build Docker image
         run: ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
 
