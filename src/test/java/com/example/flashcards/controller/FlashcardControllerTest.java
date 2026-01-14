@@ -82,6 +82,23 @@ class FlashcardControllerTest {
   }
 
   @Test
+  void shouldReturnAllFlashcards() throws Exception {
+    Flashcard flashcard = new Flashcard();
+    flashcard.setId(1L);
+
+    when(flashcardService.getAllFlashcards()).thenReturn(List.of(flashcard));
+
+    mockMvc.perform(get("/api/flashcards")).andExpect(status().isOk());
+  }
+
+  @Test
+  void getById_returns404_whenNotFound() throws Exception {
+    when(flashcardService.getFlashcardById(99L)).thenReturn(Optional.empty());
+
+    mockMvc.perform(get("/api/flashcards/99")).andExpect(status().isNotFound());
+  }
+
+  @Test
   void shouldCreateFlashcard() throws Exception {
     FlashcardDto newDto = new FlashcardDto();
     newDto.setQuestion("Quelle est la capitale de la France ?");
