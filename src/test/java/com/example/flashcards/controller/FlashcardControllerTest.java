@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -145,5 +146,45 @@ class FlashcardControllerTest {
 
     verify(flashcardService, times(1)).deleteFlashcard(10L);
     verifyNoMoreInteractions(flashcardService);
+  }
+
+  @Test
+  void shouldReturn404_whenCreatingFlashcard_withUnknownCategory() throws Exception {
+    FlashcardDto dto = new FlashcardDto();
+    dto.setQuestion("Q");
+    dto.setAnswer("A");
+    dto.setCategoryId(99L);
+
+    when(categoryService.getCategoryById(99L)).thenReturn(Optional.empty());
+
+    mockMvc
+        .perform(
+            post("/api/flashcards")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isNotFound());
+
+    verify(categoryService).getCategoryById(99L);
+    verifyNoMoreInteractions(categoryService, flashcardService);
+  }
+
+  @Test
+  void shouldReturn404_whenUpdatingFlashcard_withUnknownCategory() throws Exception {
+    FlashcardDto dto = new FlashcardDto();
+    dto.setQuestion("Q");
+    dto.setAnswer("A");
+    dto.setCategoryId(99L);
+
+    when(categoryService.getCategoryById(99L)).thenReturn(Optional.empty());
+
+    mockMvc
+        .perform(
+            put("/api/flashcards/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isNotFound());
+
+    verify(categoryService).getCategoryById(99L);
+    verifyNoMoreInteractions(categoryService, flashcardService);
   }
 }
