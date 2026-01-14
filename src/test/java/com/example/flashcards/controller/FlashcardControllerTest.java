@@ -1,6 +1,7 @@
 package com.example.flashcards.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -185,6 +186,43 @@ class FlashcardControllerTest {
         .andExpect(status().isNotFound());
 
     verify(categoryService).getCategoryById(99L);
+    verifyNoMoreInteractions(categoryService, flashcardService);
+  }
+
+  @Test
+  void shouldUpdateFlashcard() throws Exception {
+    FlashcardDto dto = new FlashcardDto();
+    dto.setQuestion("Updated question");
+    dto.setAnswer("Updated answer");
+    dto.setCategoryId(1L);
+
+    Category cat = new Category();
+    cat.setId(1L);
+    cat.setName("Cat 1");
+
+    Flashcard updated = new Flashcard();
+    updated.setId(1L);
+    updated.setQuestion("Updated question");
+    updated.setAnswer("Updated answer");
+    updated.setCategory(cat);
+
+    when(categoryService.getCategoryById(1L)).thenReturn(Optional.of(cat));
+    when(flashcardService.updateFlashcard(eq(1L), any(Flashcard.class))).thenReturn(updated);
+
+    mockMvc
+        .perform(
+            put("/api/flashcards/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").value(1))
+        .andExpect(jsonPath("$.question").value("Updated question"))
+        .andExpect(jsonPath("$.answer").value("Updated answer"))
+        .andExpect(jsonPath("$.categoryId").value(1));
+
+    verify(categoryService).getCategoryById(1L);
+    verify(flashcardService).updateFlashcard(eq(1L), any(Flashcard.class));
     verifyNoMoreInteractions(categoryService, flashcardService);
   }
 }
