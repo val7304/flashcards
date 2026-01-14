@@ -264,7 +264,16 @@
                 <version>4.0.0.4121</version>
             </plugin>
 
-            <!-- failsafe -->
+            <!-- unit tests -->
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.3</version>
+                <configuration>
+                    <skipTests>${skipUnitTests}</skipTests>
+                </configuration>
+            </plugin>
+
+            <!-- test IT -->
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.5.3</version>
@@ -276,7 +285,7 @@
                         </goals>
                     </execution>
                 </executions>
-                </plugin>
+            </plugin>
 
             <!-- Spring Boot -->
             <plugin>
