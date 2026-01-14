@@ -1,10 +1,12 @@
 package com.example.flashcards.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -133,5 +135,15 @@ class FlashcardControllerTest {
     verify(categoryService, times(1)).getCategoryById(1L);
     verify(flashcardService, times(1)).createFlashcard(any(Flashcard.class));
     verifyNoMoreInteractions(categoryService, flashcardService);
+  }
+
+  @Test
+  void shouldDeleteFlashcard() throws Exception {
+    doNothing().when(flashcardService).deleteFlashcard(10L);
+
+    mockMvc.perform(delete("/api/flashcards/10")).andExpect(status().isOk());
+
+    verify(flashcardService, times(1)).deleteFlashcard(10L);
+    verifyNoMoreInteractions(flashcardService);
   }
 }
