@@ -131,7 +131,7 @@ jobs:
 
       - name: Run container for smoke tests
         run: |
-          docker run -d --name flashcards-smoke \
+          docker run --pull=never -d --name flashcards-smoke \
             --add-host=host.docker.internal:host-gateway \
             -p 8080:8080 \
             -e SPRING_PROFILES_ACTIVE=prod \
