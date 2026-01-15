@@ -14,7 +14,7 @@
 
     <groupId>com.example</groupId>
     <artifactId>flashcards</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>flashcards</name>
     <description>Flashcards Application - Spring Boot</description>
 
