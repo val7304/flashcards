@@ -105,7 +105,7 @@ Location on `main` branch, path: `.github/workflows/cd-prod.yml`
 ├─ Build Docker image (tagged with short SHA, semantic version, latest)
 ├─ Security scan (Trivy image scan) 
 ├─ Container Smoke tests (Spring Boot health check executed + API endpoint validated)
-├─ Release tagging (e.g. v0.87.0)
+├─ Release tagging (e.g. v1.0.0)
 ├─ Push image to Docker Hub
 ├─ SonarCloud analysis  (JaCoCo XML)
 └─ Workspace cleanup    (Optional)
@@ -140,7 +140,6 @@ The CI pipeline enforces strict quality gates:
 `Build & packaging` `Code formatting` `Static analysis` `Unit & integration tests` 
 
 `Coverage analysis` `API tests` `Load tests` `Security scanning ` `SonarCloud Quality Gate` 
-
 
 | Branch  | Build/Test | Checkstyle | SpotBugs | Coverage | Trivy | Newman | k6     | Docker | SonarCloud |
 | ------- | ---------- | ---------- | -------- | -------- | ----- | ------ | ------ | ------ | ---------- |
@@ -227,10 +226,6 @@ but reflects the exact CI execution order
 ./mvnw spotbugs:check
 ./mvnw jacoco:report   
 ```
-> **Note**: When running locally without Docker, integration tests use H2
-
-> When Docker/Testcontainers are enabled, PostgreSQL is used automatically
-
 
 #### Reports: local(developer): 
 
