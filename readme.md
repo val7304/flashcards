@@ -157,7 +157,8 @@ The `./init-db.sh` script checks for `flashcardsdb`, creating it if missing
 
 > Required only for local development when PostgreSQL is not managed by Docker or CI
 
-> In CI/CD, PostgreSQL is provided via Testcontainers (integration tests) or a service container (staging); no manual init is needed
+> In CI/CD, PostgreSQL is provided via a GitHub Actions service container (staging, main). 
+> Integration tests use H2 by default unless explicitly overridden.
 
 ## Data Initialization
 
@@ -190,7 +191,7 @@ Or, run with a specific profile:
 ```bash
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=[profile]
 # or
-java -jar target/flashcards-0.0.1-SNAPSHOT.jar --spring.profiles.active=[profile]
+java -jar target/flashcards-1.0.0.jar --spring.profiles.active=[profile]
 ```
 
 If you wish to test restricted access to the actuator, refer to the [actuator-security](#actuator-security) section
