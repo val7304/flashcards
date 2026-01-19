@@ -138,8 +138,7 @@ jobs:
       - name: Start Spring Boot
         run: |
           cd app-jar
-
-          mkdir -p load-test
+          touch spring.log
 
           nohup java \
             -Dspring.datasource.url=jdbc:postgresql://localhost:5432/flashcardsdb \
@@ -148,13 +147,12 @@ jobs:
             -Dspring.profiles.active=staging \
             -Dserver.port=8081 \
             -jar flashcards-1.0.0.jar \
-            > load-test/spring.log 2>&1 &
+            >> spring.log 2>&1 &
 
           for i in {1..30}; do
             nc -z localhost 8081 && break
             sleep 2
           done
-
           nc -z localhost 8081 || exit 1
 
       - name: Set up Node.js (for Newman)
@@ -232,6 +230,8 @@ jobs:
       - name: Start Spring Boot
         run: |
           cd app-jar
+          mkdir -p load-test
+          touch load-test/spring.log
 
           nohup java \
           -Dspring.datasource.url=jdbc:postgresql://localhost:5432/flashcardsdb \
@@ -240,7 +240,7 @@ jobs:
           -Dspring.profiles.active=staging \
           -Dserver.port=8081 \
           -jar flashcards-1.0.0.jar \
-          > load-test/spring.log 2>&1 &
+           >> load-test/spring.log 2>&1 &
 
           for i in {1..30}; do
             nc -z localhost 8081 && break
