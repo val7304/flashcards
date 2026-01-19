@@ -229,7 +229,6 @@ jobs:
 
       - name: Start Spring Boot
         run: |
-          cd app-jar
           mkdir -p load-test
           touch load-test/spring.log
 
@@ -239,8 +238,8 @@ jobs:
           -Dspring.datasource.password=${{ secrets.POSTGRES_PASSWORD }} \
           -Dspring.profiles.active=staging \
           -Dserver.port=8081 \
-          -jar flashcards-1.0.0.jar \
-           >> load-test/spring.log 2>&1 &
+          -jar app-jar/flashcards-1.0.0.jar \
+          >> load-test/spring.log 2>&1 &
 
           for i in {1..30}; do
             nc -z localhost 8081 && break
