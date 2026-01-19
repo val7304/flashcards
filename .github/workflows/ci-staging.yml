@@ -136,19 +136,20 @@ jobs:
 
       - name: Start Spring Boot
         run: |
+          cd app-jar
+
           nohup java \
-            -Dspring.datasource.url=jdbc:postgresql://localhost:5432/flashcardsdb
-            -Dspring.datasource.username=postgres
-            -Dspring.datasource.password=${{ secrets.POSTGRES_PASSWORD }}
-            -Dspring.profiles.active=staging \
-            -Dserver.port=8081 \
-            -jar *.jar > spring.log 2>&1 &
-            
-            for i in {1..30}; do
-              nc -z localhost 8081 && break
-              sleep 2
-            done
-            nc -z localhost 8081 || exit 1
+          -Dspring.datasource.url=jdbc:postgresql://localhost:5432/flashcardsdb \
+          -Dspring.datasource.username=postgres \
+          -Dspring.datasource.password=${{ secrets.POSTGRES_PASSWORD }} \
+          -Dspring.profiles.active=staging \
+          -Dserver.port=8081 \
+          -jar *.jar > spring.log 2>&1 &
+          for i in {1..30}; do
+            nc -z localhost 8081 && break
+            sleep 2
+          done
+          nc -z localhost 8081 || exit 1
 
       - name: Set up Node.js (for Newman)
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
@@ -222,6 +223,7 @@ jobs:
 
       - name: Start Spring Boot
         run: |
+          cd app-jar
           nohup java \
             -Dspring.datasource.url=jdbc:postgresql://localhost:5432/flashcardsdb
             -Dspring.datasource.username=postgres
