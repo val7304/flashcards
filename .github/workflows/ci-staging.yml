@@ -234,7 +234,9 @@ jobs:
           -Dspring.datasource.password=${{ secrets.POSTGRES_PASSWORD }} \
           -Dspring.profiles.active=staging \
           -Dserver.port=8081 \
-          -jar *.jar > spring.log 2>&1 &
+          -jar flashcards-1.0.0.jar \
+          > load-test/spring.log 2>&1 &
+
           for i in {1..30}; do
             nc -z localhost 8081 && break
             sleep 2
