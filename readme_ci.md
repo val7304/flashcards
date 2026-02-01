@@ -149,11 +149,11 @@ The pipeline fails immediately if any threshold is exceeded
 
 #### Sample results (local execution)
 
-| p(95) http_req_duration   |     21.01 ms  | 
-| http_req_failed           |       0.00 %  | 
-| requests                  |   ~183 req/s  | 
-| iterations                |   5,529       | 
-| checks success rate       |   100%        | 
+- p(95) http_req_duration :   21.01 ms   
+- http_req_failed         :     0.00 %  
+- requests                : ~183 req/s  
+- iterations              :      5,529       
+- checks success rate     :       100%        
 
 ---
 
@@ -166,10 +166,10 @@ Build, validate and publish production-ready Docker images.
 
 ### Trigger Rules
 
-| Event | Behavior |
-|-----|----------|
-| Push on main | Build + tests + security scans |
-| Tag vX.Y.Z | Full release pipeline + Docker push |
+| Event        | Behavior                            |
+|--------------|-------------------------------------|
+| Push on main | Build + tests + security scans      |
+| Tag vX.Y.Z   | Full release pipeline + Docker push |
 
 ---
 
@@ -220,12 +220,12 @@ The CI pipeline enforces strict quality gates:
 
 `Coverage analysis` `API tests` `Load tests` `Security scanning ` `SonarCloud Quality Gate` 
 
-| Branch | Formatting | Checkstyle | SpotBugs | Tests | Trivy | API | Load | Docker | Sonar |
-| ------ |------------|------------|----------|-------|-------|-----|------|--------|-------|
-| develop | ✔️       | ✔️         | ✔️      | ✔️    | ✔️    | ❌ | ❌   | ❌    | ❌   |
-| staging | ✔️       | ✔️         | ✔️      | ✔️    | ✔️    | ✔️ | ✔️   | ❌    | ❌   |
-| main (push) | ✔️   | ❌         | ❌      | ✔️    | ✔️    | ❌ | ❌   | ✔️    | ✔️   |
-| main (tag) | ✔️    | ✔️         | ✔️      | ✔️    | ✔️    | ❌ | ❌   | ✔️    | ❌   |
+| Branch | Formatting | Checkstyle | SpotBugs | Tests | Trivy | Newman | k6   | Docker | Sonar |
+| ------ |------------|------------|----------|-------|-------|--------|------|--------|-------|
+| develop | ✔️       | ✔️         | ✔️      | ✔️    | ✔️    | ❌    | ❌   | ❌    | ❌   |
+| staging | ✔️       | ✔️         | ✔️      | ✔️    | ✔️    | ✔️    | ✔️   | ❌    | ❌   |
+| main (push) | ✔️   | ❌         | ❌      | ✔️    | ✔️    | ❌    | ❌   | ✔️    | ✔️   |
+| main (tag) | ✔️    | ✔️         | ✔️      | ✔️    | ✔️    | ❌    | ❌   | ✔️    | ❌   |
 
 
 > **JaCoCo Coverage** reports are generated on all branches
