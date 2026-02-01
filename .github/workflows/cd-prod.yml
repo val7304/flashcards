@@ -35,7 +35,6 @@ jobs:
 
     env:
       IMAGE_NAME: flashcards
-      SPRING_SECURITY_PSWD: ${{ secrets.SPRING_SECURITY_PSWD }}
       RELEASE_TAG: ${{ github.ref_name }}
       IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
 
