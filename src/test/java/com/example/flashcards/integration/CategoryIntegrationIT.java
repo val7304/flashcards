@@ -71,11 +71,7 @@ class CategoryIntegrationIT {
 
   @Test
   void testSearchByName() throws Exception {
-<<<<<<< HEAD
-    // 1. Créer catégorie (sans récupérer la réponse)
-=======
     // Create categorie (without retrieved response)
->>>>>>> staging
     mockMvc
         .perform(
             post("/api/categories")
@@ -83,11 +79,7 @@ class CategoryIntegrationIT {
                 .content(objectMapper.writeValueAsString(new CategoryDto(null, "Science"))))
         .andExpect(status().isOk());
 
-<<<<<<< HEAD
-    // 2. Vérifier search
-=======
     // Check search
->>>>>>> staging
     mockMvc
         .perform(get("/api/categories/search").param("name", "Scie"))
         .andExpect(status().isOk())
