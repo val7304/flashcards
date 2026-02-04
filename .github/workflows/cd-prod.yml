@@ -88,13 +88,13 @@ jobs:
         if: github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
         run: >
           ./mvnw sonar:sonar
-          -Djacoco.minimum.coverage=0.80 
           -Dsonar.host.url=https://sonarcloud.io
           -Dsonar.organization=val7304
-          -Dsonar.projectKey=val7304_flashcards
+          -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+          -Djacoco.minimum.coverage=0.80
           -Dsonar.qualitygate.wait=true
 
       - name: Perform CodeQL analysis
