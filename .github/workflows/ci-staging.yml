@@ -29,12 +29,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
-<<<<<<< HEAD
-=======
-    env:
-      SPRING_SECURITY_PSWD: ${{ secrets.SPRING_SECURITY_PSWD }}
-
->>>>>>> staging
     steps:
       - name: Checkout code
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
@@ -81,13 +75,8 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: ./mvnw -B verify -DskipUnitTests=true
 
-<<<<<<< HEAD
       - name: Verify Coverage 70%
         run: ./mvnw -B clean verify jacoco:report -Djacoco.minimum.coverage=0.70
-=======
-      - name: Generate JaCoCo report
-        run: ./mvnw jacoco:report
->>>>>>> staging
 
       - name: Upload JaCoCo artifacts
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
