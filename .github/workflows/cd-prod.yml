@@ -84,14 +84,17 @@ jobs:
           name: jacoco-xml
           path: target/site/jacoco/jacoco.xml
 
-      - name: Verify Coverage and Analyze
+      - name: SonarCloud analysis
         if: github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: >
-          ./mvnw clean verify sonar:sonar 
+          ./mvnw sonar:sonar
           -Djacoco.minimum.coverage=0.80 
+          -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.organization=val7304
+          -Dsonar.projectKey=val7304_flashcards
           -Dsonar.qualitygate.wait=true
 
       - name: Perform CodeQL analysis
