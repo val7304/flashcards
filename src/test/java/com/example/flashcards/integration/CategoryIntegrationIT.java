@@ -25,7 +25,7 @@ class CategoryIntegrationIT {
 
   @Test
   void testCRUDCategory() throws Exception {
-    // 1. Create Category
+    // Create Category
     CategoryDto newCategory = new CategoryDto(null, "Science");
     String categoryJson = objectMapper.writeValueAsString(newCategory);
 
@@ -44,7 +44,7 @@ class CategoryIntegrationIT {
 
     CategoryDto created = objectMapper.readValue(response, CategoryDto.class);
 
-    // 2. Read Category
+    // Read Category
     mockMvc
         .perform(get("/api/categories/" + created.getId()))
         .andExpect(status().isOk())
@@ -62,16 +62,20 @@ class CategoryIntegrationIT {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("Biology"));
 
-    // 4. Delete Category
+    // Delete Category
     mockMvc.perform(delete("/api/categories/" + created.getId())).andExpect(status().isOk());
 
-    // 5. Ensure Deleted
+    // Ensure Deleted
     mockMvc.perform(get("/api/categories/" + created.getId())).andExpect(status().isNotFound());
   }
 
   @Test
   void testSearchByName() throws Exception {
+<<<<<<< HEAD
     // 1. Créer catégorie (sans récupérer la réponse)
+=======
+    // Create categorie (without retrieved response)
+>>>>>>> staging
     mockMvc
         .perform(
             post("/api/categories")
@@ -79,7 +83,11 @@ class CategoryIntegrationIT {
                 .content(objectMapper.writeValueAsString(new CategoryDto(null, "Science"))))
         .andExpect(status().isOk());
 
+<<<<<<< HEAD
     // 2. Vérifier search
+=======
+    // Check search
+>>>>>>> staging
     mockMvc
         .perform(get("/api/categories/search").param("name", "Scie"))
         .andExpect(status().isOk())
