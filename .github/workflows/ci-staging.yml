@@ -75,8 +75,8 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: ./mvnw -B verify -DskipUnitTests=true
 
-      - name: Generate JaCoCo report
-        run: ./mvnw jacoco:report
+      - name: Verify Coverage 70%
+        run: ./mvnw -B clean verify jacoco:report -Djacoco.minimum.coverage=0.70
 
       - name: Upload JaCoCo artifacts
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f

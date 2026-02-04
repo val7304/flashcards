@@ -227,7 +227,6 @@ The CI pipeline enforces strict quality gates:
 | main (push) | ✔️   | ❌         | ❌      | ✔️    | ✔️    | ❌    | ❌   | ✔️    | ✔️   |
 | main (tag) | ✔️    | ✔️         | ✔️      | ✔️    | ✔️    | ❌    | ❌   | ✔️    | ❌   |
 
-
 > **JaCoCo Coverage** reports are generated on all branches
 
 > **SonarCloud** is only triggered on the `main` branch (free plan)
@@ -264,6 +263,18 @@ but reflects the exact CI execution order
 ./mvnw spotbugs:check
 ./mvnw jacoco:report   
 ```
+
+#### Note for JaCoCo coverage 
+
+- In dev, the coverage threshold is set at 0%
+- In `staging` and `main` branches, the coverage threshold is set in workflows
+
+To Simulate the coverage locally, use:  `./mvnw clean verify`, and: 
+
+|Branch          | command                          | using profile       |
+|----------------|----------------------------------|-------------------- |
+|`staging`       |`-Djacoco.minimum.coverage=0.70`  |`-Pcoverage-staging` |
+|`main`          |`-Djacoco.minimum.coverage=0.80`  |`-Pcoverage-main`    |
 
 #### Reports: local(developer): 
 

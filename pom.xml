@@ -32,6 +32,17 @@
         <jacoco.minimum.coverage>0.0</jacoco.minimum.coverage>
         <jacoco.check.skip>false</jacoco.check.skip>
         <spotless.plugin.version>2.43.0</spotless.plugin.version>
+         <!-- Sonar -->
+        <sonar.plugin.version>4.0.0.4121</sonar.plugin.version>
+        <sonar.projectKey>val7304_flashcards</sonar.projectKey>
+        <sonar.organization>val7304</sonar.organization>
+        <sonar.projectName>flashcards</sonar.projectName>
+        <sonar.coverage.exclusions>
+            **/FlashcardsApplication.java,
+            **/*Configuration.java,
+            **/*Config.java,
+            **/dto/**
+        </sonar.coverage.exclusions>
         <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
@@ -197,7 +208,7 @@
                     <effort>Max</effort>
                     <threshold>Low</threshold>
                     <failOnError>true</failOnError>
-                    <xmlOutput>false</xmlOutput>
+                    <includeTests>true</includeTests>
                 </configuration>
                 <executions>
                     <execution>
@@ -263,7 +274,7 @@
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
-                <version>4.0.0.4121</version>
+                 <version>${sonar.plugin.version}</version>
             </plugin>
 
             <!-- unit tests -->

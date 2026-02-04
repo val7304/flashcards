@@ -44,7 +44,7 @@ jobs:
         with:
           languages: java
 
-      - name: Run Maven clean verify (Checkstyle + SpotBugs)
+      - name: Run Maven clean verify
         run: ./mvnw -B clean verify jacoco:report
 
       - name: Upload JaCoCo report
