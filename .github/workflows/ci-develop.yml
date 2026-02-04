@@ -1,0 +1,66 @@
+name: CI - Develop
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    env:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:h2:mem:itdb;DB_CLOSE_DELAY=-1
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e   #v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Validate formatting with Spotless
+        run: ./mvnw spotless:check
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@1b168cd39490f61582a9beae412bb7057a6b2c4e
+        with:
+          languages: java
+
+      - name: Run Maven clean verify
+        run: ./mvnw -B clean verify jacoco:report
+
+      - name: Upload JaCoCo report
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@1b168cd39490f61582a9beae412bb7057a6b2c4e
+
+      - name: Scan dependencies with Trivy
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          severity: HIGH,CRITICAL
+

@@ -1,0 +1,265 @@
+name: CI - Staging
+
+on:
+  push:
+    branches: [ staging ]
+  pull_request:
+    branches: [ staging ]
+  workflow_dispatch:  
+
+permissions:
+  contents: read
+  security-events: write
+  id-token: write
+
+jobs:
+  build-test-static-analysis:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: flashcardsdb
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Check formatting (Spotless)
+        run: ./mvnw spotless:check
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@1b168cd39490f61582a9beae412bb7057a6b2c4e
+        with:
+          languages: java
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            sleep 2
+          done
+      
+      - name: Run Unit Tests
+        env:
+          SPRING_PROFILES_ACTIVE: test
+        run: ./mvnw -B clean test
+
+      - name: Run Integration Tests
+        env:
+          SPRING_PROFILES_ACTIVE: it
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/flashcardsdb
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        run: ./mvnw -B verify -DskipUnitTests=true
+
+      - name: Verify Coverage 70%
+        run: ./mvnw -B clean verify jacoco:report -Djacoco.minimum.coverage=0.70
+
+      - name: Upload JaCoCo artifacts
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: jacoco-report
+          path: |
+            target/site/jacoco/index.html
+            target/site/jacoco/jacoco.xml
+      
+      - name: Upload application JAR
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: app-jar
+          path: target/*.jar
+          if-no-files-found: error
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@1b168cd39490f61582a9beae412bb7057a6b2c4e
+
+      - name: Scan filesystem with Trivy
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          severity: HIGH,CRITICAL
+
+  functional-tests:
+    runs-on: ubuntu-24.04
+    needs: build-test-static-analysis
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: flashcardsdb
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - name: Download application JAR
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: app-jar
+          path: app-jar
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Start Spring Boot
+        run: |
+          cd app-jar
+          touch spring.log
+
+          nohup java \
+            -Dspring.datasource.url=jdbc:postgresql://localhost:5432/flashcardsdb \
+            -Dspring.datasource.username=postgres \
+            -Dspring.datasource.password=${{ secrets.POSTGRES_PASSWORD }} \
+            -Dspring.profiles.active=staging \
+            -Dserver.port=8081 \
+            -jar flashcards-1.0.0.jar \
+            >> spring.log 2>&1 &
+
+          for i in {1..30}; do
+            nc -z localhost 8081 && break
+            sleep 2
+          done
+          nc -z localhost 8081 || exit 1
+
+      - name: Set up Node.js (for Newman)
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
+        with:
+          node-version: 20
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Run API Tests - Functional
+        run: |
+          newman run postman/flashcards.postman_collection.json \
+            -e postman/local.postman_environment.json \
+            --reporters cli,junit \
+            --reporter-junit-export newman-functional.xml
+
+      - name: Run API Tests - Error cases
+        run: |
+          newman run postman/flashcards_error_cases.postman_collection.json \
+            -e postman/local.postman_environment.json \
+            --reporters cli,junit \
+            --reporter-junit-export newman-error.xml
+      
+      - name: Upload Newman JUnit reports
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: newman-reports
+          path: |
+            newman-functional.xml
+            newman-error.xml
+      
+      - name: Upload Spring Boot logs
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: spring-boot-logs
+          path: app-jar/spring.log
+          if-no-files-found: warn
+
+      - name: Stop Spring Boot
+        if: always()
+        run: pkill -f 'java -jar' || true
+      
+  load-test:
+    runs-on: ubuntu-24.04
+    needs: functional-tests
+    if: github.event_name == 'push'
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: flashcardsdb
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - name: Download application JAR
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131    #v7
+        with:
+          name: app-jar
+          path: app-jar
+    
+      - name: Set up JDK 17
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Start Spring Boot
+        run: |
+          mkdir -p load-test
+          touch load-test/spring.log
+
+          nohup java \
+          -Dspring.datasource.url=jdbc:postgresql://localhost:5432/flashcardsdb \
+          -Dspring.datasource.username=postgres \
+          -Dspring.datasource.password=${{ secrets.POSTGRES_PASSWORD }} \
+          -Dspring.profiles.active=staging \
+          -Dserver.port=8081 \
+          -jar app-jar/flashcards-1.0.0.jar \
+          >> load-test/spring.log 2>&1 &
+
+          for i in {1..30}; do
+            nc -z localhost 8081 && break
+            sleep 2
+          done
+          nc -z localhost 8081 || exit 1
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@ffe7d7290dfa715e48c2ccc924d068444c94bde2  #v1.1.0
+
+      - name: Run k6 LOCAL (staging)
+        env:
+          BASE_URL: http://localhost:8081
+        run: k6 run load-test/flashcards.js --vus 50 --duration 2m --out json=k6-report.json
+
+      - name: Upload Spring Boot logs
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: spring-boot-logs-load-test
+          path: load-test/spring.log
+          if-no-files-found: warn
+      
+      - name: Stop Spring Boot
+        if: always()
+        run: pkill -f 'java -jar' || true
