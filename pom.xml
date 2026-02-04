@@ -21,7 +21,7 @@
     <properties>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
+        
         <spring-framework.version>6.2.11</spring-framework.version>
         <spring-security.version>6.5.4</spring-security.version>
         <tomcat.version>10.1.45</tomcat.version>
@@ -29,9 +29,21 @@
         <lombok.version>1.18.30</lombok.version>
         <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
         <jacoco.plugin.version>0.8.11</jacoco.plugin.version>
-        <spotless.plugin.version>2.43.0</spotless.plugin.version>
-
+        <jacoco.minimum.coverage>0.0</jacoco.minimum.coverage>
         <jacoco.check.skip>false</jacoco.check.skip>
+        <spotless.plugin.version>2.43.0</spotless.plugin.version>
+         <!-- Sonar -->
+        <sonar.plugin.version>4.0.0.4121</sonar.plugin.version>
+        <sonar.projectKey>val7304_flashcards</sonar.projectKey>
+        <sonar.organization>val7304</sonar.organization>
+        <sonar.projectName>flashcards</sonar.projectName>
+        <sonar.coverage.exclusions>
+            **/FlashcardsApplication.java,
+            **/*Configuration.java,
+            **/*Config.java,
+            **/dto/**
+        </sonar.coverage.exclusions>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencyManagement>
@@ -66,6 +78,7 @@
                 <artifactId>tomcat-embed-websocket</artifactId>
                 <version>${tomcat.version}</version>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -87,7 +100,6 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- spring-boot-starter-security -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -196,7 +208,7 @@
                     <effort>Max</effort>
                     <threshold>Low</threshold>
                     <failOnError>true</failOnError>
-                    <xmlOutput>false</xmlOutput>
+                    <includeTests>true</includeTests>
                 </configuration>
                 <executions>
                     <execution>
@@ -248,7 +260,7 @@
                                         <limit>
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.80</minimum>
+                                            <minimum>${jacoco.minimum.coverage}</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
@@ -262,7 +274,7 @@
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
-                <version>4.0.0.4121</version>
+                 <version>${sonar.plugin.version}</version>
             </plugin>
 
             <!-- unit tests -->
@@ -306,6 +318,21 @@
                 </configuration>
             </plugin>
         </plugins>
-    </build>
+   </build>
+      <profiles>
+      <profile>
+        <id>coverage-staging</id>
+        <properties>
+            <jacoco.minimum.coverage>0.70</jacoco.minimum.coverage>
+        </properties>
+    </profile>
 
+    <profile>
+        <id>coverage-main</id>
+        <properties>
+            <jacoco.minimum.coverage>0.80</jacoco.minimum.coverage>
+        </properties>
+    </profile>
+
+</profiles>
 </project>

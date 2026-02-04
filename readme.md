@@ -49,8 +49,7 @@ Each branch represents a fully isolated environment with its own Spring profile,
 | Backend  | Java 17, Spring Boot 3                                                 |
 | Build    | Maven Wrapper (`./mvnw`)                                               |
 | Database | PostgreSQL 16 (app, integration tests), H2 (unit tests)                |
-| Testing  | JUnit 5, Mockito (all branches)                                        |
-|   ''     | Postman/Newman CLI (staging), Grafana k6 (load tests – staging)        | 
+| Testing  | JUnit 5, Mockito, Postman (Newman CLI), Grafana k6 (load tests)        |
 | Quality  | Checkstyle, SpotBugs, CodeQL, JaCoCo, SonarCloud                       |
 | Security | Trivy (filesystem scan + Docker image scan)                            |
 | CI       | GitHub Actions (develop/staging pipelines)                             |
@@ -66,11 +65,9 @@ Each branch represents a fully isolated environment with its own Spring profile,
 | `staging` | `staging`| Persistent (local VM)    | update          | No automatic data loading              |
 | `main`    | `prod`   | Persistent (production)  | update          | No automatic data loading              |
 
-- In `staging` and `main`, the application never modifies data automatically at startup
-- Initial production data must be inserted manually or via controlled CI/CD scripts
-- No automatic data mutation occurs at application startup in staging or production
-
-- See the [data-initialization](#data-initialization)  section
+- In `staging` and `main`, the application never modifies data automatically at startup.
+- Initial production data must be inserted manually or via CI/CD.
+- See the [data-initialization](#data-initialization-develop-branch)  section
 
 ### Testing Overview
 
@@ -335,10 +332,11 @@ Before committing, or if formatting issues are detected, apply fixes locally to 
 > If all commands pass successfully, the code is production-ready and can be safely committed and pushed
 
 All validations are also enforced in CI
-See also the [readme_CI](./readme_ci.md) for full CI details
+See also the [readme_CI](https://github.com/val7304/flashcards/blob/staging/readme_ci.md) for full CI details
 
 ---
 
 **Maintainer:** Valérie Hermans  
 [valerie_hermans@outlook.com](mailto:valerie_hermans@outlook.com)  
 [GitHub Profile](https://github.com/val7304)
+
