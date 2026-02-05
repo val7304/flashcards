@@ -49,7 +49,6 @@ FLASHCARDS/
 │   └── local.postman_environment.json
 ├── Dockerfile
 ├── init-db.sh
-├── sonar-project.properties
 └── pom.xml
 ```
 
