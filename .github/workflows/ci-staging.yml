@@ -131,6 +131,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+      
+      - name: Build JAR
+        run: ./mvnw -B package -DskipTests
 
       - name: Build Docker image (staging)
         run: docker build -t flashcards:staging .
