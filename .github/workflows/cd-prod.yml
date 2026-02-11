@@ -71,12 +71,8 @@ jobs:
             sleep 2
           done
 
-      - name: Run Unit Tests + JaCoCo
-        run: ./mvnw -B clean test jacoco:report -Djacoco.minimum.coverage=0.80
-
-      - name: Run Integration Tests (release only)
-        if: env.IS_RELEASE == 'true'
-        run: ./mvnw -B verify -DskipUnitTests
+      - name: Run Tests + JaCoCo
+        run: ./mvnw -B clean verify jacoco:report -Djacoco.minimum.coverage=0.80
 
       - name: Upload JaCoCo XML
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
@@ -112,9 +108,6 @@ jobs:
       - name: Compute short SHA
         id: vars
         run: echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-
-      - name: Build application JAR (skip tests)
-        run: ./mvnw -B package -DskipTests
 
       - name: Build Docker image
         run: ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"

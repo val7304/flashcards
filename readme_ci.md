@@ -110,6 +110,18 @@ Validate real integrations and runtime behavior before production.
 - Trivy filesystem scan
 ```
 
+#### 1a. Docker Runtime Smoke Validation (Staging Only)
+
+```text
+The application is packaged and started in a containerized environment during staging.
+Docker image is built (flashcards:staging)
+Container is started
+Smoke test on /actuator/health
+```
+
+> This step only validates container startup and health endpoints.
+Functional API testing is performed later in the pipeline (Stage 2)
+
 #### 2. Functional API Tests
 
 ```text
@@ -188,6 +200,23 @@ Build, validate and publish production-ready Docker images.
 - Docker Hub publication (release tags only)
 ```
 
+### Docker Image Strategy
+
+The Docker image is rebuilt in the production pipeline (main branch)
+> No Docker image produced in staging is reused in production
+
+Rationale:
+
+* Guarantees deterministic production builds
+* Ensures security scans are executed on the final artifact
+* Prevents relying on artifacts built in another branch
+
+Even though staging validates container runtime behavior,
+the production pipeline performs a fresh Docker build,
+image scan (Trivy), smoke tests, and only then publishes the image.
+
+This ensures full production traceability.
+
 ### Static Analysis Behavior on main
 
 | Scenario     | Checkstyle | SpotBugs |
@@ -219,12 +248,12 @@ The CI pipeline enforces strict quality gates:
 
 `Coverage analysis` `API tests` `Load tests` `Security scanning ` `SonarCloud Quality Gate` 
 
-| Branch | Formatting | Checkstyle | SpotBugs | Tests | Trivy | Newman | k6   | Docker | Sonar |
-| ------ |------------|------------|----------|-------|-------|--------|------|--------|-------|
-| develop | ✔️       | ✔️         | ✔️      | ✔️    | ✔️    | ❌    | ❌   | ❌    | ❌   |
-| staging | ✔️       | ✔️         | ✔️      | ✔️    | ✔️    | ✔️    | ✔️   | ❌    | ❌   |
-| main (push) | ✔️   | ❌         | ❌      | ✔️    | ✔️    | ❌    | ❌   | ✔️    | ✔️   |
-| main (tag) | ✔️    | ✔️         | ✔️      | ✔️    | ✔️    | ❌    | ❌   | ✔️    | ❌   |
+| Branch       | Formatting | Checkstyle | SpotBugs | Tests | Trivy | Newman | k6 | Docker | Sonar |
+|--------------|------------|------------|----------|-------|-------|--------|----|--------|-------|
+| develop      | ✔️        | ✔️         | ✔️       | ✔️   | ✔️   | ❌     | ❌ | ❌    | ❌    |
+| staging      | ✔️        | ✔️         | ✔️       | ✔️   | ✔️   | ✔️     | ✔️ | ✔️    | ❌    |
+| main (push)  | ✔️        | ❌         | ❌       | ✔️   | ✔️   | ❌     | ❌ | ✔️    | ✔️    |
+| main (tag)   | ✔️        | ✔️         | ✔️       | ✔️   | ✔️   | ❌     | ❌ | ✔️    | ❌    |
 
 > **JaCoCo Coverage** reports are generated on all branches
 
