@@ -256,13 +256,13 @@ jobs:
           touch load-test/spring.log
 
           nohup java \
-          -Dspring.datasource.url=jdbc:postgresql://localhost:5432/flashcardsdb \
-          -Dspring.datasource.username=postgres \
-          -Dspring.datasource.password=${{ secrets.POSTGRES_PASSWORD }} \
-          -Dspring.profiles.active=staging \
-          -Dserver.port=8081 \
-          -jar $(ls app-jar/*.jar | head -n 1) \
-          >> load-test/spring.log 2>&1 &
+            -Dspring.datasource.url=jdbc:postgresql://localhost:5432/flashcardsdb \
+            -Dspring.datasource.username=postgres \
+            -Dspring.datasource.password=${{ secrets.POSTGRES_PASSWORD }} \
+            -Dspring.profiles.active=staging \
+            -Dserver.port=8081 \
+            -jar $(ls app-jar/*.jar | head -n 1) \
+            >> load-test/spring.log 2>&1 &
 
           for i in {1..30}; do
             nc -z localhost 8081 && break
@@ -289,4 +289,3 @@ jobs:
       - name: Stop Spring Boot
         if: always()
         run: pkill -f 'java -jar' || true
-        
