@@ -142,6 +142,11 @@ jobs:
             sleep 2
           done
       
+      - name: Debug files
+        run: |
+          ls -R
+          ls -R target
+
       - name: Build Docker image
         run: docker build -t flashcards:staging .
       
