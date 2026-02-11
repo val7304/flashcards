@@ -158,7 +158,8 @@ The `./init-db.sh` script checks for `flashcardsdb`, creating it if missing
 > Required only for local development when PostgreSQL is not managed by Docker or CI
 
 > In CI/CD, PostgreSQL is provided via a GitHub Actions service container (staging, main). 
-> Integration tests use H2 by default unless explicitly overridden.
+> - Unit tests use H2 in-memory
+> - Integration tests use PostgreSQL in CI (staging)
 
 ## Data Initialization
 

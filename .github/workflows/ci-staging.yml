@@ -73,10 +73,10 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/flashcardsdb
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-        run: ./mvnw -B verify -DskipUnitTests=true
+        run: ./mvnw -B verify -DskipTests=true
 
       - name: Verify Coverage 70%
-        run: ./mvnw -B clean verify jacoco:report -Djacoco.minimum.coverage=0.70
+        run: ./mvnw -B verify jacoco:report -Djacoco.minimum.coverage=0.70
 
       - name: Upload JaCoCo artifacts
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
@@ -116,6 +116,11 @@ jobs:
           POSTGRES_DB: flashcardsdb
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Checkout code
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
@@ -125,32 +130,43 @@ jobs:
         with:
           name: app-jar
           path: app-jar
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Start Spring Boot
+        
+      - name: Copy JAR to target
         run: |
-          cd app-jar
-          touch spring.log
+          mkdir -p target
+          cp app-jar/*.jar target/app.jar
 
-          nohup java \
-            -Dspring.datasource.url=jdbc:postgresql://localhost:5432/flashcardsdb \
-            -Dspring.datasource.username=postgres \
-            -Dspring.datasource.password=${{ secrets.POSTGRES_PASSWORD }} \
-            -Dspring.profiles.active=staging \
-            -Dserver.port=8081 \
-            -jar flashcards-1.0.0.jar \
-            >> spring.log 2>&1 &
-
-          for i in {1..30}; do
-            nc -z localhost 8081 && break
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
             sleep 2
           done
-          nc -z localhost 8081 || exit 1
+
+      - name: Build Docker image
+        run: docker build -t flashcards:staging .	
+
+      - name: Run container
+        run: |
+          docker run -d --name flashcards-staging \
+            --add-host=host.docker.internal:host-gateway \
+            -p 8081:8080 \
+            -e SPRING_PROFILES_ACTIVE=staging \
+            -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/flashcardsdb \
+            -e SPRING_DATASOURCE_USERNAME=postgres \
+            -e SPRING_DATASOURCE_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+            flashcards:staging
+
+      - name: Wait for healthcheck
+        run: |
+          for i in {1..20}; do
+            if curl -sf http://localhost:8081/actuator/health > /dev/null; then
+              echo "Container healthy"
+              exit 0
+            fi
+            sleep 3
+          done
+          docker logs flashcards-staging
+          exit 1
 
       - name: Set up Node.js (for Newman)
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
@@ -174,7 +190,7 @@ jobs:
             --reporters cli,junit \
             --reporter-junit-export newman-error.xml
       
-      - name: Upload Newman JUnit reports
+      - name: Upload Newman reports
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
@@ -182,19 +198,24 @@ jobs:
           path: |
             newman-functional.xml
             newman-error.xml
-      
-      - name: Upload Spring Boot logs
+			
+      - name: Save container logs
+        if: always()
+        run: docker logs flashcards-staging > container.log
+
+      - name: Upload container logs
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
-          name: spring-boot-logs
-          path: app-jar/spring.log
-          if-no-files-found: warn
-
-      - name: Stop Spring Boot
+          name: container-logs
+          path: container.log
+			
+      - name: Stop container
         if: always()
-        run: pkill -f 'java -jar' || true
-      
+        run: |
+          docker stop flashcards-staging || true
+          docker rm flashcards-staging || true
+			
   load-test:
     runs-on: ubuntu-24.04
     needs: functional-tests
@@ -208,6 +229,11 @@ jobs:
           POSTGRES_DB: flashcardsdb
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Checkout code
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
@@ -235,7 +261,7 @@ jobs:
           -Dspring.datasource.password=${{ secrets.POSTGRES_PASSWORD }} \
           -Dspring.profiles.active=staging \
           -Dserver.port=8081 \
-          -jar app-jar/flashcards-1.0.0.jar \
+          -jar $(ls app-jar/*.jar | head -n 1) \
           >> load-test/spring.log 2>&1 &
 
           for i in {1..30}; do
