@@ -256,9 +256,9 @@ jobs:
           java-version: 17
   
       - name: Start Spring Boot
-        run: >
+        run:  |
+          rm -rf load-test
           mkdir -p load-test
-          touch load-test/spring.log
 
           nohup java \
             -Dspring.datasource.url=jdbc:postgresql://localhost:5432/flashcardsdb \
