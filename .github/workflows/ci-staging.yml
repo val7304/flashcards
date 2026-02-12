@@ -11,6 +11,8 @@ permissions:
   contents: read
   security-events: write
   id-token: write
+env:
+  DB_PASSWORD: ${{ github.actor == 'dependabot[bot]' && 'postgres' || secrets.POSTGRES_PASSWORD }}
 
 jobs:
   build-test-static-analysis:
@@ -23,7 +25,8 @@ jobs:
         env:
           POSTGRES_DB: flashcardsdb
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_PASSWORD: ${{ github.actor == 'dependabot[bot]' && 'postgres' || secrets.POSTGRES_PASSWORD }}
+          
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -72,7 +75,7 @@ jobs:
           SPRING_PROFILES_ACTIVE: it
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/flashcardsdb
           SPRING_DATASOURCE_USERNAME: postgres
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          SPRING_DATASOURCE_PASSWORD: ${{ github.actor == 'dependabot[bot]' && 'postgres' || secrets.POSTGRES_PASSWORD }}
         run: ./mvnw -B verify -DskipUnitTests=true
   
       - name: Verify Coverage 70%
@@ -158,7 +161,7 @@ jobs:
             -e SPRING_PROFILES_ACTIVE=staging \
             -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/flashcardsdb \
             -e SPRING_DATASOURCE_USERNAME=postgres \
-            -e SPRING_DATASOURCE_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+            -e SPRING_DATASOURCE_PASSWORD=${{ github.actor == 'dependabot[bot]' && 'postgres' || secrets.POSTGRES_PASSWORD }} \
             flashcards:staging
 
       - name: Wait for healthcheck
@@ -235,7 +238,7 @@ jobs:
         env:
           POSTGRES_DB: flashcardsdb
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_PASSWORD: ${{ github.actor == 'dependabot[bot]' && 'postgres' || secrets.POSTGRES_PASSWORD }}
         options: >
           --health-cmd pg_isready
           --health-interval 10s
@@ -264,7 +267,7 @@ jobs:
             nohup java \
             -Dspring.datasource.url=jdbc:postgresql://localhost:5432/flashcardsdb \
             -Dspring.datasource.username=postgres \
-            -Dspring.datasource.password=${{ secrets.POSTGRES_PASSWORD }} \
+            -Dspring.datasource.password=${{ github.actor == 'dependabot[bot]' && 'postgres' || secrets.POSTGRES_PASSWORD }} \
             -Dspring.profiles.active=staging \
             -Dserver.port=8081 \
             -jar $(ls app-jar/*.jar | head -n 1) \
