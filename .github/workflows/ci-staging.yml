@@ -164,10 +164,14 @@ jobs:
       - name: Wait for healthcheck
         run: |
           for i in {1..30}; do
-            curl -sf http://localhost:8081/actuator/health && break
+            if curl -sf http://localhost:8081/actuator/health > /dev/null; then
+              echo "Container healthy"
+              exit 0
+            fi
             sleep 2
           done
-          curl -sf http://localhost:8081/actuator/health || exit 1
+
+          echo "Container failed to start"
           docker logs flashcards-staging
           exit 1
 
