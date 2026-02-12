@@ -205,7 +205,7 @@ Spring Boot Actuator endpoints are secured to prevent unauthorized access to sen
 
 ### Exposure rules
 - `/actuator/health` exposed on all branches, public
-- `/actuator/info`   exposed and public on `develop` and `staging`
+- `/actuator/info`   exposed on all branches, public
 - All other `/actuator/**` endpoints 
     * exposed only on `develop` - `staging`, require ADMIN via HTTP Basic auth
     
