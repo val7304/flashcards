@@ -27,6 +27,9 @@ Each branch represents a fully isolated environment with its own Spring profile,
   ![CI - Develop](https://github.com/val7304/flashcards/actions/workflows/ci-develop.yml/badge.svg?branch=develop)
   ![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen) ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
 
+
+> Dependencies are continuously monitored by  ![Dependabot](https://img.shields.io/badge/dependabot-active-025E8C?logo=dependabot)
+
 > See [readme_ci.md](./readme_ci.md) for detailed CI/CD pipeline documentation.
 
 ---
@@ -333,7 +336,20 @@ Before committing, or if formatting issues are detected, apply fixes locally to 
 > If all commands pass successfully, the code is production-ready and can be safely committed and pushed
 
 All validations are also enforced in CI
-See also the [readme_CI](https://github.com/val7304/flashcards/blob/staging/readme_ci.md) for full CI details
+
+---
+
+#### Dependency Management
+
+This project uses GitHub Dependabot to:
+
+- Monitor vulnerabilities (Dependabot Alerts)
+- Automatically propose security fixes
+- Automatically update GitHub Actions dependencies (grouped weekly)
+
+All updates are validated through CI and staging smoke tests before production.
+
+See also the [readme_CI](./readme_ci.md) for full CI details
 
 ---
 
