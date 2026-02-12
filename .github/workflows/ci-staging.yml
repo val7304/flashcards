@@ -163,13 +163,11 @@ jobs:
 
       - name: Wait for healthcheck
         run: |
-          for i in {1..20}; do
-            if curl -sf http://localhost:8081/actuator/health > /dev/null; then
-              echo "Container healthy"
-              exit 0
-            fi
-            sleep 3
+          for i in {1..30}; do
+            curl -sf http://localhost:8081/actuator/health && break
+            sleep 2
           done
+          curl -sf http://localhost:8081/actuator/health || exit 1
           docker logs flashcards-staging
           exit 1
 
@@ -257,23 +255,22 @@ jobs:
   
       - name: Start Spring Boot
         run:  |
-          rm -rf load-test
-          mkdir -p load-test
+           mkdir -p logs
 
-          nohup java \
+            nohup java \
             -Dspring.datasource.url=jdbc:postgresql://localhost:5432/flashcardsdb \
             -Dspring.datasource.username=postgres \
             -Dspring.datasource.password=${{ secrets.POSTGRES_PASSWORD }} \
             -Dspring.profiles.active=staging \
             -Dserver.port=8081 \
             -jar $(ls app-jar/*.jar | head -n 1) \
-            >> load-test/spring.log 2>&1 &
+            >> logs/spring.log 2>&1 &
 
-          for i in {1..30}; do
-            nc -z localhost 8081 && break
-            sleep 2
-          done
-          nc -z localhost 8081 || exit 1
+            for i in {1..30}; do
+              nc -z localhost 8081 && break
+              sleep 2
+            done
+            nc -z localhost 8081 || exit 1
 
       - name: Setup k6
         uses: grafana/setup-k6-action@ffe7d7290dfa715e48c2ccc924d068444c94bde2
@@ -281,15 +278,14 @@ jobs:
       - name: Run k6 LOCAL (staging)
         env:
           BASE_URL: http://localhost:8081
-        run: k6 run load-test/flashcards.js --vus 50 --duration 2m --out
-          json=k6-report.json
+        run: k6 run load-test/flashcards.js --vus 50 --duration 2m --out json=k6-report.json
   
       - name: Upload Spring Boot logs
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: spring-boot-logs-load-test
-          path: load-test/spring.log
+          path: logs/spring.log
           if-no-files-found: warn
   
       - name: Stop Spring Boot
