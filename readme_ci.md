@@ -9,6 +9,8 @@ This document describes **all CI/CD pipelines**, quality gates, execution rules 
 [![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml)
 [![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
 
+> Dependencies are continuously monitored by  ![Dependabot](https://img.shields.io/badge/dependabot-active-025E8C?logo=dependabot)
+
 ---
 
 ### Branch, Profile & Environments
@@ -57,7 +59,6 @@ FLASHCARDS/
 ## CI Workflows Overview
 
 All workflows are triggered on **push** and **pull requests** targeting their respective branch.
-
 
 ## ci-develop (Continuous Integration)
 
@@ -270,6 +271,27 @@ The CI pipeline enforces strict quality gates:
 | SONAR_PROJECT_KEY | SonarCloud project        |
 | DOCKERHUB_USERNAME| Docker registry           |
 | DOCKERHUB_TOKEN   | Docker registry           |
+
+---
+
+## Dependabot Strategy
+
+### Enabled features
+- Security alerts
+- Automatic security updates
+- Grouped security pull requests
+- Version updates for GitHub Actions only
+
+### Scope
+Dependabot is configured to:
+- Update GitHub Actions workflows
+- Group updates into a single weekly PR
+
+### Validation workflow
+1. Dependabot opens a PR
+2. CI pipeline runs
+3. Smoke tests validate the Docker image (staging)
+4. If green → merge allowed
 
 ---
 
