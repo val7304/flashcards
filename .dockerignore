@@ -6,8 +6,9 @@
 *.iml
 
 # === Build local Maven ===
-target/
-!target/*.jar   
+target/*
+!target/
+!target/*.jar
 
 # ===temp files ===
 *.log
