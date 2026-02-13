@@ -9,17 +9,17 @@ This document describes **all CI/CD pipelines**, quality gates, execution rules 
 [![CI - Staging](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml/badge.svg)](https://github.com/val7304/flashcards/actions/workflows/ci-staging.yml)
 [![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=val7304_flashcards)
 
-> Dependencies are continuously monitored by  ![Dependabot](https://img.shields.io/badge/dependabot-active-025E8C?logo=dependabot)
+> Dependencies of Actions are continuously monitored by  ![Dependabot](https://img.shields.io/badge/dependabot-active-025E8C?logo=dependabot)
 
 ---
 
 ### Branch, Profile & Environments
 
-| Branch  | Spring Profile | Port | Objective |
-|---------|----------------|------|-----------|
-| develop | dev / test | 8080 | Fast CI feedback (formatting, static analysis, unit tests) |
-| staging | staging / it | 8081 | Integration, API validation, load testing |
-| main | prod | 8080 | Production build, security, Docker release |
+| Branch  | Spring Profile | Port | Objective                                                  |
+|---------|----------------|------|----------------------------------------------------------- |
+| develop | dev / test     | 8080 | Fast CI feedback (formatting, static analysis, unit tests) |
+| staging | staging / it   | 8081 | Integration, API validation, load testing                  |
+| main    | prod           | 8080 | Production build, security, Docker release                 |
 
 Each pipeline explicitly controls the active Spring profile and database configuration through environment variables.
 
@@ -32,33 +32,42 @@ For the full application structure, see the main [ReadMe](./readme.md)
 
 ```text
 FLASHCARDS/
-├── .github/workflows/
-│   ├── cd-prod.yml           # CI/CD (main)
-│   ├── ci-develop.yml        # CI (develop)
-│   └── ci-staging.yml        # CI (staging)
-├── ci-scripts/               # main only
-│   ├── build.sh
-│   ├── docker-build.sh
-│   └── test.sh
+├── .github/
+│   ├── dependabot.yml           
+│   └── workflows/
+│       ├── cd-prod.yml                         # CI/CD (main)
+│       ├── ci-develop.yml                      # CI (develop)
+│       └── ci-staging.yml                      # CI (staging)
+├── ci-scripts/                  
+│       ├── build.sh
+│       ├── docker-build.sh
+│       └── test.sh
 ├── config/checkstyle/
-│   ├── checkstyle.xml
-│   └── checkstyle-suppressions.xml
-├── load-test/                # k6 (staging)
-│   └── flashcards.js
-├── postman/                  # Newman (staging)
-│   ├── flashcards.postman_collection.json
-│   ├── flashcards_error_cases.postman_collection.json
-│   └── local.postman_environment.json
+│       ├── checkstyle.xml
+│       └── checkstyle-suppressions.xml
+├── load-test/                
+│       └── flashcards.js
+├── postman/                  
+│       ├── flashcards.postman_collection.json
+│       ├── flashcards_error_cases.postman_collection.json
+│       └── local.postman_environment.json
+├── src/
+│   ├─ main/java/com/example/flashcards/        # source code app
+│   └─ test/java/com/example/flashcards/        # ut/it tests
 ├── Dockerfile
-├── init-db.sh
 └── pom.xml
-```
-
+``` 
 ---
 
 ## CI Workflows Overview
 
-All workflows are triggered on **push** and **pull requests** targeting their respective branch.
+This project uses the `GitLab Flow` strategy:
+
+- Features are developed in the `develop` branch
+- Gradually promoted to `staging`, which acts as a stress test and continuous pre-production environment
+- Once testing is complete, it is promoted to `main`
+
+All workflows are triggered on **push** and **pull requests** targeting their respective branch
 
 ## ci-develop (Continuous Integration)
 
@@ -105,7 +114,7 @@ Validate real integrations and runtime behavior before production.
 - Spotless formatting check
 - CodeQL
 - Unit tests (profile: test)
-- Integration tests (profile: it, PostgreSQL)
+- Integration tests (profile: it, PostgreSQL Docker)
 - Checkstyle & SpotBugs (via Maven verify)
 - JaCoCo HTML + XML
 - Trivy filesystem scan
@@ -144,11 +153,11 @@ Functional API testing is performed later in the pipeline (Stage 2)
 
 ### Load Test Configuration
 
-| Parameter | Value |
-|-----------|-------|
-| Virtual users | 50 |
-| Duration | 2 minutes |
-| Target | /categories, /flashcards |
+| Parameter     | Value                    |
+|---------------|--------------------------|
+| Virtual users | 50                       |
+| Duration      | 2 minutes                |
+| Target        | /categories, /flashcards |
 
 ### Performance Gates
 
@@ -288,10 +297,8 @@ Dependabot is configured to:
 - Group updates into a single weekly PR
 
 ### Validation workflow
-1. Dependabot opens a PR
-2. CI pipeline runs
-3. Smoke tests validate the Docker image (staging)
-4. If green → merge allowed
+
+Dependabot opens a PR → CI pipeline runs → Smoke tests validate the Docker image (staging) → If green: merge allowed
 
 ---
 
@@ -319,9 +326,9 @@ but reflects the exact CI execution order
 - In dev, the coverage threshold is set at 0%
 - In `staging` and `main` branches, the coverage threshold is set in workflows
 
-To Simulate the coverage locally, use:  `./mvnw clean verify`, and: 
+To Simulate the coverage locally, use:  `./mvnw clean verify` and: 
 
-|Branch          | command                          | using profile       |
+|Branch          | CI command                       | using profile       |
 |----------------|----------------------------------|-------------------- |
 |`staging`       |`-Djacoco.minimum.coverage=0.70`  |`-Pcoverage-staging` |
 |`main`          |`-Djacoco.minimum.coverage=0.80`  |`-Pcoverage-main`    |
@@ -352,8 +359,9 @@ vulnerabilities and unsafe coding patterns at source code level.
 | ----------------- | ------------------ | ------------------------------------------------------------------ |
 | develop           | JaCoCo HTML + XML  | `target/site/jacoco/` (XML uploaded as CI artifact)                |
 | staging           | JaCoCo HTML + XML  | `target/site/jacoco/jacoco.xml` (HTML + XML uploaded as artifacts) |
-| staging           | Newman-reports     | `newman-reports.zip` (uploaded as CI artifact)                     |
-| staging           | Application logs   | `spring.log` (uploaded as CI artifact)                             |
+| ""                | Newman-reports     | `newman-reports.zip` (uploaded as CI artifact)                     |
+| ""                | Application logs   | `spring.log` (uploaded as CI artifact)                             |
+| ""                | app.jar            | `app.jar` uploaded as CI artifact and reused in smoke test         |
 | main              | JaCoCo XML only    | `target/site/jacoco/jacoco.xml` (for SonarCloud)                   |
 
 - **JaCoCo** XML is uploaded for SonarCloud usage (on `main` only)
