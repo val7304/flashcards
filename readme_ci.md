@@ -298,7 +298,7 @@ Dependabot is configured to:
 
 ### Validation workflow
 
-Dependabot opens a PR → CI pipeline runs → Smoke tests validate the Docker image (staging) → If green: merge allowed
+Dependabot opens a PR (develop) → CI pipeline runs → merge → Smoke tests validate the Docker image (staging) → If green: merge allowed
 
 ---
 
