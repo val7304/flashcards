@@ -338,7 +338,11 @@ This project uses GitHub Dependabot to:
 - Automatically propose security fixes
 - Automatically update GitHub Actions dependencies (grouped weekly)
 
+<<<<<<< HEAD
 All updates are validated through CI and staging smoke tests before production
+=======
+All updates are validated through CI and staging smoke tests before production.
+>>>>>>> main
 
 See also the [readme_CI](./readme_ci.md) for full CI details
 
