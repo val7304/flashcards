@@ -297,15 +297,8 @@ Dependabot is configured to:
 - Group updates into a single weekly PR
 
 ### Validation workflow
-<<<<<<< HEAD
 
 Dependabot opens a PR (develop) → CI pipeline runs → merge → Smoke tests validate the Docker image (staging) → If green: merge allowed
-=======
-1. Dependabot opens a PR
-2. CI pipeline runs
-3. Smoke tests validate the Docker image (staging)
-4. If green → merge allowed
->>>>>>> main
 
 ---
 
