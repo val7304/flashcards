@@ -55,7 +55,7 @@ jobs:
         run: ./mvnw spotless:check
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@45cbd0c69e560cd9e7cd7f8c32362050c9b7ded2
+        uses: github/codeql-action/init@9e907b5e64f6b83e7804b09294d44122997950d6
         with:
           languages: java
 
@@ -97,10 +97,10 @@ jobs:
           if-no-files-found: error
   
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@45cbd0c69e560cd9e7cd7f8c32362050c9b7ded2
+        uses: github/codeql-action/analyze@9e907b5e64f6b83e7804b09294d44122997950d6
   
       - name: Scan filesystem with Trivy
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
+        uses: aquasecurity/trivy-action@c1824fd6edce30d7ab345a9989de00bbd46ef284
         with:
           scan-type: fs
           scan-ref: .
