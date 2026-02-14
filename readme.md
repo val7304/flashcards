@@ -28,7 +28,7 @@ Each branch represents a fully isolated environment with its own Spring profile,
   ![Checkstyle](https://img.shields.io/badge/Checkstyle-passed-brightgreen) ![SpotBugs](https://img.shields.io/badge/SpotBugs-clean-brightgreen)
 
 
-> Dependencies are continuously monitored by  ![Dependabot](https://img.shields.io/badge/dependabot-active-025E8C?logo=dependabot)
+> Dependencies of Actions are continuously monitored by ![Dependabot](https://img.shields.io/badge/dependabot-active-025E8C?logo=dependabot)
 
 > See [readme_ci.md](./readme_ci.md) for detailed CI/CD pipeline documentation.
 
@@ -82,36 +82,26 @@ The project distinguishes clearly between unit tests and integration tests.
 ## Project Structure (App)
 
 ```text
-FLASHCARDS/
+FLASHCARDS/                         
+├── db/                                                  # manual data
+│   ├─ staging/init-data.sql                                 # staging
+│   └─ prod/init-data.sql                                       # prod
 ├── src/
-│   ├─ main/java/com/example/flashcards/
-│   │   ├─ config/          # security config
-│   │   ├─ controller/      # REST controllers
-│   │   ├─ dto/             # DTOs for API exchanges
-│   │   ├─ entity/          # JPA entities
-│   │   ├─ mapper/          # mappers
-│   │   ├─ repository/      # JPA repositories
-│   │   ├─ service/         # services
-│   │   └─ FlashcardsApplication.java
-│   ├─ resources/
-│   │   ├─ db/dev/          # auto-loaded dev data
-│   │   │   └─ init-data.sql
-│   │   ├─ application.properties
-│   │   └─ application-[profile].properties
-│   ├─ static/
-│   │   └─ index.html, app.js, styles.css
-│   ├─ db/
-│   │   └─ [profile]/init-data.sql  # manual data for staging/prod
-│   └─ test/java/com/example/flashcards/
-│       ├─ controller/
-│       ├─ dto/
-│       ├─ entity/
-│       ├─ integration/
-│       ├─ mapper/
-│       ├─ service/
+│   ├─ main
+│   │    ├─ java/com/example/flashcards/            # source code app
+│   │    │      └─ FlashcardsApplication.java
+│   │    └─ resources/
+│   │       ├─ db/dev/init-data.sql            # data dev (auto-load)
+│   │       ├─ application.properties               # config (common)
+│   │       ├─ application-[profile].properties     #      (profiles)
+│   │       └─ static/
+│   │           └─ index.html, app.js, styles.css          # web API
+│   └─ test/
+│       ├─ java/com/example/flashcards/                # ut/it tests
 │       └─ resources/
-│           ├─ application-it.properties    # it profile
-│           └─ application-test.properties  # test profile 
+│           ├─ application-it.properties                # it profile
+│           └─ application-test.properties            # test profile 
+├── init-db.sh
 └── pom.xml
 ```
 **profile:** `dev`/`staging`/`prod`
@@ -191,11 +181,11 @@ Build:
 ./mvnw spring-boot:run
 ```
 
-Or, run with a specific profile:
+Or, run with a specific profile (eg: staging, prod):
 ```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=[profile]
+./mvnw spring-boot:run -Dspring-boot.run.profiles=staging
 # or
-java -jar target/flashcards-1.0.0.jar --spring.profiles.active=[profile]
+java -jar target/flashcards-1.0.0.jar --spring.profiles.active=prod
 ```
 
 If you wish to test restricted access to the actuator, refer to the [actuator-security](#actuator-security) section
@@ -209,8 +199,9 @@ Spring Boot Actuator endpoints are secured to prevent unauthorized access to sen
 ### Exposure rules
 - `/actuator/health` exposed on all branches, public
 - `/actuator/info`   exposed on all branches, public
-- All other `/actuator/**` endpoints 
-    * exposed only on `develop` - `staging`, require ADMIN via HTTP Basic auth
+- All other `/actuator/**` endpoints require ADMIN via HTTP Basic auth
+    * exposed on `develop` (metrics, mappings, env)
+    * exposed on `staging` (metrics, env)
     
 ### Authentication
 Admin password is provided via SPRING_SECURITY_PSWD (never committed)
@@ -347,7 +338,11 @@ This project uses GitHub Dependabot to:
 - Automatically propose security fixes
 - Automatically update GitHub Actions dependencies (grouped weekly)
 
+<<<<<<< HEAD
+All updates are validated through CI and staging smoke tests before production
+=======
 All updates are validated through CI and staging smoke tests before production.
+>>>>>>> main
 
 See also the [readme_CI](./readme_ci.md) for full CI details
 
