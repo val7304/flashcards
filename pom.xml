@@ -24,7 +24,7 @@
         
         <spring-framework.version>6.2.11</spring-framework.version>
         <spring-security.version>6.5.4</spring-security.version>
-        <tomcat.version>10.1.45</tomcat.version>
+        <tomcat.version>10.1.49</tomcat.version>
 
         <lombok.version>1.18.30</lombok.version>
         <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
