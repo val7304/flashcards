@@ -12,28 +12,47 @@ permissions:
 
 jobs:
   create-pr:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: >
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'develop'
+      }}
+  
     runs-on: ubuntu-24.04
 
     steps:
-      - name: Create PR if not exists
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      
+      - name: Create PR if needed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          EXISTING_PR=$(gh pr list \
-            --base staging \
-            --head develop \
-            --json number \
-            --jq 'length')
+          COMMITS=$(gh api \
+            repos/${{ github.repository }}/compare/staging...develop \
+            --jq '.total_commits')
 
-          if [ "$EXISTING_PR" -eq 0 ]; then
-            gh pr create \
+          if [ "$COMMITS" -eq 0 ]; then
+            echo "No differences between develop and staging"
+            exit 0
+          fi
+          
+          EXISTING_PR=$(gh pr list \
               --base staging \
               --head develop \
-              --title "Promote develop → staging" \
-              --body "Automatic promotion after successful CI." \
-              --label "automated" \
-              --label "promote"
-          else
-            echo "PR already exists"
-          fi
+              --json number \
+              --jq 'length')
+
+            if [ "$EXISTING_PR" -eq 0 ]; then
+              gh pr create \
+                --base staging \
+                --head develop \
+                --title "Promote develop → staging" \
+                --body "Automatic promotion after successful CI." \
+                --label "automated" \
+                --label "promote"
+            else
+              echo "PR already exists"
+            fi
