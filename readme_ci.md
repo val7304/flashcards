@@ -27,7 +27,7 @@ Each pipeline explicitly controls the active Spring profile and database configu
 
 ## CI/CD Project Files
 
-This structure highlights CI/CD-relevant files and directories. 
+This structure highlights CI/CD-relevant files and directories.
 For the full application structure, see the main [ReadMe](./readme.md)
 
 ```text
