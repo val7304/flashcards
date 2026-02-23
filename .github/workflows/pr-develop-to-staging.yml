@@ -1,24 +1,15 @@
 name: Auto PR - Develop to Staging
 
 on:
-  workflow_run:
-    workflows: ["CI - Develop"]
-    types:
-      - completed
-
+  push:
+    branches: [ develop ]
+    
 permissions:
   contents: read
   pull-requests: write
 
 jobs:
-  create-pr:
-    if: >
-      ${{
-        github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.head_branch == 'develop' &&
-        github.event.workflow_run.event == 'push'
-      }}
-  
+  create-pr:  
     runs-on: ubuntu-24.04
 
     steps:
