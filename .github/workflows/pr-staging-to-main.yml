@@ -7,6 +7,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  actions: read
 
 jobs:
   create-pr:
@@ -20,7 +21,7 @@ jobs:
       
       - name: Create PR if needed
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           COMMITS=$(gh api \
             repos/${{ github.repository }}/compare/main...staging \

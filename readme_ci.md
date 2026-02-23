@@ -37,7 +37,9 @@ FLASHCARDS/
 │   └── workflows/
 │       ├── cd-prod.yml                         # CI/CD (main)
 │       ├── ci-develop.yml                      # CI (develop)
-│       └── ci-staging.yml                      # CI (staging)
+│       ├── ci-staging.yml                      # CI (staging)
+│       ├── pr-develop-to-staging.yml           # auto PR
+│       └── pr-staging-to-main.yml              # auto PR
 ├── ci-scripts/                  
 │       ├── build.sh
 │       ├── docker-build.sh
@@ -56,7 +58,8 @@ FLASHCARDS/
 │   └─ test/java/com/example/flashcards/        # ut/it tests
 ├── Dockerfile
 └── pom.xml
-``` 
+```
+
 ---
 
 ## CI Workflows Overview
@@ -68,6 +71,97 @@ This project uses the `GitLab Flow` strategy:
 - Once testing is complete, it is promoted to `main`
 
 All workflows are triggered on **push** and **pull requests** targeting their respective branch
+
+---
+
+## Automated Branch Promotion
+
+This project implements controlled automatic branch promotion using GitHub Actions
+
+Promotion Flow : `feature → develop → staging → main`
+
+### Mechanism
+
+Two dedicated workflows handle promotion:
+
+- Auto PR: develop → staging
+- Auto PR: staging → main
+
+<table>
+  <tr>
+    <th>Promotion Stage</th>
+    <th>Technical Behavior</th>
+    <th>Flow Diagram</th>
+  </tr>
+
+  <tr>
+    <td>
+      <strong>Develop → Staging</strong>
+    </td>
+    <td>
+      <ul>
+        <li>Triggered on push to <code>develop</code></li>
+        <li>Creates PR only if commits ahead</li>
+        <li>Branches protected</li>
+        <li>Staging CI required before merge</li>
+      </ul>
+    </td>
+    <td rowspan="2">
+<pre>
+┌─────────┐
+│ develop │
+└────┬────┘
+     │ push
+     ▼
+Auto PR → staging
+     │ CI staging
+     ▼
+Auto PR → main
+     │ CI prod
+     ▼
+ Release
+</pre>
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      <strong>Staging → Main</strong>
+    </td>
+    <td>
+      <ul>
+        <li>Triggered after successful staging validation</li>
+        <li>Creates PR if staging ahead of main</li>
+        <li>Production CI required</li>
+        <li>Docker image rebuilt deterministically</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+Each workflow:
+1. Triggers on push to the source branch
+2. Compares branches using GitHub REST API:   `repos/{owner}/{repo}/compare/base...head`
+   This approach implements environment-based progressive delivery with enforced CI validation at each promotion stage
+3. Creates a Pull Request only if commits are ahead, Skips execution if no differences are detected
+4. Applies labels: automated, promote
+
+#### Safety Guarantees
+
+- Target branches are protected
+- Required CI status checks must pass before merge
+- No direct push to staging or main
+- Promotions always occur via Pull Request
+- No artifact reuse between branches
+
+**This ensures**:
+
+- Deterministic promotion
+- Full auditability
+- CI validation at every stage
+- No bypass of quality gates
+
+---
 
 ## ci-develop (Continuous Integration)
 
