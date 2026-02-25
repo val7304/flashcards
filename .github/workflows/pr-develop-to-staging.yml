@@ -32,20 +32,29 @@ jobs:
             exit 0
           fi
           
-          EXISTING_PR=$(gh pr list \
+          PR_NUMBER=$(gh pr list \
               --base staging \
               --head develop \
               --json number \
-              --jq 'length')
+              --jq '.[0].number')
 
-            if [ "$EXISTING_PR" -eq 0 ]; then
-              gh pr create \
+          if [ -z "$PR_NUMBER" ]; then
+              PR_NUMBER=$(gh pr create \
                 --base staging \
                 --head develop \
                 --title "Promote develop → staging" \
                 --body "Automatic promotion after successful CI." \
                 --label "automated" \
-                --label "promote"
-            else
+                --label "promote" \
+                --json number \
+                --jq '.number')
+          else
               echo "PR already exists"
-            fi
+          fi
+
+          echo "PR number: $PR_NUMBER"
+
+          # Enable auto-merge
+          gh pr merge $PR_NUMBER \
+            --auto \
+            --merge
