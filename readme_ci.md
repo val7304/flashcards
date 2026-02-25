@@ -38,7 +38,7 @@ FLASHCARDS/
 │       ├── cd-prod.yml                         # CI/CD (main)
 │       ├── ci-develop.yml                      # CI (develop)
 │       ├── ci-staging.yml                      # CI (staging)
-│       ├── pr-develop-to-staging.yml           # auto PR
+│       ├── pr-develop-to-staging.yml           # auto PR + auto-merge
 │       └── pr-staging-to-main.yml              # auto PR
 ├── ci-scripts/                  
 │       ├── build.sh
@@ -85,6 +85,7 @@ Promotion Flow : `feature → develop → staging → main`
 Two dedicated workflows handle promotion:
 
 - Auto PR: develop → staging
+    - If all CI checks pass : `auto-merge`
 - Auto PR: staging → main
 
 <table>
@@ -113,17 +114,20 @@ Two dedicated workflows handle promotion:
 └────┬────┘
      │ push
      ▼
-Auto PR → staging
-     │ CI staging
+PR → staging
+     │ CI staging ✓
      ▼
-Auto PR → main
-     │ CI prod
+(auto-merge)
+     ▼
+PR → main
+     │ CI prod ✓
+     ▼
+(manual merge)
      ▼
  Release
 </pre>
-    </td>
+</td>
   </tr>
-
   <tr>
     <td>
       <strong>Staging → Main</strong>
