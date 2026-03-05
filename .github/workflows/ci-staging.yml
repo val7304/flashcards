@@ -99,14 +99,19 @@ jobs:
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@89a39a4e59826350b863aa6b6252a07ad50cf83e
   
+      - name: Debug workspace
+        run: |
+          ls -R
+          du -sh target || true
+
       - name: Scan filesystem with Trivy
         uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518
         with:
           scan-type: fs
-          scan-ref: .
-          format: table
+          scan-ref: pom.xml
           severity: HIGH,CRITICAL
-  
+
+          
   functional-tests:
     runs-on: ubuntu-24.04
     needs: build-test-static-analysis
@@ -152,6 +157,15 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t flashcards:staging .
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518
+        with:
+          scan-type: image
+          image-ref: flashcards:staging
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          ignore-unfixed: true
       
       - name: Run container
         run: >

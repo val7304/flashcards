@@ -60,7 +60,6 @@ jobs:
         uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518
         with:
           scan-type: fs
-          scan-ref: .
-          format: table
+          scan-ref: pom.xml
           severity: HIGH,CRITICAL
-
+          
