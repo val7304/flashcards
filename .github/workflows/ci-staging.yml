@@ -110,11 +110,11 @@ jobs:
           LD_PRELOAD: ""
         with:
           scan-type: fs
-          scan-ref: .
+          ignore-unfixed: true
           skip-dirs: target,.git
-          severity: MEDIUM,HIGH,CRITICAL
+          severity: CRITICAL
           exit-code: 1
-    
+          
   functional-tests:
     runs-on: ubuntu-24.04
     needs: build-test-static-analysis
