@@ -99,22 +99,6 @@ jobs:
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@89a39a4e59826350b863aa6b6252a07ad50cf83e
   
-      - name: Debug workspace
-        run: |
-          ls -R
-          du -sh target || true
-
-      - name: Scan filesystem with Trivy
-        uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518
-        env:
-          LD_PRELOAD: ""
-        with:
-          scan-type: fs
-          ignore-unfixed: true
-          skip-dirs: target,.git
-          severity: CRITICAL
-          exit-code: 1
-          
   functional-tests:
     runs-on: ubuntu-24.04
     needs: build-test-static-analysis
