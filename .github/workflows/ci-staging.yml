@@ -146,13 +146,13 @@ jobs:
         run: docker build -t flashcards:staging .
 
       - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518
+        uses: aquasecurity/trivy-action@0.33.1
         with:
-          scan-type: image
           image-ref: flashcards:staging
+          format: table
           severity: HIGH,CRITICAL
-          exit-code: 1
           ignore-unfixed: true
+          exit-code: 1
       
       - name: Run container
         run: >
