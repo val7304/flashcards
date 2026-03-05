@@ -57,7 +57,7 @@ jobs:
         uses: github/codeql-action/analyze@9e907b5e64f6b83e7804b09294d44122997950d6
 
       - name: Scan dependencies with Trivy
-        uses: aquasecurity/trivy-action@c1824fd6edce30d7ab345a9989de00bbd46ef284
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: fs
           scan-ref: .
