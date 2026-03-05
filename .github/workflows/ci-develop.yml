@@ -60,6 +60,7 @@ jobs:
         uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518
         with:
           scan-type: fs
-          scan-ref: pom.xml
+          scan-ref: .
+          skip-dirs: target,.git
           severity: HIGH,CRITICAL
-          
+          exit-code: 1
