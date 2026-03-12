@@ -55,7 +55,7 @@ jobs:
         run: ./mvnw spotless:check
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@9e907b5e64f6b83e7804b09294d44122997950d6
+        uses: github/codeql-action/init@0d579ffd059c29b07949a3cce3983f0780820c98
         with:
           languages: java
 
@@ -82,7 +82,7 @@ jobs:
         run: ./mvnw -B verify jacoco:report -Djacoco.minimum.coverage=0.70
   
       - name: Upload JaCoCo artifacts
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: jacoco-report
           path: |
@@ -90,17 +90,17 @@ jobs:
             target/site/jacoco/jacoco.xml
   
       - name: Upload application JAR
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: app-jar
           path: target/*.jar
           if-no-files-found: error
   
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@9e907b5e64f6b83e7804b09294d44122997950d6
+        uses: github/codeql-action/analyze@0d579ffd059c29b07949a3cce3983f0780820c98
   
       - name: Scan filesystem with Trivy
-        uses: aquasecurity/trivy-action@0.34.2
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: fs
           scan-ref: .
@@ -130,7 +130,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       
       - name: Download application JAR
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: app-jar
           path: app-jar
@@ -180,7 +180,7 @@ jobs:
           exit 1
 
       - name: Set up Node.js (for Newman)
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: 20
 
@@ -203,7 +203,7 @@ jobs:
 
       - name: Upload Newman reports
         if: always()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: newman-reports
           path: |
@@ -216,7 +216,7 @@ jobs:
       
       - name: Upload container logs
         if: always()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: container-logs
           path: container.log
@@ -250,7 +250,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
   
       - name: Download application JAR
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: app-jar
           path: app-jar
@@ -290,7 +290,7 @@ jobs:
   
       - name: Upload Spring Boot logs
         if: always()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: spring-boot-logs-load-test
           path: logs/spring.log

@@ -60,7 +60,7 @@ jobs:
         run: ./mvnw -q spotless:check
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@89a39a4e59826350b863aa6b6252a07ad50cf83e
+        uses: github/codeql-action/init@0d579ffd059c29b07949a3cce3983f0780820c98
         with:
           languages: java
 
@@ -95,10 +95,10 @@ jobs:
 
 
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@89a39a4e59826350b863aa6b6252a07ad50cf83e
+        uses: github/codeql-action/analyze@0d579ffd059c29b07949a3cce3983f0780820c98
 
       - name: Scan dependencies with Trivy
-        uses: aquasecurity/trivy-action@0.34.2
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: fs
           scan-ref: .
@@ -113,7 +113,7 @@ jobs:
         run: ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
 
       - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@0.34.2
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: image
           image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
