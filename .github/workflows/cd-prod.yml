@@ -95,7 +95,13 @@ jobs:
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@89a39a4e59826350b863aa6b6252a07ad50cf83e
-      
+
+      - name: Cache Trivy DB
+        uses: actions/cache@a7833574556fa59680c1b7cb190c1735db73ebf0    #v5.0
+        with:
+          path: ~/.cache/trivy
+          key: trivy-db
+
       - name: Install Trivy (official repo)
         run: |
           sudo apt-get update
@@ -113,9 +119,10 @@ jobs:
       - name: Run Trivy scan
         run: |
           trivy fs . \
-            --severity HIGH,CRITICAL \
             --format table \
-            --exit-code 0
+            --exit-code 1 \
+            --severity HIGH, CRITICAL \
+            --no-progress
 
       - name: Compute short SHA
         id: vars
@@ -125,15 +132,14 @@ jobs:
         run: ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
 
       - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@0.34.2
-        with:
-          scan-type: image
-          image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          format: table
-          severity: HIGH,CRITICAL
-          exit-code: 1
-          ignore-unfixed: true
-          scanners: vuln
+        run: |
+          trivy image $IMAGE_NAME:$IMAGE_TAG \
+            --severity HIGH,CRITICAL \
+            --format table \
+            --exit-code 1 \
+            --ignore-unfixed \
+            --scanners vuln \
+            --no-progress
 
       - name: Run container for smoke tests
         run: |
