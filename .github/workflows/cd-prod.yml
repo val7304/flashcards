@@ -121,7 +121,7 @@ jobs:
           trivy fs . \
             --format table \
             --exit-code 1 \
-            --severity HIGH, CRITICAL \
+            --severity HIGH,CRITICAL \
             --no-progress
 
       - name: Compute short SHA
