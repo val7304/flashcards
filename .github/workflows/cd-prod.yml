@@ -97,14 +97,15 @@ jobs:
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@89a39a4e59826350b863aa6b6252a07ad50cf83e
 
-      - name: Scan dependencies with Trivy
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8    #v0.33.1
-        with:
-          scan-type: fs
-          scan-ref: .
-          format: table
-          severity: HIGH,CRITICAL
-          version: v0.44.0
+      - name: Install Trivy
+        run: |
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.44.0/trivy_0.44.0_Linux-64bit.tar.gz
+          tar -xzf trivy_0.44.0_Linux-64bit.tar.gz
+          sudo mv trivy /usr/local/bin/
+
+      - name: Run Trivy scan
+        run: |
+          trivy fs . --severity HIGH,CRITICAL --format table
 
       - name: Compute short SHA
         id: vars
