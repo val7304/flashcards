@@ -56,6 +56,7 @@ jobs:
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@9e907b5e64f6b83e7804b09294d44122997950d6
 
+<<<<<<< HEAD
       - name: Scan dependencies with Trivy
         uses: aquasecurity/trivy-action@0.34.2
         with:
@@ -63,3 +64,26 @@ jobs:
           scan-ref: .
           format: table
           severity: HIGH,CRITICAL
+=======
+      - name: Install Trivy (official repo)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gnupg lsb-release
+
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | \
+            gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | \
+            sudo tee /etc/apt/sources.list.d/trivy.list
+
+          sudo apt-get update
+          sudo apt-get install -y trivy
+
+      - name: Run Trivy scan
+        run: |
+          trivy fs . \
+            --severity HIGH,CRITICAL \
+            --format table \
+            --exit-code 0
+            
+>>>>>>> staging
