@@ -99,13 +99,15 @@ jobs:
 
       - name: Install Trivy
         run: |
-          wget https://github.com/aquasecurity/trivy/releases/download/v0.44.0/trivy_0.44.0_Linux-64bit.tar.gz
-          tar -xzf trivy_0.44.0_Linux-64bit.tar.gz
-          sudo mv trivy /usr/local/bin/
+          sudo apt-get update
+          sudo apt-get install -y trivy
 
       - name: Run Trivy scan
         run: |
-          trivy fs . --severity HIGH,CRITICAL --format table
+          trivy fs . \
+            --severity HIGH,CRITICAL \
+            --format table \
+            --exit-code 0
 
       - name: Compute short SHA
         id: vars
