@@ -39,14 +39,20 @@ jobs:
               --jq '.[0].number')
 
           if [ -z "$PR_NUMBER" ]; then
+              COMMIT_MSG=$(git log -1 --pretty=%B)
+
               gh pr create \
                 --base staging \
                 --head develop \
                 --title "Promote develop → staging" \
-                --body "Automatic promotion after successful CI." \
+                --body "Automatic promotion after successful CI.
+
+              Commit: $GITHUB_SHA
+              
+              Source commit: $GITHUB_SHA" \
                 --label "automated" \
                 --label "promote"
-
+                
               # Récupérer le numéro après création
               PR_NUMBER=$(gh pr list \
                   --base staging \
@@ -58,7 +64,11 @@ jobs:
           fi
 
           echo "PR number: $PR_NUMBER"
+          echo $GITHUB_SHA > deployed_version.txt
 
-          gh pr merge "$PR_NUMBER" \
-            --auto \
-            --merge
+      - name: Upload deployment info
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: deployed-version
+          path: deployed_version.txt
+          
