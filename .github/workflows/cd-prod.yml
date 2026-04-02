@@ -135,10 +135,12 @@ jobs:
         run: |
           trivy image $IMAGE_NAME:$IMAGE_TAG \
             --severity HIGH,CRITICAL \
-            --format table \
             --exit-code 1 \
             --ignore-unfixed \
-            --scanners vuln \
+            --ignorefile .trivyignore.yaml \
+            --timeout 10m \
+            --cache-dir ~/.cache/trivy \
+            --format table \
             --no-progress
 
       - name: Run container for smoke tests
