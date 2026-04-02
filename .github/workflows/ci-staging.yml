@@ -99,16 +99,6 @@ jobs:
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@9e907b5e64f6b83e7804b09294d44122997950d6
   
-<<<<<<< HEAD
-      - name: Scan filesystem with Trivy
-        uses: aquasecurity/trivy-action@0.34.2
-        with:
-          scan-type: fs
-          scan-ref: .
-          format: table
-          severity: HIGH,CRITICAL
-          exit-code: 0
-=======
       
       - name: Install Trivy (official repo)
         run: |
@@ -131,7 +121,6 @@ jobs:
             --format table \
             --exit-code 0
             
->>>>>>> staging
   
   functional-tests:
     runs-on: ubuntu-24.04

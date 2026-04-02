@@ -96,13 +96,8 @@ jobs:
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@89a39a4e59826350b863aa6b6252a07ad50cf83e
 
-<<<<<<< HEAD
-      - name: Scan dependencies with Trivy
-        uses: aquasecurity/trivy-action@0.34.2
-=======
       - name: Cache Trivy DB
         uses: actions/cache@a7833574556fa59680c1b7cb190c1735db73ebf0    #v5.0
->>>>>>> staging
         with:
           path: ~/.cache/trivy
           key: trivy-db
@@ -137,17 +132,6 @@ jobs:
         run: ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
 
       - name: Scan Docker image with Trivy
-<<<<<<< HEAD
-        uses: aquasecurity/trivy-action@0.34.2
-        with:
-          scan-type: image
-          image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          format: table
-          severity: HIGH,CRITICAL
-          exit-code: 1
-          ignore-unfixed: true
-          scanners: vuln
-=======
         run: |
           trivy image $IMAGE_NAME:$IMAGE_TAG \
             --severity HIGH,CRITICAL \
@@ -156,7 +140,6 @@ jobs:
             --ignore-unfixed \
             --scanners vuln \
             --no-progress
->>>>>>> staging
 
       - name: Run container for smoke tests
         run: |
