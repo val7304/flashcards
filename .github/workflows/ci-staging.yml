@@ -107,6 +107,7 @@ jobs:
           format: table
           severity: HIGH,CRITICAL
           exit-code: 0
+          version: v0.44.0
   
   functional-tests:
     runs-on: ubuntu-24.04
