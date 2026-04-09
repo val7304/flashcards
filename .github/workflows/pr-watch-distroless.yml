@@ -62,7 +62,7 @@ jobs:
             echo "Existing PR detected, skipping"
             exit 0
           fi
-
+      
       - name: Create PR
         if: steps.check.outputs.changed == 'true'
         env:
@@ -72,16 +72,7 @@ jobs:
 
           gh pr create \
             --base main \
-            --head $BRANCH \
+            --head "$BRANCH" \
             --title "chore: distroless image updated" \
-            --body "$(cat <<EOF
-Automatic update of distroless base image.
-
-Digest updated → possible security fixes available.
-
-Actions recommended:
-- Run pipeline
-- Verify Trivy results
-- Check if CVEs can be removed from .trivyignore
-EOF
-)"
+            --body "Automatic update of distroless base image.\n\nDigest updated -> possible security fixes available.\n\nActions recommended:\n- Run pipeline\n- Verify Trivy results\n- Check if CVEs can be removed from .trivyignore"
+    
