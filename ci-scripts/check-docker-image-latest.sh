@@ -2,7 +2,7 @@
 set -euo pipefail
 
 IMAGE="gcr.io/distroless/java17-debian12:latest"
-STATE_FILE=".distroless-java17-debian12.digest"
+STATE_FILE="ci-scripts/.distroless-java17-debian12.digest"
 
 docker pull "$IMAGE" >/dev/null
 

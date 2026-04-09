@@ -100,7 +100,9 @@ jobs:
         uses: actions/cache@a7833574556fa59680c1b7cb190c1735db73ebf0    #v5.0
         with:
           path: ~/.cache/trivy
-          key: trivy-db
+          key: trivy-db-${{ runner.os }}-${{ github.run_number }}
+          restore-keys: |
+            trivy-db-${{ runner.os }}-
 
       - name: Install Trivy (official repo)
         run: |
