@@ -10,6 +10,9 @@ CURRENT_DIGEST=$(docker image inspect "$IMAGE" --format '{{index .RepoDigests 0}
 
 if [[ -f "$STATE_FILE" ]]; then
   PREVIOUS_DIGEST=$(cat "$STATE_FILE")
+else
+  PREVIOUS_DIGEST=""
+fi
 
 if [[ "$CURRENT_DIGEST" == "$PREVIOUS_DIGEST" ]]; then
   echo "No update: $IMAGE is unchanged."
@@ -19,8 +22,8 @@ else
   echo "Update detected: $IMAGE has changed."
   echo "Old: $PREVIOUS_DIGEST"
   echo "New: $CURRENT_DIGEST"
-  echo "$CURRENT_DIGEST" > "$DIGEST_FILE"
+
+  echo "$CURRENT_DIGEST" > "$STATE_FILE"
+
   echo "digest_changed=true" >> "$GITHUB_OUTPUT"
 fi
-
-echo "$CURRENT_DIGEST" > "$STATE_FILE"
