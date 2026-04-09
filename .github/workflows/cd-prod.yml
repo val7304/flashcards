@@ -133,8 +133,17 @@ jobs:
       - name: Build Docker image
         run: ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
 
-      - name: Scan Docker image with Trivy (PR FULL SCAN)
-        if: github.event_name == 'pull_request'
+      - name: Check distroless digest
+        id: digest
+        run: |
+          chmod +x ci-scripts/check-docker-image-latest.sh
+          ci-scripts/check-docker-image-latest.sh
+
+      - name: Debug digest
+        run: echo "Digest changed = ${{ steps.digest.outputs.digest_changed }}"
+
+      - name: Trivy Scan Docker Image (new distroless)
+        if: steps.digest.outputs.digest_changed == 'true'
         run: |
           trivy image $IMAGE_NAME:$IMAGE_TAG \
             --severity HIGH,CRITICAL \
@@ -146,8 +155,8 @@ jobs:
             --format table \
             --no-progress
 
-      - name: Scan Docker image with Trivy (MAIN SAFE SCAN)
-        if: github.ref == 'refs/heads/main'
+      - name: Trivy Scan Docker Image (stable distroless)
+        if: steps.digest.outputs.digest_changed == 'false'
         run: |
           trivy image $IMAGE_NAME:$IMAGE_TAG \
             --severity HIGH,CRITICAL \
