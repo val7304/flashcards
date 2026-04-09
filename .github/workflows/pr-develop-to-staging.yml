@@ -69,3 +69,9 @@ jobs:
 
           echo "PR number: $PR_NUMBER"
           echo "$GITHUB_SHA" > deployed_version.txt
+
+      - name: Upload deployment info
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: deployed-version
+          path: deployed_version.txt
