@@ -1,0 +1,87 @@
+name: Distroless Watch
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * *'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
+
+      - name: Setup git
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+      - name: Run digest check
+        id: check
+        run: |
+          chmod +x ci-scripts/check-docker-image-latest.sh
+          OUTPUT=$(ci-scripts/check-docker-image-latest.sh)
+
+          echo "$OUTPUT"
+
+          if echo "$OUTPUT" | grep -q "Update detected"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create branch with updated digest
+        if: steps.check.outputs.changed == 'true'
+        id: branch
+        run: |
+          BRANCH="chore/distroless-update-$(date +%s)"
+
+          git checkout -b $BRANCH
+          git add ci-scripts/.distroless-java17-debian12.digest
+          git commit -m "chore: update distroless digest"
+
+          git push origin $BRANCH
+
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+          EXISTING=$(gh pr list \
+            --base main \
+            --search "distroless" \
+            --json number \
+            --jq length)
+
+          if [ "$EXISTING" -gt 0 ]; then
+            echo "Existing PR detected, skipping"
+            exit 0
+          fi
+
+      - name: Create PR
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          BRANCH="${{ steps.branch.outputs.branch }}"
+
+          gh pr create \
+            --base main \
+            --head $BRANCH \
+            --title "chore: distroless image updated" \
+            --body "$(cat <<EOF
+Automatic update of distroless base image.
+
+Digest updated → possible security fixes available.
+
+Actions recommended:
+- Run pipeline
+- Verify Trivy results
+- Check if CVEs can be removed from .trivyignore
+EOF
+)"
