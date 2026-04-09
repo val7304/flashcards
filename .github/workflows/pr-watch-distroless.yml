@@ -28,18 +28,10 @@ jobs:
         id: check
         run: |
           chmod +x ci-scripts/check-docker-image-latest.sh
-          OUTPUT=$(ci-scripts/check-docker-image-latest.sh)
-
-          echo "$OUTPUT"
-
-          if echo "$OUTPUT" | grep -q "Update detected"; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
+          ci-scripts/check-docker-image-latest.sh
 
       - name: Create branch with updated digest
-        if: steps.check.outputs.changed == 'true'
+        if: steps.check.outputs.digest_changed == 'true'
         id: branch
         run: |
           BRANCH="chore/distroless-update-$(date +%s)"
@@ -64,7 +56,7 @@ jobs:
           fi
       
       - name: Create PR
-        if: steps.check.outputs.changed == 'true'
+        if: steps.check.outputs.digest_changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
@@ -76,3 +68,5 @@ jobs:
             --title "chore: distroless image updated" \
             --body "Automatic update of distroless base image.\n\nDigest updated -> possible security fixes available.\n\nActions recommended:\n- Run pipeline\n- Verify Trivy results\n- Check if CVEs can be removed from .trivyignore"
     
+
+   
