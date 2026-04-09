@@ -2,7 +2,7 @@ name: Auto PR - Staging to Main
 
 on:
   push:
-    branches: [ staging ]
+    branches: [staging]
 
 permissions:
   contents: read
@@ -18,34 +18,55 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
-      
+
       - name: Create PR if needed
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
+          set -e
           COMMITS=$(gh api \
             repos/${{ github.repository }}/compare/main...staging \
-            --jq '.total_commits')
+            --jq '.ahead_by')
 
           if [ "$COMMITS" -eq 0 ]; then
             echo "No differences between staging and main"
             exit 0
           fi
-          
-          EXISTING_PR=$(gh pr list \
+
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          PR_NUMBER=$(gh pr list \
+            --base main \
+            --head staging \
+            --json number \
+            --jq '.[0].number')
+
+          if [ -z "$PR_NUMBER" ]; then
+            gh pr create \
+              --base main \
+              --head staging \
+              --title "Promote staging → main" \
+              --body "Automatic promotion after successful CI.
+          Commit:
+          $GITHUB_SHA
+          https://github.com/${{ github.repository }}/commit/$GITHUB_SHA
+          Message:
+          $COMMIT_MSG" \
+              --label "automated" \
+              --label "promote"
+
+            PR_NUMBER=$(gh pr list \
               --base main \
               --head staging \
               --json number \
-              --jq 'length')
+              --jq '.[0].number')
+          else
+            echo "PR already exists"
+          fi
+          echo "PR number: $PR_NUMBER"
+          echo "$GITHUB_SHA" > deployed_version.txt
 
-            if [ "$EXISTING_PR" -eq 0 ]; then
-              gh pr create \
-                --base main \
-                --head staging \
-                --title "Promote staging → main" \
-                --body "Automatic promotion after successful CI." \
-                --label "automated" \
-                --label "promote"
-            else
-              echo "PR already exists"
-            fi
+      - name: Upload deployment info
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: deployed-version
+          path: deployed_version.txt
