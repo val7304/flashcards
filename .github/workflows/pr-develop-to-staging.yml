@@ -2,15 +2,15 @@ name: Auto PR - Develop to Staging
 
 on:
   push:
-    branches: [ develop ]
-    
+    branches: [develop]
+
 permissions:
   contents: read
   pull-requests: write
   actions: read
 
 jobs:
-  create-pr:  
+  create-pr:
     runs-on: ubuntu-24.04
 
     steps:
@@ -18,57 +18,54 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
-      
+
       - name: Create PR if needed
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
+          set -e
+
           COMMITS=$(gh api \
             repos/${{ github.repository }}/compare/staging...develop \
-            --jq '.total_commits')
+            --jq '.ahead_by')
 
           if [ "$COMMITS" -eq 0 ]; then
             echo "No differences between develop and staging"
             exit 0
           fi
-          
+
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+
           PR_NUMBER=$(gh pr list \
+            --base staging \
+            --head develop \
+            --json number \
+            --jq '.[0].number')
+
+          if [ -z "$PR_NUMBER" ]; then
+            gh pr create \
+            --base staging \
+            --head develop \
+            --title "Promote develop → staging" \
+            --body "Automatic promotion after successful CI.
+
+          Commit:
+          $GITHUB_SHA
+          https://github.com/${{ github.repository }}/commit/$GITHUB_SHA
+
+          Message:
+          $COMMIT_MSG" \
+            --label "automated" \
+            --label "promote"
+            
+            PR_NUMBER=$(gh pr list \
               --base staging \
               --head develop \
               --json number \
               --jq '.[0].number')
-
-          if [ -z "$PR_NUMBER" ]; then
-              COMMIT_MSG=$(git log -1 --pretty=%B)
-
-              gh pr create \
-                --base staging \
-                --head develop \
-                --title "Promote develop → staging" \
-                --body "Automatic promotion after successful CI.
-
-              Commit: $GITHUB_SHA
-              
-              Source commit: $GITHUB_SHA" \
-                --label "automated" \
-                --label "promote"
-                
-              # Récupérer le numéro après création
-              PR_NUMBER=$(gh pr list \
-                  --base staging \
-                  --head develop \
-                  --json number \
-                  --jq '.[0].number')
           else
-              echo "PR already exists"
+            echo "PR already exists"
           fi
 
           echo "PR number: $PR_NUMBER"
-          echo $GITHUB_SHA > deployed_version.txt
-
-      - name: Upload deployment info
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
-        with:
-          name: deployed-version
-          path: deployed_version.txt
-          
+          echo "$GITHUB_SHA" > deployed_version.txt
