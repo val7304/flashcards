@@ -183,6 +183,20 @@ jobs:
       - name: Build Docker image
         run: docker build -t flashcards:staging .
 
+      - name: Install Trivy (official repo)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gnupg lsb-release
+
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | \
+            gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | \
+            sudo tee /etc/apt/sources.list.d/trivy.list
+
+          sudo apt-get update
+          sudo apt-get install -y trivy=0.69.3
+
       - name: Scan Docker image (Trivy - conditional)
         run: |
           if [ "${{ steps.digest.outputs.digest_changed }}" = "true" ]; then
@@ -259,7 +273,12 @@ jobs:
       
       - name: Save container logs
         if: always()
-        run: docker logs flashcards-staging > container.log
+        run: |
+          if docker ps -a --format '{{.Names}}' | grep -q flashcards-staging; then
+            docker logs flashcards-staging > container.log
+          else
+            echo "Container not found" > container.log
+          fi
       
       - name: Upload container logs
         if: always()
