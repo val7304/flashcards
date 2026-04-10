@@ -4,9 +4,9 @@ set -euo pipefail
 IMAGE="gcr.io/distroless/java17-debian12:latest"
 STATE_FILE="ci-scripts/.distroless-java17-debian12.digest"
 
-docker pull "$IMAGE" >/dev/null
+echo "[INFO] Fetching current digest..."
 
-CURRENT_DIGEST=$(docker image inspect "$IMAGE" --format '{{index .RepoDigests 0}}' | sed 's/.*@//')
+CURRENT_DIGEST=$(crane digest "$IMAGE")
 
 if [[ -f "$STATE_FILE" ]]; then
   PREVIOUS_DIGEST=$(cat "$STATE_FILE")
@@ -14,16 +14,14 @@ else
   PREVIOUS_DIGEST=""
 fi
 
+echo "[INFO] Current:  $CURRENT_DIGEST"
+echo "[INFO] Previous: $PREVIOUS_DIGEST"
+
 if [[ "$CURRENT_DIGEST" == "$PREVIOUS_DIGEST" ]]; then
-  echo "No update: $IMAGE is unchanged."
-  echo "Digest: $CURRENT_DIGEST"
+  echo "[INFO] No update detected"
   echo "digest_changed=false" >> "$GITHUB_OUTPUT"
 else
-  echo "Update detected: $IMAGE has changed."
-  echo "Old: $PREVIOUS_DIGEST"
-  echo "New: $CURRENT_DIGEST"
-
-  echo "$CURRENT_DIGEST" > "$STATE_FILE"
-
+  echo "[INFO] Update detected"
   echo "digest_changed=true" >> "$GITHUB_OUTPUT"
+  echo "digest_value=$CURRENT_DIGEST" >> "$GITHUB_OUTPUT"
 fi

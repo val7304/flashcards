@@ -112,7 +112,7 @@ jobs:
             sudo tee /etc/apt/sources.list.d/trivy.list
 
           sudo apt-get update
-          sudo apt-get install -y trivy
+          sudo apt-get install -y trivy=0.69.3
 
       - name: Run Trivy scan
         run: |
@@ -159,15 +159,48 @@ jobs:
           until pg_isready -h localhost -p 5432 -U postgres; do
             sleep 2
           done
-      
-      - name: Debug files
+
+      - name: Install crane
         run: |
-          ls -R
-          ls -R target
+          curl -sL https://github.com/google/go-containerregistry/releases/latest/download/go-containerregistry_Linux_x86_64.tar.gz \
+          | tar -xz crane
+          sudo mv crane /usr/local/bin/
+
+      - name: Check distroless digest
+        id: digest
+        run: |
+          chmod +x ci-scripts/check-docker-image-latest.sh
+          ci-scripts/check-docker-image-latest.sh
+
+      - name: Debug FULL outputs
+        run: |
+          echo "digest_changed = '${{ steps.digest.outputs.digest_changed }}'"
+          echo "digest_value   = '${{ steps.digest.outputs.digest_value }}'"
+
+      - name: Debug digest
+        run: echo "Digest changed = ${{ steps.digest.outputs.digest_changed }}"
 
       - name: Build Docker image
         run: docker build -t flashcards:staging .
-      
+
+      - name: Scan Docker image (Trivy - conditional)
+        run: |
+          if [ "${{ steps.digest.outputs.digest_changed }}" = "true" ]; then
+            echo "[INFO] New distroless → strict scan"
+            trivy image flashcards:staging \
+              --severity HIGH,CRITICAL \
+              --ignorefile /dev/null \
+              --exit-code 0 \
+              --format table
+          else
+            echo "[INFO] Stable distroless → ignore known CVEs"
+            trivy image flashcards:staging \
+              --severity HIGH,CRITICAL \
+              --ignorefile .trivyignore.yaml \
+              --exit-code 0 \
+              --format table
+          fi
+
       - name: Run container
         run: >
           docker run -d --name flashcards-staging \
@@ -182,7 +215,7 @@ jobs:
       - name: Wait for healthcheck
         run: |
           for i in {1..30}; do
-            if curl -sf http://localhost:8081/actuator/health > /dev/null; then
+            if curl -sf http://localhost:8081/actuator/health | grep UP > /dev/null; then
               echo "Container healthy"
               exit 0
             fi

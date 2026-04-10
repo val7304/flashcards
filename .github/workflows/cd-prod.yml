@@ -116,7 +116,7 @@ jobs:
             sudo tee /etc/apt/sources.list.d/trivy.list
 
           sudo apt-get update
-          sudo apt-get install -y trivy
+          sudo apt-get install -y trivy=0.69.3
 
       - name: Run Trivy scan
         run: |
@@ -138,6 +138,11 @@ jobs:
         run: |
           chmod +x ci-scripts/check-docker-image-latest.sh
           ci-scripts/check-docker-image-latest.sh
+
+      - name: Debug FULL outputs
+        run: |
+          echo "digest_changed = '${{ steps.digest.outputs.digest_changed }}'"
+          echo "digest_value   = '${{ steps.digest.outputs.digest_value }}'"
 
       - name: Debug digest
         run: echo "Digest changed = ${{ steps.digest.outputs.digest_changed }}"
@@ -167,6 +172,10 @@ jobs:
             --cache-dir ~/.cache/trivy \
             --format table \
             --no-progress
+
+      - name: Update digest file
+        if: success() && steps.digest.outputs.digest_changed == 'true'
+        run: echo "${{ steps.digest.outputs.digest_value }}" > ci-scripts/.distroless-java17-debian12.digest
 
       - name: Run container for smoke tests
         run: |
