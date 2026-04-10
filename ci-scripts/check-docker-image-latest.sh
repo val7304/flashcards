@@ -4,8 +4,15 @@ set -euo pipefail
 IMAGE="gcr.io/distroless/java17-debian12:latest"
 STATE_FILE="ci-scripts/.distroless-java17-debian12.digest"
 
-echo "[INFO] Fetching current digest..."
+echo "[INFO] Checking crane availability..."
 
+if ! command -v crane >/dev/null 2>&1; then
+  echo "[WARNING] crane not found → skipping digest check"
+  echo "digest_changed=false" >> "$GITHUB_OUTPUT"
+  exit 0
+fi
+
+echo "[INFO] Fetching current digest..."
 CURRENT_DIGEST=$(crane digest "$IMAGE")
 
 if [[ -f "$STATE_FILE" ]]; then
