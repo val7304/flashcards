@@ -116,7 +116,7 @@ jobs:
             sudo tee /etc/apt/sources.list.d/trivy.list
 
           sudo apt-get update
-          sudo apt-get install -y trivy
+          sudo apt-get install -y trivy=0.69.3
 
       - name: Run Trivy scan
         run: |
@@ -133,11 +133,22 @@ jobs:
       - name: Build Docker image
         run: ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
 
+      - name: Install crane
+        run: |
+          curl -sL https://github.com/google/go-containerregistry/releases/latest/download/go-containerregistry_Linux_x86_64.tar.gz \
+          | tar -xz crane
+          sudo mv crane /usr/local/bin/
+
       - name: Check distroless digest
         id: digest
         run: |
           chmod +x ci-scripts/check-docker-image-latest.sh
           ci-scripts/check-docker-image-latest.sh
+
+      - name: Debug FULL outputs
+        run: |
+          echo "digest_changed = '${{ steps.digest.outputs.digest_changed }}'"
+          echo "digest_value   = '${{ steps.digest.outputs.digest_value }}'"
 
       - name: Debug digest
         run: echo "Digest changed = ${{ steps.digest.outputs.digest_changed }}"
@@ -167,6 +178,10 @@ jobs:
             --cache-dir ~/.cache/trivy \
             --format table \
             --no-progress
+
+      - name: Update digest file
+        if: success() && steps.digest.outputs.digest_changed == 'true'
+        run: echo "${{ steps.digest.outputs.digest_value }}" > ci-scripts/.distroless-java17-debian12.digest
 
       - name: Run container for smoke tests
         run: |
