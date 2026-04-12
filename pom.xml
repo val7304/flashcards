@@ -28,6 +28,7 @@
         <jacoco.minimum.coverage>0.0</jacoco.minimum.coverage>
         <jacoco.check.skip>false</jacoco.check.skip>
         <spotless.plugin.version>2.43.0</spotless.plugin.version>
+        <tomcat.version>10.1.54</tomcat.version>
          <!-- Sonar -->
         <sonar.plugin.version>4.0.0.4121</sonar.plugin.version>
         <sonar.projectKey>val7304_flashcards</sonar.projectKey>
@@ -85,6 +86,7 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
+    
         <!-- DevTools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -279,18 +281,47 @@
             </plugin>
 
             <!-- unit tests -->
-            <plugin>
+            <!-- <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.3</version>
                 <configuration>
                     <skipTests>${skipUnitTests}</skipTests>
                 </configuration>
-            </plugin>
+            </plugin> -->
 
             <!-- test IT -->
+            <!-- <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.5.3</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin> -->
+
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.3</version>
+                <configuration>
+                    <skipTests>${skipUnitTests}</skipTests>
+                    <argLine>
+                        -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar
+                    </argLine>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.5.3</version>
+                <configuration>
+                    <argLine>
+                        -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar
+                    </argLine>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
