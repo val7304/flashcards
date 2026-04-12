@@ -28,6 +28,7 @@
         <jacoco.minimum.coverage>0.0</jacoco.minimum.coverage>
         <jacoco.check.skip>false</jacoco.check.skip>
         <spotless.plugin.version>2.43.0</spotless.plugin.version>
+        <tomcat.version>10.1.54</tomcat.version>
          <!-- Sonar -->
         <sonar.plugin.version>4.0.0.4121</sonar.plugin.version>
         <sonar.projectKey>val7304_flashcards</sonar.projectKey>
