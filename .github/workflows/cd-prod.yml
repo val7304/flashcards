@@ -104,15 +104,20 @@ jobs:
           restore-keys: |
             trivy-db-${{ runner.os }}-
 
-      - name: Install Trivy
-        env:
-          TRIVY_VERSION: "0.70.0"
+      - name: Install Trivy (official repo)
         run: |
-          curl -sL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.deb" \
-            -o trivy.deb
-          sudo dpkg -i trivy.deb
-          rm trivy.deb
+          sudo apt-get update
+          sudo apt-get install -y wget gnupg
 
+          wget -qO - https://get.trivy.dev/deb/public.key | \
+            gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://get.trivy.dev/deb generic main" | \
+            sudo tee /etc/apt/sources.list.d/trivy.list
+
+          sudo apt-get update
+          sudo apt-get install -y trivy
+          
       - name: Run Trivy scan
         run: |
           trivy fs . \
