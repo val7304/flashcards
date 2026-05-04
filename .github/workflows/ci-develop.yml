@@ -68,7 +68,7 @@ jobs:
             sudo tee /etc/apt/sources.list.d/trivy.list
 
           sudo apt-get update
-          sudo apt-get install -y trivy=0.69.3
+          sudo apt-get install -y trivy
 
       - name: Run Trivy scan
         run: |
