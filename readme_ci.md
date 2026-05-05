@@ -39,9 +39,12 @@ FLASHCARDS/
 │       ├── ci-develop.yml                      # CI (develop)
 │       ├── ci-staging.yml                      # CI (staging)
 │       ├── pr-develop-to-staging.yml           # auto PR + auto-merge
+│       ├── pr-watch-distroless.yml             # auto PR watch digest image
 │       └── pr-staging-to-main.yml              # auto PR
 ├── ci-scripts/                  
+│       ├── .distroless-java17-debian13.digest
 │       ├── build.sh
+│       ├── check-docker-image-latest.sh        # update, check/compare the digest
 │       ├── docker-build.sh
 │       └── test.sh
 ├── config/checkstyle/
@@ -64,7 +67,7 @@ FLASHCARDS/
 
 ## CI Workflows Overview
 
-This project uses the `GitLab Flow` strategy:
+This project follows a GitLab Flow-inspired branching strategy:
 
 - Features are developed in the `develop` branch
 - Gradually promoted to `staging`, which acts as a stress test and continuous pre-production environment
@@ -156,7 +159,7 @@ Each workflow:
 - Required CI status checks must pass before merge
 - No direct push to staging or main
 - Promotions always occur via Pull Request
-- No artifact reuse between branches
+- No Docker artifact reuse between branches
 
 **This ensures**:
 
@@ -194,6 +197,10 @@ Fast developer feedback with full static analysis and unit test validation.
 - Database: **H2 in-memory**
 - No Docker, no API, no load tests
 
+Two types of Trivy scans are performed:
+- Filesystem scan (`trivy fs`) → dependencies & source code
+- Docker image scan (`trivy image`) → OS packages (distroless)
+
 ---
 
 ## ci-staging (Integration & Validation)
@@ -223,8 +230,9 @@ Validate real integrations and runtime behavior before production.
 ```text
 The application is packaged and started in a containerized environment during staging.
 Docker image is built (flashcards:staging)
-Container is started
-Smoke test on /actuator/health
+- Container is started with host networking access:
+    (--add-host=host.docker.internal:host-gateway)
+    Smoke test on /actuator/health
 ```
 
 > This step only validates container startup and health endpoints.
@@ -348,13 +356,45 @@ Only runnable images are published.
 
 ---
 
+## Distroless Image Monitoring & Security Strategy
+
+The project uses a pinned distroless base image with digest tracking to ensure reproducible and secure builds.
+
+### Mechanism
+
+- The base image digest is stored in:
+  ci-scripts/.distroless-java17-debian13.digest
+
+- A scheduled workflow (`pr-watch-distroless.yml`) checks daily for updates:
+  - Retrieves latest digest from registry
+  - Compares with stored value
+  - Creates an automated PR if changed
+
+### CI Behavior
+
+During CI (staging):
+
+- If the digest has changed:
+  → Trivy runs in **strict mode** (no ignore file)
+
+- If the digest is unchanged:
+  → Trivy runs with `.trivyignore.yaml`
+
+### Rationale
+
+- Detect new vulnerabilities immediately when base image changes
+- Avoid noise from known/accepted CVEs
+- Maintain deterministic and secure builds
+
+---
+
 ## Quality Gates Summary (all branches)
 
 The CI pipeline enforces strict quality gates:
 
 `Build & packaging` `Code formatting` `Static analysis` `Unit & integration tests` 
 
-`Coverage analysis` `API tests` `Load tests` `Security scanning ` `SonarCloud Quality Gate` 
+`Coverage analysis` `API tests` `Load tests` `Security scanning` `SonarCloud Quality Gate` 
 
 | Branch       | Formatting | Checkstyle | SpotBugs | Tests | Trivy | Newman | k6 | Docker | Sonar |
 |--------------|------------|------------|----------|-------|-------|--------|----|--------|-------|
