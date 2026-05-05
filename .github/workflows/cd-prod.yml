@@ -152,9 +152,12 @@ jobs:
       - name: Check distroless digest
         id: digest
         run: |
+          run: |
           chmod +x ci-scripts/check-docker-image-latest.sh
-          ci-scripts/check-docker-image-latest.sh
-
+          ci-scripts/check-docker-image-latest.sh \
+            "gcr.io/distroless/java17-debian13:nonroot" \
+            "ci-scripts/.distroless-java17-debian13.digest"
+    
       - name: Debug FULL outputs
         run: |
           echo "digest_changed = '${{ steps.digest.outputs.digest_changed }}'"
