@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euo pipefail 
 
-IMAGE="gcr.io/distroless/java17-debian12:latest"
-STATE_FILE="ci-scripts/.distroless-java17-debian12.digest"
+IMAGE="${1:-gcr.io/distroless/java17-debian13:nonroot}"
+STATE_FILE="${2:-ci-scripts/.distroless-java17-debian13.digest}"
 
 echo "[INFO] Checking crane availability..."
 
