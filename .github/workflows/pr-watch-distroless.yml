@@ -37,8 +37,8 @@ jobs:
           BRANCH="chore/distroless-update-$(date +%s)"
 
           git checkout -b $BRANCH
-          echo "${{ steps.check.outputs.digest_value }}" > ci-scripts/.distroless-java17-debian12.digest
-          git add ci-scripts/.distroless-java17-debian12.digest
+          echo "${{ steps.check.outputs.digest_value }}" > ci-scripts/.distroless-java17-debian13.digest
+          git add ci-scripts/.distroless-java17-debian13.digest
           git commit -m "chore: update distroless digest"
 
           git push origin $BRANCH

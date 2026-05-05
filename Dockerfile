@@ -1,4 +1,4 @@
-FROM gcr.io/distroless/java17-debian12
+FROM gcr.io/distroless/java17-debian13:nonroot
 
 WORKDIR /app
 COPY target/flashcards-*.jar app.jar
