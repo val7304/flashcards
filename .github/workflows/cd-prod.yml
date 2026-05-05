@@ -194,7 +194,7 @@ jobs:
 
       - name: Update digest file
         if: success() && steps.digest.outputs.digest_changed == 'true'
-        run: echo "${{ steps.digest.outputs.digest_value }}" > ci-scripts/.distroless-java17-debian12.digest
+        run: echo "${{ steps.digest.outputs.digest_value }}" > ci-scripts/.distroless-java17-debian13.digest
 
       - name: Run container for smoke tests
         run: |
