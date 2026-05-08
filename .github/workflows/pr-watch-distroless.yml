@@ -6,7 +6,7 @@ on:
     - cron: '0 6 * * *'
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
 
 jobs:
@@ -23,6 +23,12 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
+
+      - name: Install crane
+        run: |
+          curl -sL https://github.com/google/go-containerregistry/releases/latest/download/go-containerregistry_Linux_x86_64.tar.gz \
+          | tar -xz crane
+          sudo mv crane /usr/local/bin/
 
       - name: Run digest check
         id: check
