@@ -25,7 +25,7 @@ jobs:
           git config user.email "github-actions@github.com"
 
       - name: Install crane
-         run: |
+        run: |
           curl -sL https://github.com/google/go-containerregistry/releases/latest/download/go-containerregistry_Linux_x86_64.tar.gz \
           | tar -xz crane
           sudo mv crane /usr/local/bin/
