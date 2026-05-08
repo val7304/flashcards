@@ -144,10 +144,9 @@ jobs:
         run: ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
 
       - name: Install crane
+        id: install
         run: |
-          curl -sL https://github.com/google/go-containerregistry/releases/latest/download/go-containerregistry_Linux_x86_64.tar.gz \
-          | tar -xz crane
-          sudo mv crane /usr/local/bin/
+          ci-scripts/install-crane.sh
 
       - name: Check distroless digest
         id: digest
