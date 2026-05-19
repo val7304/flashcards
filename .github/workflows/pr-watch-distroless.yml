@@ -39,18 +39,9 @@ jobs:
       - name: Create branch with updated digest
         if: steps.check.outputs.digest_changed == 'true'
         id: branch
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          BRANCH="chore/distroless-update-$(date +%s)"
-
-          git checkout -b $BRANCH
-          echo "${{ steps.check.outputs.digest_value }}" > ci-scripts/.distroless-java17-debian13.digest
-          git add ci-scripts/.distroless-java17-debian13.digest
-          git commit -m "chore: update distroless digest"
-
-          git push origin $BRANCH
-
-          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
-
           EXISTING=$(gh pr list \
             --base main \
             --search "distroless" \
@@ -59,11 +50,20 @@ jobs:
 
           if [ "$EXISTING" -gt 0 ]; then
             echo "Existing PR detected, skipping"
+            echo "skip_pr=true" >> $GITHUB_OUTPUT
             exit 0
           fi
+
+          BRANCH="chore/distroless-update-$(date +%s)"
+          git checkout -b $BRANCH
+          echo "${{ steps.check.outputs.digest_value }}" > ci-scripts/.distroless-java17-debian13.digest
+          git add ci-scripts/.distroless-java17-debian13.digest
+          git commit -m "chore: update distroless digest"
+          git push origin $BRANCH
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
       
       - name: Create PR
-        if: steps.check.outputs.digest_changed == 'true'
+        if: steps.check.outputs.digest_changed == 'true' && steps.branch.outputs.skip_pr != 'true'
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
@@ -74,6 +74,4 @@ jobs:
             --head "$BRANCH" \
             --title "chore: distroless image updated" \
             --body "Automatic update of distroless base image.\n\nDigest updated -> possible security fixes available.\n\nActions recommended:\n- Run pipeline\n- Verify Trivy results\n- Check if CVEs can be removed from .trivyignore"
-    
-
    
