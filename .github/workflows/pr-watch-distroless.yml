@@ -43,7 +43,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           EXISTING=$(gh pr list \
-            --base main \
+            --base develop \
             --search "distroless" \
             --json number \
             --jq length)
@@ -56,8 +56,13 @@ jobs:
 
           BRANCH="chore/distroless-update-$(date +%s)"
           git checkout -b $BRANCH
-          echo "${{ steps.check.outputs.digest_value }}" > ci-scripts/.distroless-java17-debian13.digest
-          git add ci-scripts/.distroless-java17-debian13.digest
+          DIGEST="${{ steps.check.outputs.digest_value }}"
+
+          echo "$DIGEST" > ci-scripts/.distroless-java17-debian13.digest
+          sed -i "s|FROM gcr.io/distroless/java17-debian13:nonroot.*|FROM gcr.io/distroless/java17-debian13:nonroot@$DIGEST|" Dockerfile
+          git add \
+            ci-scripts/.distroless-java17-debian13.digest \
+            Dockerfile
           git commit -m "chore: update distroless digest"
           git push origin $BRANCH
           echo "branch=$BRANCH" >> $GITHUB_OUTPUT
@@ -70,7 +75,7 @@ jobs:
           BRANCH="${{ steps.branch.outputs.branch }}"
 
           gh pr create \
-            --base main \
+            --base develop \
             --head "$BRANCH" \
             --title "chore: distroless image updated" \
             --body "Automatic update of distroless base image.\n\nDigest updated -> possible security fixes available.\n\nActions recommended:\n- Run pipeline\n- Verify Trivy results\n- Check if CVEs can be removed from .trivyignore"
