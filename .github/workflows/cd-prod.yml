@@ -143,42 +143,7 @@ jobs:
       - name: Build Docker image
         run: ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
 
-      - name: Install crane
-        id: install
-        run: |
-          ci-scripts/install-crane.sh
-
-      - name: Check distroless digest
-        id: digest
-        run: |
-          chmod +x ci-scripts/check-docker-image-latest.sh
-          ci-scripts/check-docker-image-latest.sh \
-            "gcr.io/distroless/java17-debian13:nonroot" \
-            "ci-scripts/.distroless-java17-debian13.digest"
-    
-      - name: Debug FULL outputs
-        run: |
-          echo "digest_changed = '${{ steps.digest.outputs.digest_changed }}'"
-          echo "digest_value   = '${{ steps.digest.outputs.digest_value }}'"
-
-      - name: Debug digest
-        run: echo "Digest changed = ${{ steps.digest.outputs.digest_changed }}"
-
-      - name: Trivy Scan Docker Image (new distroless)
-        if: steps.digest.outputs.digest_changed == 'true'
-        run: |
-          trivy image $IMAGE_NAME:$IMAGE_TAG \
-            --severity HIGH,CRITICAL \
-            --exit-code 1 \
-            --ignore-unfixed \
-            --ignorefile /dev/null \
-            --timeout 10m \
-            --cache-dir ~/.cache/trivy \
-            --format table \
-            --no-progress
-
-      - name: Trivy Scan Docker Image (stable distroless)
-        if: steps.digest.outputs.digest_changed == 'false'
+      - name: Trivy Scan Docker Image
         run: |
           trivy image $IMAGE_NAME:$IMAGE_TAG \
             --severity HIGH,CRITICAL \
@@ -189,10 +154,6 @@ jobs:
             --cache-dir ~/.cache/trivy \
             --format table \
             --no-progress
-
-      - name: Update digest file
-        if: success() && steps.digest.outputs.digest_changed == 'true'
-        run: echo "${{ steps.digest.outputs.digest_value }}" > ci-scripts/.distroless-java17-debian13.digest
 
       - name: Run container for smoke tests
         run: |
@@ -248,3 +209,4 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:${RELEASE_TAG}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
+          

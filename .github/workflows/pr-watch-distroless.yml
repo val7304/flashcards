@@ -44,7 +44,7 @@ jobs:
         run: |
           EXISTING=$(gh pr list \
             --base develop \
-            --search "distroless" \
+            --search "in:title chore: distroless image updated" \
             --json number \
             --jq length)
 
@@ -63,6 +63,13 @@ jobs:
           git add \
             ci-scripts/.distroless-java17-debian13.digest \
             Dockerfile
+
+            git diff --cached --quiet && {
+              echo "No changes detected"
+              echo "skip_pr=true" >> $GITHUB_OUTPUT
+              exit 0
+            }
+
           git commit -m "chore: update distroless digest"
           git push origin $BRANCH
           echo "branch=$BRANCH" >> $GITHUB_OUTPUT
