@@ -169,20 +169,6 @@ jobs:
             sleep 2
           done
 
-      - name: Install crane
-        id: install
-        run: |
-          ci-scripts/install-crane.sh
-
-      - name: Check distroless digest
-        id: digest
-        run: |
-          chmod +x ci-scripts/check-docker-image-latest.sh
-          ci-scripts/check-docker-image-latest.sh
-
-      - name: Debug digest
-        run: echo "Digest changed = ${{ steps.digest.outputs.digest_changed }}"
-
       - name: Build Docker image
         run: docker build -t flashcards:staging .
 
@@ -210,23 +196,14 @@ jobs:
 
           trivy --version
   
-      - name: Scan Docker image (Trivy - conditional)
+      - name: Trivy Scan Docker Image (strict)
         run: |
-          if [ "${{ steps.digest.outputs.digest_changed }}" = "true" ]; then
-            echo "[INFO] New distroless → strict scan"
-            trivy image flashcards:staging \
-              --severity HIGH,CRITICAL \
-              --ignorefile /dev/null \
-              --exit-code 0 \
-              --format table
-          else
-            echo "[INFO] Stable distroless → ignore known CVEs"
-            trivy image flashcards:staging \
-              --severity HIGH,CRITICAL \
-              --ignorefile .trivyignore.yaml \
-              --exit-code 0 \
-              --format table
-          fi
+          echo "[INFO] New distroless → strict scan"
+          trivy image flashcards:staging \
+            --severity HIGH,CRITICAL \
+            --ignorefile /dev/null \
+            --exit-code 0 \
+            --format table
 
       - name: Run container
         run: >
