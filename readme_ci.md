@@ -28,7 +28,7 @@ Each pipeline explicitly controls the active Spring profile and database configu
 ## CI/CD Project Files
 
 This structure highlights CI/CD-relevant files and directories.
-For the full application structure, see the main [ReadMe](./readme.md)
+For the full application structure, see the main [README](./README.md)
 
 ```text 
 FLASHCARDS/
@@ -44,8 +44,10 @@ FLASHCARDS/
 ├── ci-scripts/                  
 │       ├── .distroless-java17-debian13.digest
 │       ├── build.sh
-│       ├── check-docker-image-latest.sh        # update, check/compare the digest
-│       ├── docker-build.sh
+│       ├── check-docker-image-latest.sh        # compare remote distroless digest with stored state
+│       ├── docker-build.sh 
+│       ├── install-crane.sh                    # pinned Crane installation
+│       ├── install-trivy.sh                    # pinned Trivy installation
 │       └── test.sh
 ├── config/checkstyle/
 │       ├── checkstyle.xml
@@ -81,12 +83,12 @@ All workflows are triggered on **push** and **pull requests** targeting their re
 
 This project implements controlled automatic branch promotion using GitHub Actions
 
-Promotion Flow : `feature → develop → staging → main`
+Promotion Flow: `feature → develop → staging → main`
 
 ### Mechanism
 
-Two dedicated workflows handle promotion:
 
+A scheduled workflow (pr-watch-distroless.yml) runs daily and two dedicated workflows handle promotion:
 - Auto PR: develop → staging
     - If all CI checks pass : `auto-merge`
 - Auto PR: staging → main
@@ -97,21 +99,30 @@ Two dedicated workflows handle promotion:
     <th>Technical Behavior</th>
     <th>Flow Diagram</th>
   </tr>
-
   <tr>
     <td>
-      <strong>Develop → Staging</strong>
+      <strong>PR-watch-distroless → Develop</strong>
     </td>
     <td>
       <ul>
-        <li>Triggered on push to <code>develop</code></li>
-        <li>Creates PR only if commits ahead</li>
-        <li>Branches protected</li>
-        <li>Staging CI required before merge</li>
+        <li>Retrieves the latest digest from the registry</li>
+        <li>Compares it with the stored digest Updates:
+        <ul>
+        <li>the Dockerfile digest</li>
+        <li>the .digest state file</li>
+        </ul>
+          </li>
+        <li>Creates an automated PR targeting develop</li>
       </ul>
-    </td>
-    <td rowspan="2">
+      </td>
+    <td rowspan="3">
 <pre>
+Distroless Watch
+    │
+    ▼
+PR → develop 
+    │
+    ▼
 ┌─────────┐
 │ develop │
 └────┬────┘
@@ -131,6 +142,20 @@ PR → main
 </pre>
 </td>
   </tr>
+        </tr>
+  <tr>
+    <td>
+      <strong>Develop → Staging</strong>
+    </td>
+    <td>
+      <ul>
+        <li>Triggered on push to <code>develop</code></li>
+        <li>Creates PR only if commits ahead</li>
+        <li>Branches protected</li>
+        <li>Staging CI required before merge</li>
+      </ul>
+    </td>
+</tr>
   <tr>
     <td>
       <strong>Staging → Main</strong>
@@ -159,7 +184,7 @@ Each workflow:
 - Required CI status checks must pass before merge
 - No direct push to staging or main
 - Promotions always occur via Pull Request
-- No Docker artifact reuse between branches
+- No Docker image reuse between environments
 
 **This ensures**:
 
@@ -311,7 +336,7 @@ Build, validate and publish production-ready Docker images.
 - CodeQL
 - Trivy filesystem scan
 - Docker image build
-- Trivy image scan (blocking)
+- Trivy image scan (blocking production security gate)
 - Container smoke tests
 - Docker Hub publication (release tags only)
 ```
@@ -356,35 +381,28 @@ Only runnable images are published.
 
 ---
 
-## Distroless Image Monitoring & Security Strategy
+## Distroless Image Monitoring & Automated Updates
 
-The project uses a pinned distroless base image with digest tracking to ensure reproducible and secure builds.
+The project uses a pinned distroless base image with automated digest tracking to ensure deterministic and secure Docker builds.
 
 ### Mechanism
 
-- The base image digest is stored in:
-  ci-scripts/.distroless-java17-debian13.digest
+- The Dockerfile uses a pinned distroless digest: `FROM gcr.io/distroless/java17-debian13:nonroot@sha256:...`
 
-- A scheduled workflow (`pr-watch-distroless.yml`) checks daily for updates:
-  - Retrieves latest digest from registry
-  - Compares with stored value
-  - Creates an automated PR if changed
+- A dedicated workflow (`pr-watch-distroless.yml`) runs daily:
+    - Continuously monitors the upstream distroless digest
+    - Automatically updates:
+        - the pinned Dockerfile digest
+        - the local `.digest` state file
+    - When a change is detected, an automated Pull Request is created and validated through the standard promotion pipeline described above.
 
-### CI Behavior
+### Security Benefits
 
-During CI (staging):
-
-- If the digest has changed:
-  → Trivy runs in **strict mode** (no ignore file)
-
-- If the digest is unchanged:
-  → Trivy runs with `.trivyignore.yaml`
-
-### Rationale
-
-- Detect new vulnerabilities immediately when base image changes
-- Avoid noise from known/accepted CVEs
-- Maintain deterministic and secure builds
+- Deterministic Docker builds
+- Automated base image refresh
+- Early vulnerability detection in staging
+- No manual digest maintenance
+- Full auditability through Pull Requests
 
 ---
 
@@ -519,3 +537,4 @@ vulnerabilities and unsafe coding patterns at source code level.
 **Maintainer:** Valérie Hermans  
 [valerie_hermans@outlook.com](mailto:valerie_hermans@outlook.com)  
 [GitHub Profile](https://github.com/val7304)
+
