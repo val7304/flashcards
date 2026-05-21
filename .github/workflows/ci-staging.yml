@@ -100,28 +100,7 @@ jobs:
         uses: github/codeql-action/analyze@68bde559dea0fdcac2102bfdf6230c5f70eb485e
   
       - name: Install Trivy (official repo)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget gnupg lsb-release
-
-          wget -qO - https://get.trivy.dev/deb/public.key | \
-            gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
-
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://get.trivy.dev/deb generic main" | \
-            sudo tee /etc/apt/sources.list.d/trivy.list
-
-          sudo apt-get update
-
-          TRIVY_VERSION="0.70.0"
-
-          if apt-cache madison trivy | grep -q "$TRIVY_VERSION"; then
-            sudo apt-get install -y trivy=$TRIVY_VERSION
-          else
-            echo "[WARNING] Version not found → fallback to latest"
-            sudo apt-get install -y trivy
-          fi
-
-          trivy --version
+        run: ci-scripts/install-trivy.sh
 
       - name: Run Trivy scan
         run: |
@@ -173,28 +152,7 @@ jobs:
         run: docker build -t flashcards:staging .
 
       - name: Install Trivy (official repo)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget gnupg lsb-release
-
-          wget -qO - https://get.trivy.dev/deb/public.key | \
-            gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
-
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://get.trivy.dev/deb generic main" | \
-            sudo tee /etc/apt/sources.list.d/trivy.list
-
-          sudo apt-get update
-
-          TRIVY_VERSION="0.70.0"
-
-          if apt-cache madison trivy | grep -q "$TRIVY_VERSION"; then
-            sudo apt-get install -y trivy=$TRIVY_VERSION
-          else
-            echo "[WARNING] Version not found → fallback to latest"
-            sudo apt-get install -y trivy
-          fi
-
-          trivy --version
+        run: ci-scripts/install-trivy.sh
   
       - name: Trivy Scan Docker Image (strict)
         run: |
