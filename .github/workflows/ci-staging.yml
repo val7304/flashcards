@@ -140,7 +140,7 @@ jobs:
       - name: Copy JAR to target
         run: |
           mkdir -p target
-          cp app-jar/*.jar target/flashcards-v1.0.0.jar
+          cp app-jar/*.jar target/
       
       - name: Wait for PostgreSQL
         run: |
