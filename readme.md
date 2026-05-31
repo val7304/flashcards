@@ -347,4 +347,4 @@ See also the [readme_CI](./readme_ci.md) for full CI details
 **Maintainer:** Valérie Hermans  
 [valerie_hermans@outlook.com](mailto:valerie_hermans@outlook.com)  
 [GitHub Profile](https://github.com/val7304)
-
+[Articles about this project](https://www.thisval.be/espace-tech-devops/projets/github-actions/list-subject) 
