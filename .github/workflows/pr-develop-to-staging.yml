@@ -2,7 +2,8 @@ name: Auto PR - Develop to Staging
 
 on:
   push:
-    branches: [develop]
+    branches:
+      - develop
 
 permissions:
   contents: read
@@ -28,7 +29,7 @@ jobs:
           AHEAD=$(gh api \
             repos/${{ github.repository }}/compare/staging...develop \
             --jq '.ahead_by')
-            
+
           if [ "$AHEAD" -eq 0 ]; then
             echo "No differences between develop and staging"
             exit 0
@@ -42,26 +43,23 @@ jobs:
 
           if [ -z "$PR_NUMBER" ]; then
             gh pr create \
-            --base staging \
-            --head develop \
-            --title "Promote develop → staging" \
-            --body "Automatic promotion after successful CI. " \
-            --label "automated" \
-            --label "promote"
-            
+              --base staging \
+              --head develop \
+              --title "Promote develop → staging" \
+              --body "Automatic promotion after successful CI." \
+              --label "automated" \
+              --label "promote"
+
             PR_NUMBER=$(gh pr list \
               --base staging \
               --head develop \
               --json number \
               --jq '.[0].number')
           else
-            echo "PR already exists"
+            echo "PR already exists: #$PR_NUMBER"
           fi
           echo "PR number: $PR_NUMBER"
-          echo "$GITHUB_SHA" > deployed_version.txt
 
-      - name: Upload deployment info
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: deployed-version
-          path: deployed_version.txt
+          gh pr merge "$PR_NUMBER" \
+            --auto \
+            --merge
