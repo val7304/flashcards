@@ -33,9 +33,6 @@ jobs:
           java-version: '17'
           cache: maven
 
-      - name: Make mvnw executable
-        run: chmod +x mvnw
-
       - name: Validate formatting with Spotless
         run: ./mvnw spotless:check
 
