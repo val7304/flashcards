@@ -58,7 +58,6 @@ jobs:
           else
             echo "PR already exists: #$PR_NUMBER"
           fi
-
           echo "PR number: $PR_NUMBER"
 
           gh pr merge "$PR_NUMBER" \
