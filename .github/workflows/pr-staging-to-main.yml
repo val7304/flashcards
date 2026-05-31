@@ -24,16 +24,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           set -e
-          COMMITS=$(gh api \
+          AHEAD=$(gh api \
             repos/${{ github.repository }}/compare/main...staging \
             --jq '.ahead_by')
-
-          if [ "$COMMITS" -eq 0 ]; then
+            
+          if [ "$AHEAD" -eq 0 ]; then
             echo "No differences between staging and main"
             exit 0
           fi
 
-          COMMIT_MSG=$(git log -1 --pretty=%B)
           PR_NUMBER=$(gh pr list \
             --base main \
             --head staging \
@@ -45,12 +44,7 @@ jobs:
               --base main \
               --head staging \
               --title "Promote staging → main" \
-              --body "Automatic promotion after successful CI.
-          Commit:
-          $GITHUB_SHA
-          https://github.com/${{ github.repository }}/commit/$GITHUB_SHA
-          Message:
-          $COMMIT_MSG" \
+              --body "Automatic promotion after successful CI." \
               --label "automated" \
               --label "promote"
 

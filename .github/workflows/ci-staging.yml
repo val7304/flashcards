@@ -48,9 +48,6 @@ jobs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
-      - name: Make mvnw executable
-        run: chmod +x mvnw
-
       - name: Check formatting (Spotless)
         run: ./mvnw spotless:check
 
