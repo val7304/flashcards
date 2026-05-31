@@ -51,11 +51,6 @@ jobs:
           java-version: '17'
           cache: maven
 
-      - name: Make scripts executable
-        run: |
-          chmod +x mvnw
-          chmod +x ci-scripts/*.sh
-
       - name: Validate formatting with Spotless
         run: ./mvnw -q spotless:check
 

@@ -27,13 +27,11 @@ jobs:
       - name: Install crane
         id: install
         run: |
-          chmod +x ci-scripts/install-crane.sh
           ci-scripts/install-crane.sh
 
       - name: Run digest check
         id: check
         run: |
-          chmod +x ci-scripts/check-docker-image-latest.sh
           ci-scripts/check-docker-image-latest.sh
 
       - name: Create branch with updated digest
