@@ -105,7 +105,7 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae    #v5.0
         with:
           path: ~/.cache/trivy
-          key: trivy-db-${{ runner.os }}-${{ github.run_number }}
+          key: trivy-db-${{ runner.os }}-${{ github.ref_name }}
           restore-keys: |
             trivy-db-${{ runner.os }}-
 
@@ -120,13 +120,15 @@ jobs:
           exit-code: "1"
 
       - name: Compute short SHA
-        id: vars
         run: echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Build Docker image
         run: |
           chmod +x ci-scripts/docker-build.sh
           ./ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
+
+      - name: Show Docker images
+        run: docker image ls
 
       - name: Trivy Image Scan
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0

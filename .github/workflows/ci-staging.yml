@@ -151,7 +151,7 @@ jobs:
           chmod +x ci-scripts/docker-build.sh
           ./ci-scripts/docker-build.sh flashcards staging
           echo "=== Docker images ==="
-          docker image lsdocker image ls
+          docker image ls
 
       - name: Trivy Scan Docker Image
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
@@ -166,7 +166,7 @@ jobs:
         run: >
           docker run -d --name flashcards-staging \
             --add-host=host.docker.internal:host-gateway \
-            -p 8081:8081 \
+            -p 8081:8080 \
             -e SPRING_PROFILES_ACTIVE=staging \
             -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/flashcardsdb \
             -e SPRING_DATASOURCE_USERNAME=postgres \
