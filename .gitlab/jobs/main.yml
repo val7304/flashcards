@@ -1,0 +1,201 @@
+prod-build:
+  stage: test
+  extends:
+    - .maven
+    - .artifacts
+    - .main_rules
+  image: $MAVEN_IMAGE
+  script:
+    - chmod +x mvnw
+    - ./mvnw spotless:check
+    - ./mvnw -B clean test
+  artifacts:
+    when: always
+    paths:
+      - target/site/jacoco/
+      - target/*.jar
+      - target/failsafe-reports/
+
+prod-package:
+  stage: package
+  extends:
+    - .maven
+    - .artifacts
+    - .main_rules
+  image: $MAVEN_IMAGE
+  script:
+  - chmod +x mvnw
+  - chmod +x ci-scripts/package.sh
+  - ./ci-scripts/package.sh coverage-main true
+  artifacts:
+    paths:
+      - target/*.jar
+      - target/classes/
+      - target/test-classes/
+      - target/site/jacoco/
+
+prod-semgrep:
+  stage: security
+  needs:
+    - prod-package
+  extends:
+    - .semgrep
+    - .main_rules
+    
+prod-trivy-fs:
+  stage: security
+  needs:
+    - prod-package
+  extends:
+    - .trivy
+    - .main_rules
+  script:
+    - chmod +x ci-scripts/trivy-fs.sh
+    - ./ci-scripts/trivy-fs.sh 1
+
+prod-sonarqube:
+  variables:
+    GIT_DEPTH: "0"
+  stage: quality
+  image: $MAVEN_IMAGE_JAVA21
+  needs:
+    - prod-semgrep
+    - prod-trivy-fs
+    - job: prod-package
+      artifacts: true
+  script:
+    - chmod +x mvnw
+    - chmod +x ci-scripts/sonar.sh
+    - ./ci-scripts/sonar.sh
+  extends: .main_rules
+
+prod-trivy-image:
+  stage: security-image
+  needs:
+    - job: prod-docker-build
+      artifacts: true
+  extends:
+    - .trivy
+    - .main_rules
+  script:
+    - chmod +x ci-scripts/trivy-image.sh
+    - ./ci-scripts/trivy-image.sh flashcards-prod.tar 1
+
+prod-docker-build: 
+  stage: docker
+  needs:
+    - job: prod-package
+      artifacts: true
+    - prod-sonarqube
+    - prod-semgrep
+    - prod-trivy-fs
+  extends:
+    - .docker
+    - .artifacts
+    - .main_rules
+  script:
+    - chmod +x ci-scripts/docker-build.sh
+    - ./ci-scripts/docker-build.sh flashcards prod
+    - docker save flashcards:prod -o flashcards-prod.tar
+  artifacts:
+    paths:
+      - flashcards-prod.tar
+
+prod-smoke:
+  stage: smoke
+  needs:
+    - job: prod-docker-build
+      artifacts: true
+  extends:
+    - .docker
+    - .artifacts
+    - .main_rules
+  script:
+    - docker load -i flashcards-prod.tar
+    - docker network create flashcards-net
+    - |
+      docker run -d \
+        --name postgres \
+        --network flashcards-net \
+        -e POSTGRES_DB=flashcardsdb \
+        -e POSTGRES_USER=postgres \
+        -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+        $POSTGRES_IMAGE
+    - |
+      until docker exec postgres pg_isready -U postgres; do
+        sleep 2
+      done
+    - |
+      docker run -d \
+        --name flashcards-prod \
+        --network flashcards-net \
+        -e SPRING_PROFILES_ACTIVE=prod \
+        -e SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/flashcardsdb \
+        -e SPRING_DATASOURCE_USERNAME=postgres \
+        -e SPRING_DATASOURCE_PASSWORD=$POSTGRES_PASSWORD \
+        flashcards:prod
+    - |
+      started=false
+      for i in $(seq 1 60); do
+        if docker logs flashcards-prod 2>&1 | grep -q "Started FlashcardsApplication"; then
+          started=true
+          break
+        fi
+        sleep 2
+      done
+
+      if [ "$started" != "true" ]; then
+        echo "Application did not start"
+        docker logs flashcards-prod
+        exit 1
+      fi
+    - docker ps
+    - |
+      for i in $(seq 1 30); do
+        if docker run --rm \
+            --network flashcards-net \
+            curlimages/curl:8.13.0 \
+            curl -fs http://flashcards-prod:8080/actuator/health; then
+          echo "Health endpoint OK"
+          break
+        fi
+        sleep 2
+        if [ "$i" -eq 30 ]; then
+          echo "Health endpoint never became available"
+          docker logs flashcards-prod
+          exit 1
+        fi
+      done
+  after_script:
+    - docker logs flashcards-prod > container-prod.log 2>&1 || true
+    - docker rm -f flashcards-prod || true
+    - docker rm -f postgres || true
+  artifacts:
+    when: always
+    paths:
+      - container-prod.log
+
+prod-publish:
+  stage: publish
+  needs:
+    - job: prod-docker-build
+      artifacts: true
+    - prod-smoke
+    - prod-trivy-image
+  extends:
+    - .docker
+    - .push_rules
+  script:
+    - docker load -i flashcards-prod.tar
+    - echo "$DOCKERHUB_TOKEN" | docker login \
+        -u "$DOCKERHUB_USERNAME" \
+        --password-stdin
+
+    - IMAGE_SHA=$CI_COMMIT_SHORT_SHA
+    - docker tag flashcards:prod $DOCKERHUB_USERNAME/flashcards:sha-$IMAGE_SHA
+    - docker tag flashcards:prod $DOCKERHUB_USERNAME/flashcards:$CI_COMMIT_TAG
+    - docker tag flashcards:prod $DOCKERHUB_USERNAME/flashcards:latest
+
+    - docker push $DOCKERHUB_USERNAME/flashcards:sha-$IMAGE_SHA
+    - docker push $DOCKERHUB_USERNAME/flashcards:$CI_COMMIT_TAG
+    - docker push $DOCKERHUB_USERNAME/flashcards:latest

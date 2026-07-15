@@ -28,7 +28,7 @@ Each pipeline explicitly controls the active Spring profile and database configu
 ## CI/CD Project Files
 
 This structure highlights CI/CD-relevant files and directories.
-For the full application structure, see the main [README](./README.md)
+For the full application structure, see the main [README](https://github.com/val7304/flashcards/blob/main/readme.md)
 
 ```text 
 FLASHCARDS/
@@ -41,14 +41,18 @@ FLASHCARDS/
 │       ├── pr-develop-to-staging.yml           # auto PR + auto-merge
 │       ├── pr-watch-distroless.yml             # auto PR watch digest image
 │       └── pr-staging-to-main.yml              # auto PR
-├── ci-scripts/                  
-│       ├── .distroless-java17-debian13.digest
-│       ├── build.sh
-│       ├── check-docker-image-latest.sh        # compare remote distroless digest with stored state
-│       ├── docker-build.sh 
-│       ├── install-crane.sh                    # pinned Crane installation
-│       ├── install-trivy.sh                    # pinned Trivy installation
-│       └── test.sh
+├── ci-scripts/
+│   ├── .distroless-java17-debian13.digest
+│   ├── check-docker-image-latest.sh      
+│   ├── coverage.sh                       
+│   ├── docker-build.sh                   
+│   ├── install-crane.sh                  
+│   ├── install-trivy.sh                  # Fallback if trivy-action cannot be used
+│   ├── package.sh                        
+│   ├── sonar.sh                          
+│   ├── test.sh                           
+│   ├── trivy-fs.sh                       # GitLab filesystem scan
+│   └── trivy-image.sh                    # GitLab container image scan
 ├── config/checkstyle/
 │       ├── checkstyle.xml
 │       └── checkstyle-suppressions.xml
@@ -64,6 +68,10 @@ FLASHCARDS/
 ├── Dockerfile
 └── pom.xml
 ```
+
+All CI helper scripts are POSIX-compliant (/bin/sh) and therefore work on:
+
+`GitHub Ubuntu runners` `GitLab Alpine containers` `Docker containers`
 
 ---
 
@@ -531,6 +539,14 @@ vulnerabilities and unsafe coding patterns at source code level.
 - Strong quality gates
 - Docker images validated before publication
 - CI scripts are centralized and reusable (`ci-scripts/`)
+
+| Script          | GitHub | GitLab |
+| --------------- | ------ | ------ |
+| package.sh      | ✅      | ✅      |
+| test.sh         | ✅      | ✅      |
+| sonar.sh        | ✅      | ✅      |
+| coverage.sh     | ✅      | ✅      |
+| docker-build.sh | ✅      | ✅      |
 
 ---
 
