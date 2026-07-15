@@ -36,7 +36,7 @@ jobs:
     env:
       JAVA_VERSION: "17"
       SONAR_JAVA_VERSION: "21"
-      
+
       IMAGE_NAME: flashcards
       RELEASE_TAG: ${{ github.ref_name }}
       IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
@@ -94,7 +94,7 @@ jobs:
           SONAR_HOST_URL: https://sonarcloud.io
           SONAR_ORGANIZATION: val7304
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-          run: |
+        run: |
             chmod +x ci-scripts/sonar.sh
             ./ci-scripts/sonar.sh
 

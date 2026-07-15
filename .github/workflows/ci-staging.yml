@@ -150,16 +150,18 @@ jobs:
         run: |
           chmod +x ci-scripts/docker-build.sh
           ./ci-scripts/docker-build.sh flashcards staging
+          echo "=== Docker images ==="
+          docker image lsdocker image ls
 
       - name: Trivy Scan Docker Image
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
-          scan-type: image
-          input: flashcards-staging.tar
+          image-ref: flashcards:staging
           severity: HIGH,CRITICAL
+          ignore-unfixed: true
           format: table
           exit-code: "0"
-
+          
       - name: Run container
         run: >
           docker run -d --name flashcards-staging \
