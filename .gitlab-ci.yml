@@ -1,0 +1,28 @@
+stages:
+  - test
+  - package
+  - security
+  - quality
+  - docker
+  - security-image
+  - functional
+  - performance
+  - smoke
+  - publish
+  - release
+
+include:
+  - local: '.gitlab/jobs/develop.yml'
+  - local: '.gitlab/jobs/staging.yml'
+  - local: '.gitlab/jobs/main.yml'
+  - local: '.gitlab/jobs/auto-promote.yml'
+
+  - local: .gitlab/templates/artifacts.yml
+  - local: .gitlab/templates/docker.yml
+  - local: .gitlab/templates/maven.yml
+  - local: .gitlab/templates/rules.yml
+  - local: .gitlab/templates/security.yml
+  
+  - local: .gitlab/variables/global.yml
+  
+  - template: Security/SAST.gitlab-ci.yml
