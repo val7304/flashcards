@@ -151,7 +151,7 @@ jobs:
           chmod +x ci-scripts/docker-build.sh
           ./ci-scripts/docker-build.sh flashcards staging
           echo "=== Docker images ==="
-          docker image lsdocker image ls
+          docker image ls
 
       - name: Trivy Scan Docker Image
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
