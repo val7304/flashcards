@@ -42,9 +42,9 @@ jobs:
           languages: java
 
       - name: Run Maven clean verify
-         run: |
-           chmod +x ci-scripts/test.sh
-           ./ci-scripts/test.sh
+        run: |
+          chmod +x ci-scripts/test.sh
+          ./ci-scripts/test.sh
     
       - name: Upload JaCoCo report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
