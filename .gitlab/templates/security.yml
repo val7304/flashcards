@@ -1,0 +1,22 @@
+.semgrep:
+  image:
+    name: $SEMGREP_IMAGE
+    entrypoint: [""]
+  script:
+    - semgrep --config=auto .
+
+.trivy:
+  image:
+    name: $TRIVY_IMAGE
+    entrypoint: [""]
+  cache:
+    - key: maven
+      paths:
+        - .m2/repository
+      policy: pull
+    - key: trivy-db
+      paths:
+        - .trivycache
+      policy: pull-push
+  variables:
+    TRIVY_CACHE_DIR: ".trivycache"

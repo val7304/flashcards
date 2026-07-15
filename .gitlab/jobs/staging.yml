@@ -1,0 +1,230 @@
+staging-build:
+  stage: test
+  extends:
+    - .maven
+    - .artifacts
+    - .staging_rules
+  image: $MAVEN_IMAGE
+  script:
+    - chmod +x mvnw
+    - ./mvnw spotless:check
+    - ./mvnw -B clean test
+  artifacts:
+    when: always
+    paths:
+      - target/site/jacoco/
+      - target/*.jar
+      - target/failsafe-reports/
+
+staging-package:
+  needs:
+    - staging-build
+  extends:
+    - .maven
+    - .artifacts
+    - .staging_rules
+  stage: package
+  image: $MAVEN_IMAGE
+  script:
+    - chmod +x mvnw
+    - chmod +x ci-scripts/package.sh
+    - ./ci-scripts/package.sh coverage-staging
+  artifacts:
+    paths:
+      - target/*.jar
+      - target/site/jacoco/
+    
+staging-trivy:
+  stage: security
+  needs:
+    - staging-package
+  extends:
+    - .trivy
+    - .staging_rules
+  script:
+    - chmod +x ci-scripts/trivy-fs.sh
+    - ./ci-scripts/trivy-fs.sh 0
+    
+staging-semgrep:
+  stage: security
+  needs:
+    - staging-package
+  extends: 
+    - .semgrep
+    - .staging_rules
+    
+staging-docker-build:
+  stage: docker
+  needs:
+    - staging-semgrep
+    - staging-trivy
+    - job: staging-package
+      artifacts: true
+  extends:
+    - .docker
+    - .artifacts
+    - .staging_rules
+  script:
+    - chmod +x ci-scripts/docker-build.sh
+    - ./ci-scripts/docker-build.sh flashcards staging
+    - docker save flashcards:staging -o flashcards-staging.tar
+  artifacts:
+    paths:
+      - flashcards-staging.tar
+    
+staging-functional:
+  stage: functional
+  needs:
+    - job: staging-docker-build
+      artifacts: true
+  extends:
+    - .docker
+    - .artifacts
+    - .staging_rules
+  script:
+    - docker version
+    - docker load -i flashcards-staging.tar
+    - docker network create flashcards-net
+    - |
+      docker run -d \
+        --name postgres \
+        --network flashcards-net \
+        -e POSTGRES_DB=flashcardsdb \
+        -e POSTGRES_USER=postgres \
+        -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+        $POSTGRES_IMAGE
+    - |
+      until docker exec postgres pg_isready -U postgres; do
+        docker logs postgres || true
+        echo "Waiting for PostgreSQL..."
+        sleep 2
+      done
+    - |
+      docker run -d \
+        --name flashcards-staging \
+        --network flashcards-net \
+        -e SPRING_PROFILES_ACTIVE=staging \
+        -e SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/flashcardsdb \
+        -e SPRING_DATASOURCE_USERNAME=postgres \
+        -e SPRING_DATASOURCE_PASSWORD=$POSTGRES_PASSWORD \
+        flashcards:staging
+    - |
+      started=false
+      for i in $(seq 1 30); do
+        if docker logs flashcards-staging 2>&1 | grep -q "Started FlashcardsApplication"; then
+          echo "Application started"
+          started=true
+          break
+        fi
+        sleep 2
+      done
+
+      if [ "$started" != "true" ]; then
+        echo "Application failed to start"
+        docker logs flashcards-staging
+        exit 1
+      fi
+
+    - docker ps
+    - docker network inspect flashcards-net
+    - |
+      docker run --rm \
+        --network flashcards-net \
+        -v "$CI_PROJECT_DIR/postman:/etc/newman" \
+        postman/newman:alpine \
+        run /etc/newman/flashcards.postman_collection.json \
+        -e /etc/newman/local.postman_environment.json \
+        --env-var "base-url=http://flashcards-staging:8081" \
+        --reporters cli,junit \
+        --reporter-junit-export /etc/newman/newman-functional.xml
+
+    - |
+      docker run --rm \
+        --network flashcards-net \
+        -v "$CI_PROJECT_DIR/postman:/etc/newman" \
+        postman/newman:alpine \
+        run /etc/newman/flashcards_error_cases.postman_collection.json \
+        -e /etc/newman/local.postman_environment.json \
+        --env-var "base-url=http://flashcards-staging:8081" \
+        --reporters cli,junit \
+        --reporter-junit-export /etc/newman/newman-error.xml
+  artifacts:
+    when: always
+    paths:
+      - postman/newman-functional.xml
+      - postman/newman-error.xml
+      - container.log
+    reports:
+      junit:
+        - postman/newman-functional.xml
+        - postman/newman-error.xml
+  after_script:
+    - docker logs flashcards-staging > container.log 2>&1 || true
+    - docker stop flashcards-staging || true
+    - docker stop postgres || true
+    - docker rm flashcards-staging || true
+    - docker rm postgres || true
+    
+staging-load-test:
+  stage: performance
+  needs:
+    - job: staging-docker-build
+      artifacts: true
+    - job: staging-functional
+      artifacts: true
+  extends:
+    - .docker
+    - .artifacts
+    - .staging_rules
+  script:
+    - docker load -i flashcards-staging.tar
+    - docker network create flashcards-net
+    - |
+      docker run -d \
+        --name postgres \
+        --network flashcards-net \
+        -e POSTGRES_DB=flashcardsdb \
+        -e POSTGRES_USER=postgres \
+        -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+        $POSTGRES_IMAGE
+    - |
+      until docker exec postgres pg_isready -U postgres; do
+        sleep 2
+      done
+    - |
+      docker run -d \
+        --name flashcards-staging \
+        --network flashcards-net \
+        -p 8081:8081 \
+        -e SPRING_PROFILES_ACTIVE=staging \
+        -e SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/flashcardsdb \
+        -e SPRING_DATASOURCE_USERNAME=postgres \
+        -e SPRING_DATASOURCE_PASSWORD=$POSTGRES_PASSWORD \
+        flashcards:staging
+    - |
+      for i in $(seq 1 30); do
+        if docker logs flashcards-staging 2>&1 | grep -q "Started FlashcardsApplication"; then
+          break
+        fi
+        sleep 2
+      done
+    - |
+      docker run --rm \
+        --network flashcards-net \
+        -e BASE_URL=http://flashcards-staging:8081 \
+        -v "$CI_PROJECT_DIR/load-test:/scripts" \
+        $K6_IMAGE \
+        run \
+          --vus 50 \
+          --duration 2m \
+          --out json=/scripts/k6-report.json \
+          /scripts/flashcards.js
+  artifacts:
+    when: always
+    paths:
+      - load-test/k6-report.json
+      - container-loadtest.log
+  after_script:
+    - docker logs flashcards-staging > container-loadtest.log 2>&1 || true
+    - docker rm -f flashcards-staging || true
+    - docker rm -f postgres || true

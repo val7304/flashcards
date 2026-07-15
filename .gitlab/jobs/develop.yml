@@ -1,0 +1,37 @@
+develop-build:
+  stage: test
+  extends:
+    - .maven
+    - .artifacts
+    - .develop_rules
+  image: $MAVEN_IMAGE 
+  variables:
+    SPRING_PROFILES_ACTIVE: dev
+    SPRING_DATASOURCE_URL: jdbc:h2:mem:itdb;DB_CLOSE_DELAY=-1
+    SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+    SPRING_DATASOURCE_USERNAME: sa
+    SPRING_DATASOURCE_PASSWORD: ""
+  script:
+    - chmod +x mvnw
+    - ./mvnw spotless:check
+    - chmod +x ci-scripts/test.sh
+    - ./ci-scripts/test.sh
+    - echo "$MAVEN_OPTS"
+    - ./mvnw help:evaluate -Dexpression=settings.localRepository -q -DforceStdout
+  artifacts:
+    when: always
+    paths:
+      - target/site/jacoco/
+
+develop-trivy:
+  stage: security
+  needs:
+    - develop-build
+  image:
+    name: $TRIVY_IMAGE
+    entrypoint: [""]
+  script:
+    - chmod +x ci-scripts/trivy-fs.sh
+    - ./ci-scripts/trivy-fs.sh 0
+  extends: .develop_rules
+  

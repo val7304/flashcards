@@ -20,7 +20,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        image: postgres:16@sha256:42b8b8b29c8a4e933d88943e5b03001a78794905cf786e6e7634e9f2abd5a0d3
         ports:
           - 5432:5432
         env:
@@ -34,6 +34,9 @@ jobs:
           --health-retries 10
 
     env:
+      JAVA_VERSION: "17"
+      SONAR_JAVA_VERSION: "21"
+
       IMAGE_NAME: flashcards
       RELEASE_TAG: ${{ github.ref_name }}
       IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
@@ -44,15 +47,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 17
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: ${{ env.JAVA_VERSION }}
           cache: maven
 
       - name: Validate formatting with Spotless
-        run: ./mvnw -q spotless:check
+        run: ./mvnw -B spotless:check
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@68bde559dea0fdcac2102bfdf6230c5f70eb485e
@@ -67,26 +70,33 @@ jobs:
           done
 
       - name: Run Tests + JaCoCo
-        run: ./mvnw -B clean verify jacoco:report -Djacoco.minimum.coverage=0.80
-
+        run: |
+          chmod +x ci-scripts/coverage.sh
+          ./ci-scripts/coverage.sh coverage-main
+  
       - name: Upload JaCoCo XML
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: jacoco-xml
           path: target/site/jacoco/jacoco.xml
 
+      - name: Set up JDK ${{ env.SONAR_JAVA_VERSION }} for Sonar
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
+        with:
+          distribution: temurin
+          java-version: ${{ env.SONAR_JAVA_VERSION }}
+
       - name: SonarCloud analysis
         if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: >
-          ./mvnw -B sonar:sonar
-          -Dsonar.host.url=https://sonarcloud.io
-          -Dsonar.organization=val7304
-          -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-          -Dsonar.qualitygate.wait=true
+          SONAR_HOST_URL: https://sonarcloud.io
+          SONAR_ORGANIZATION: val7304
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+        run: |
+            chmod +x ci-scripts/sonar.sh
+            ./ci-scripts/sonar.sh
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@68bde559dea0fdcac2102bfdf6230c5f70eb485e
@@ -95,40 +105,42 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae    #v5.0
         with:
           path: ~/.cache/trivy
-          key: trivy-db-${{ runner.os }}-${{ github.run_number }}
+          key: trivy-db-${{ runner.os }}-${{ github.ref_name }}
           restore-keys: |
             trivy-db-${{ runner.os }}-
 
-      - name: Install Trivy (official repo)
-        run: ci-scripts/install-trivy.sh
-    
-      - name: Run Trivy scan
-        run: |
-          trivy fs . \
-            --format table \
-            --exit-code 1 \
-            --severity HIGH,CRITICAL \
-            --no-progress
+      - name: Trivy Filesystem Scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: table
+          exit-code: "1"
 
       - name: Compute short SHA
-        id: vars
         run: echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Build Docker image
-        run: ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
-
-      - name: Trivy Scan Docker Image
         run: |
-          trivy image $IMAGE_NAME:$IMAGE_TAG \
-            --severity HIGH,CRITICAL \
-            --exit-code 1 \
-            --ignore-unfixed \
-            --ignorefile .trivyignore.yaml \
-            --timeout 10m \
-            --cache-dir ~/.cache/trivy \
-            --format table \
-            --no-progress
+          chmod +x ci-scripts/docker-build.sh
+          ./ci-scripts/docker-build.sh "$IMAGE_NAME" "$IMAGE_TAG"
 
+      - name: Show Docker images
+        run: docker image ls
+
+      - name: Trivy Image Scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          trivyignores: .trivyignore.yaml
+          format: table
+          exit-code: "1"
+          
       - name: Run container for smoke tests
         run: |
           docker run --pull=never -d --name flashcards-smoke \
