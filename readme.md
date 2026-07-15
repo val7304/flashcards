@@ -30,7 +30,7 @@ Each branch represents a fully isolated environment with its own Spring profile,
 
 > Dependencies of Actions are continuously monitored by ![Dependabot](https://img.shields.io/badge/dependabot-active-025E8C?logo=dependabot)
 
-> See [readme_ci.md](./readme_ci.md) for detailed CI/CD pipeline documentation.
+> See [readme_ci.md](https://github.com/val7304/flashcards/blob/main/readme_ci.md) for detailed CI/CD pipeline documentation.
 
 ---
 
@@ -344,7 +344,25 @@ See also the [readme_CI](./readme_ci.md) for full CI details
 
 ---
 
-**Maintainer:** Valérie Hermans  
-[valerie_hermans@outlook.com](mailto:valerie_hermans@outlook.com)  
-[GitHub Profile](https://github.com/val7304)
-[Articles about this project](https://www.thisval.be/espace-tech-devops/projets/github-actions/list-subject) 
+## GitLab CI/CD
+
+This project also includes a complete CI/CD implementation using GitLab.
+
+* **GitLab repository:** https://gitlab.com/val7304/flashcards
+* **GitLab CI/CD documentation:** https://gitlab.com/val7304/flashcards/-/blob/main/.gitlab/docs/gitlab-ci.md
+
+The GitLab implementation includes:
+
+* Multi-environment pipelines (`develop`, `staging`, `main`)
+* Automated promotion between environments
+* Code quality analysis with SonarCloud
+* Security scanning with Semgrep and Trivy
+* Docker image build and validation
+* Functional, performance and smoke testing
+* Reusable GitLab CI templates
+
+---
+
+**Maintainer:** Valérie Hermans  - [GitHub Profile](https://github.com/val7304) - [valerie_hermans@outlook.com](mailto:valerie_hermans@outlook.com) 
+
+[thisval.be: The series of GitHub Actions articles dedicated to this project](https://www.thisval.be/espace-tech-devops/projets/github-actions/list-subject) 
