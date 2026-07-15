@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TRIVY_VERSION="0.70.0"
+TRIVY_VERSION="0.72.0" 
 
 echo "[INFO] Installing Trivy dependencies..."
 sudo apt-get update
