@@ -1,0 +1,6 @@
+.maven:
+  cache:
+    key: maven
+    paths:
+      - .m2/repository
+    policy: pull-push
