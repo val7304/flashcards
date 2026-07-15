@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-24.04
     services:
       postgres:
-        image: postgres:16
+        image: postgres:16@sha256:42b8b8b29c8a4e933d88943e5b03001a78794905cf786e6e7634e9f2abd5a0d3
         ports:
           - 5432:5432
         env:
@@ -76,7 +76,9 @@ jobs:
         run: ./mvnw -B verify -DskipUnitTests=true
   
       - name: Verify Coverage 70%
-        run: ./mvnw -B verify jacoco:report -Djacoco.minimum.coverage=0.70
+        run: |
+          chmod +x ci-scripts/coverage.sh
+          ./ci-scripts/coverage.sh coverage-staging
   
       - name: Upload JaCoCo artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -96,23 +98,22 @@ jobs:
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@68bde559dea0fdcac2102bfdf6230c5f70eb485e
   
-      - name: Install Trivy (official repo)
-        run: ci-scripts/install-trivy.sh
-
       - name: Run Trivy scan
-        run: |
-          trivy fs . \
-            --severity HIGH,CRITICAL \
-            --format table \
-            --exit-code 0
-            
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          format: table
+          exit-code: "0"
+          ignore-unfixed: true            
   
   functional-tests:
     runs-on: ubuntu-24.04
     needs: build-test-static-analysis
     services:
       postgres:
-        image: postgres:16
+        image: postgres:16@sha256:42b8b8b29c8a4e933d88943e5b03001a78794905cf786e6e7634e9f2abd5a0d3
         ports:
           - 5432:5432
         env:
@@ -146,19 +147,18 @@ jobs:
           done
 
       - name: Build Docker image
-        run: docker build -t flashcards:staging .
-
-      - name: Install Trivy (official repo)
-        run: ci-scripts/install-trivy.sh
-  
-      - name: Trivy Scan Docker Image (strict)
         run: |
-          echo "[INFO] New distroless → strict scan"
-          trivy image flashcards:staging \
-            --severity HIGH,CRITICAL \
-            --ignorefile /dev/null \
-            --exit-code 0 \
-            --format table
+          chmod +x ci-scripts/docker-build.sh
+          ./ci-scripts/docker-build.sh flashcards staging
+
+      - name: Trivy Scan Docker Image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          input: flashcards-staging.tar
+          severity: HIGH,CRITICAL
+          format: table
+          exit-code: "0"
 
       - name: Run container
         run: >
@@ -244,7 +244,7 @@ jobs:
     if: github.event_name == 'push'
     services:
       postgres:
-        image: postgres:16
+        image: postgres:16@sha256:42b8b8b29c8a4e933d88943e5b03001a78794905cf786e6e7634e9f2abd5a0d3
         ports:
           - 5432:5432
         env:

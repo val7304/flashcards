@@ -42,8 +42,10 @@ jobs:
           languages: java
 
       - name: Run Maven clean verify
-        run: ./mvnw -B clean verify jacoco:report
-
+         run: |
+           chmod +x ci-scripts/test.sh
+           ./ci-scripts/test.sh
+    
       - name: Upload JaCoCo report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -53,13 +55,12 @@ jobs:
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@68bde559dea0fdcac2102bfdf6230c5f70eb485e
 
-      - name: Install Trivy (official repo)
-        run: ci-scripts/install-trivy.sh
-          
       - name: Run Trivy scan
-        run: |
-          trivy fs . \
-            --severity HIGH,CRITICAL \
-            --format table \
-            --exit-code 0
-            
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          format: table
+          exit-code: "0"
+          ignore-unfixed: true
