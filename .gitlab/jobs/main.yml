@@ -8,17 +8,23 @@ prod-build:
   script:
     - chmod +x mvnw
     - ./mvnw spotless:check
-    - chmod +x ci-scripts/coverage.sh
-    - ./ci-scripts/coverage.sh coverage-main
+    - chmod +x ci-scripts/test.sh
+    - ./ci-scripts/test.sh coverage-main
   artifacts:
     when: always
     paths:
       - target/site/jacoco/
-      - target/*.jar
+      - target/site/jacoco/jacoco.xml
+      - target/classes/
+      - target/test-classes/
       - target/failsafe-reports/
+      - target/*.jar
 
 prod-package:
   stage: package
+  needs:
+    - job: prod-build
+      artifacts: true
   extends:
     - .maven
     - .artifacts
@@ -60,10 +66,10 @@ prod-sonarqube:
   stage: quality
   image: $MAVEN_IMAGE_JAVA21
   needs:
+    - job: prod-build
+      artifacts: true
     - prod-semgrep
     - prod-trivy-fs
-    - job: prod-package
-      artifacts: true
   script:
     - chmod +x mvnw
     - chmod +x ci-scripts/sonar.sh

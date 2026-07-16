@@ -6,7 +6,7 @@ PROFILE=${1:-}
 echo "=== Running Maven tests ==="
 
 if [ -n "$PROFILE" ]; then
-    ./mvnw -B clean verify jacoco:report -P"$PROFILE"
+    ./mvnw -B clean verify -P"$PROFILE"
 else
-    ./mvnw -B clean verify jacoco:report
+    ./mvnw -B clean verify
 fi
