@@ -27,6 +27,10 @@ staging-it:
     - name: $POSTGRES_IMAGE
       alias: postgres
   variables:
+    POSTGRES_DB: flashcardsdb
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+
     SPRING_PROFILES_ACTIVE: it
     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/flashcardsdb
     SPRING_DATASOURCE_USERNAME: postgres
@@ -35,6 +39,7 @@ staging-it:
     - staging-build
   script:
     - chmod +x mvnw
+    - sleep 10
     - ./mvnw -B verify -DskipUnitTests=true
   artifacts:
     when: always
@@ -49,12 +54,23 @@ staging-coverage:
     - .artifacts
     - .staging_rules
   image: $MAVEN_IMAGE
+  services:
+    - name: $POSTGRES_IMAGE
+      alias: postgres
+  variables:
+    POSTGRES_DB: flashcardsdb
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/flashcardsdb
+    SPRING_DATASOURCE_USERNAME: postgres
+    SPRING_DATASOURCE_PASSWORD: $POSTGRES_PASSWORD
   needs:
-  - job: staging-it
-    artifacts: true
+    - staging-build
+    - staging-it
   script:
     - chmod +x mvnw
     - chmod +x ci-scripts/coverage.sh
+    - sleep 10
     - ./ci-scripts/coverage.sh coverage-staging
   artifacts:
     paths:
@@ -64,15 +80,15 @@ staging-coverage:
       - target/test-classes/
 
 staging-package:
-  stage: package
   needs:
-    - job: staging-coverage
-      artifacts: true
-  image: $MAVEN_IMAGE
+  - job: staging-coverage
+    artifacts: true
   extends:
     - .maven
     - .artifacts
     - .staging_rules
+  stage: package
+  image: $MAVEN_IMAGE
   script:
     - chmod +x mvnw
     - chmod +x ci-scripts/package.sh
