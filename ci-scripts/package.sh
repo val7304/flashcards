@@ -11,7 +11,7 @@ if [ "$RESOLVE" = "true" ]; then
 fi
 
 if [ -n "$PROFILE" ]; then
-    ./mvnw -B package -DskipTests -P"$PROFILE"
+    ./mvnw -B package jacoco:report -DskipTests -P"$PROFILE"
 else
-    ./mvnw -B package -DskipTests
+    ./mvnw -B package jacoco:report -DskipTests
 fi

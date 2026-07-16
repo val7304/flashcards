@@ -9,10 +9,13 @@ prod-build:
     - name: $POSTGRES_IMAGE
       alias: postgres
   variables:
+    GIT_DEPTH: "0"
+    SPRING_PROFILES_ACTIVE: it
+
     POSTGRES_DB: flashcardsdb
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-    
+
     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/flashcardsdb
     SPRING_DATASOURCE_USERNAME: postgres
     SPRING_DATASOURCE_PASSWORD: $POSTGRES_PASSWORD
@@ -23,6 +26,8 @@ prod-build:
     - sleep 10
     - ./ci-scripts/test.sh coverage-main
     - test -f target/site/jacoco/jacoco.xml
+    - test -d target/classes
+    - test -d target/test-classes
   artifacts:
     when: always
     paths:
