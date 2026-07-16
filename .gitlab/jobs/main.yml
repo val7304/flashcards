@@ -8,7 +8,8 @@ prod-build:
   script:
     - chmod +x mvnw
     - ./mvnw spotless:check
-    - ./mvnw -B clean test
+    - chmod +x ci-scripts/coverage.sh
+    - ./ci-scripts/coverage.sh coverage-main
   artifacts:
     when: always
     paths:
