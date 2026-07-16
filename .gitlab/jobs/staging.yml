@@ -15,20 +15,52 @@ staging-build:
       - target/site/jacoco/
       - target/*.jar
       - target/failsafe-reports/
-
-staging-package:
-  needs:
-    - staging-build
+      
+staging-coverage:
+  stage: test
   extends:
     - .maven
     - .artifacts
     - .staging_rules
-  stage: package
   image: $MAVEN_IMAGE
+  services:
+    - name: $POSTGRES_IMAGE
+      alias: postgres
+  variables:
+    POSTGRES_DB: flashcardsdb
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/flashcardsdb
+    SPRING_DATASOURCE_USERNAME: postgres
+    SPRING_DATASOURCE_PASSWORD: $POSTGRES_PASSWORD
+  needs:
+    - staging-build
+  script:
+    - chmod +x mvnw
+    - chmod +x ci-scripts/coverage.sh
+    - sleep 10
+    - ./ci-scripts/coverage.sh coverage-staging
+  artifacts:
+    paths:
+      - target/site/jacoco/
+      - target/site/jacoco/jacoco.xml
+      - target/classes/
+      - target/test-classes/
+
+staging-package:
+  stage: package
+  needs:
+    - job: staging-coverage
+      artifacts: true
+  image: $MAVEN_IMAGE
+  extends:
+    - .maven
+    - .artifacts
+    - .staging_rules
   script:
     - chmod +x mvnw
     - chmod +x ci-scripts/package.sh
-    - ./ci-scripts/package.sh coverage-staging
+    - ./ci-scripts/package.sh "" true
   artifacts:
     paths:
       - target/*.jar
