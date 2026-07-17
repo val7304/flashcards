@@ -28,6 +28,10 @@ staging-it:
   image: $MAVEN_IMAGE
   variables:
     SPRING_PROFILES_ACTIVE: it
+
+    SPRING_DATASOURCE_URL: jdbc:postgresql://$DB_HOST:$DB_PORT/flashcardsdb
+    SPRING_DATASOURCE_USERNAME: postgres
+    SPRING_DATASOURCE_PASSWORD: $POSTGRES_PASSWORD
   needs:
     - staging-build
   script:
