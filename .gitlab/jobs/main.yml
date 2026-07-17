@@ -5,44 +5,22 @@ prod-build:
     - .artifacts
     - .main_rules
   image: $MAVEN_IMAGE
-  services:
-    - name: $POSTGRES_IMAGE
-      alias: postgres
-  variables:
-    GIT_DEPTH: "0"
-    SPRING_PROFILES_ACTIVE: it
-
-    POSTGRES_DB: flashcardsdb
-    POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-
-    SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/flashcardsdb
-    SPRING_DATASOURCE_USERNAME: postgres
-    SPRING_DATASOURCE_PASSWORD: $POSTGRES_PASSWORD
   script:
     - chmod +x mvnw
+    - chmod +x ci-scripts/coverage.sh
     - ./mvnw spotless:check
-    - chmod +x ci-scripts/test.sh
-    - sleep 10
-    - ./ci-scripts/test.sh coverage-main
-    - test -f target/site/jacoco/jacoco.xml
-    - test -d target/classes
-    - test -d target/test-classes
+    - ./ci-scripts/coverage.sh coverage-main
+    - echo "===== TARGET ====="
+    - find target -maxdepth 3 -type f | sort
   artifacts:
     when: always
     paths:
       - target/site/jacoco/
-      - target/site/jacoco/jacoco.xml
-      - target/classes/
-      - target/test-classes/
-      - target/failsafe-reports/
       - target/*.jar
+      - target/failsafe-reports/
 
 prod-package:
   stage: package
-  needs:
-    - job: prod-build
-      artifacts: true
   extends:
     - .maven
     - .artifacts
@@ -58,7 +36,6 @@ prod-package:
       - target/classes/
       - target/test-classes/
       - target/site/jacoco/
-      - target/site/jacoco/jacoco.xml
 
 prod-semgrep:
   stage: security
@@ -85,8 +62,6 @@ prod-sonarqube:
   stage: quality
   image: $MAVEN_IMAGE_JAVA21
   needs:
-    - job: prod-build
-      artifacts: true
     - prod-semgrep
     - prod-trivy-fs
     - job: prod-package

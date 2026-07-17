@@ -4,4 +4,4 @@ set -eu
 PROFILE=${1:-coverage-main}
 
 echo "=== Coverage (${PROFILE}) ==="
-./mvnw -B jacoco:report -P"$PROFILE"
+./mvnw -B clean verify jacoco:report -P"$PROFILE"
