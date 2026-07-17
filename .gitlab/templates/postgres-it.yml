@@ -2,6 +2,7 @@
   services:
     - name: $POSTGRES_IMAGE
       alias: postgres
+
   variables:
     POSTGRES_DB: flashcardsdb
     POSTGRES_USER: postgres
@@ -9,4 +10,6 @@
 
     DB_HOST: postgres
     DB_PORT: "5432"
-   
+
+    DB_USER: postgres
+    DB_PASSWORD: $POSTGRES_PASSWORD
