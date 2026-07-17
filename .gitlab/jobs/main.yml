@@ -1,6 +1,7 @@
 prod-build:
   stage: test
   extends:
+    - .postgres-it
     - .maven
     - .artifacts
     - .main_rules
@@ -9,9 +10,8 @@ prod-build:
     - chmod +x mvnw
     - chmod +x ci-scripts/coverage.sh
     - ./mvnw spotless:check
+    - sleep 10
     - ./ci-scripts/coverage.sh coverage-main
-    - echo "===== TARGET ====="
-    - find target -maxdepth 3 -type f | sort
   artifacts:
     when: always
     paths:

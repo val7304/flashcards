@@ -21,6 +21,7 @@ staging-build:
 staging-it:
   stage: test
   extends:
+    - .postgres-it
     - .maven
     - .artifacts
     - .staging_rules
