@@ -13,8 +13,11 @@ staging-build:
     when: always
     paths:
       - target/site/jacoco/
+      - target/classes
+      - target/test-classes/
       - target/*.jar
       - target/failsafe-reports/
+      - target/jacoco.exec
 
 staging-it:
   stage: test
@@ -46,6 +49,7 @@ staging-it:
     paths:
       - target/site/jacoco/
       - target/failsafe-reports/
+      - target/jacoco.exec
 
 staging-coverage:
   stage: test
@@ -59,6 +63,8 @@ staging-coverage:
       alias: postgres
   variables:
     POSTGRES_DB: flashcardsdb
+    SPRING_PROFILES_ACTIVE: it
+    
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: $POSTGRES_PASSWORD
     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/flashcardsdb
@@ -78,6 +84,7 @@ staging-coverage:
       - target/site/jacoco/jacoco.xml
       - target/classes/
       - target/test-classes/
+      - target/jacoco.exec
 
 staging-package:
   needs:
