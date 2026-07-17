@@ -20,6 +20,7 @@ include:
   - local: .gitlab/templates/artifacts.yml
   - local: .gitlab/templates/docker.yml
   - local: .gitlab/templates/maven.yml
+  - local: .gitlab/templates/postgres-it.yml
   - local: .gitlab/templates/rules.yml
   - local: .gitlab/templates/security.yml
   
