@@ -17,7 +17,7 @@ prod-build:
     paths:
       - target/site/jacoco/
       - target/*.jar
-      - target/failsafe-reports/
+      - target/failsafe-reports/ 
 
 prod-package:
   stage: package

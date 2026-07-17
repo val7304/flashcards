@@ -2,14 +2,11 @@
   services:
     - name: $POSTGRES_IMAGE
       alias: postgres
-
   variables:
     POSTGRES_DB: flashcardsdb
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: $POSTGRES_PASSWORD
 
-    SPRING_PROFILES_ACTIVE: it
-    SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/flashcardsdb
-    SPRING_DATASOURCE_USERNAME: postgres
-    SPRING_DATASOURCE_PASSWORD: $POSTGRES_PASSWORD
-    
+    DB_HOST: postgres
+    DB_PORT: "5432"
+   
