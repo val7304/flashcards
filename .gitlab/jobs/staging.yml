@@ -227,21 +227,21 @@ staging-load-test:
         -e SPRING_DATASOURCE_USERNAME=postgres \
         -e SPRING_DATASOURCE_PASSWORD=$POSTGRES_PASSWORD \
         flashcards:staging
-      - |
-        for i in $(seq 1 30); do
-          if docker logs flashcards-staging 2>&1 | grep -q "Started FlashcardsApplication"; then
-            echo "Application ready after ${i} attempt(s)"
-            break
-          fi
+    - |
+      for i in $(seq 1 30); do
+        if docker logs flashcards-staging 2>&1 | grep -q "Started FlashcardsApplication"; then
+          echo "Application ready after ${i} attempt(s)"
+          break
+        fi
 
-          if [ "$i" -eq 30 ]; then
-            echo "Application failed to start after 60 seconds"
-            docker logs flashcards-staging
-            exit 1
-          fi
+        if [ "$i" -eq 30 ]; then
+          echo "Application failed to start after 60 seconds"
+          docker logs flashcards-staging
+          exit 1
+        fi
 
-          sleep 2
-        done
+        sleep 2
+      done
     - |
       docker run --rm \
         --network flashcards-net \
