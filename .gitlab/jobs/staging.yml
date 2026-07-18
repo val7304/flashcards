@@ -28,10 +28,6 @@ staging-it:
   image: $MAVEN_IMAGE
   variables:
     SPRING_PROFILES_ACTIVE: it
-
-    SPRING_DATASOURCE_URL: jdbc:postgresql://$DB_HOST:$DB_PORT/flashcardsdb
-    SPRING_DATASOURCE_USERNAME: postgres
-    SPRING_DATASOURCE_PASSWORD: $POSTGRES_PASSWORD
   needs:
     - staging-build
   script:
@@ -234,8 +230,16 @@ staging-load-test:
     - |
       for i in $(seq 1 30); do
         if docker logs flashcards-staging 2>&1 | grep -q "Started FlashcardsApplication"; then
+          echo "Application ready after ${i} attempt(s)"
           break
         fi
+
+        if [ "$i" -eq 30 ]; then
+          echo "Application failed to start after 60 seconds"
+          docker logs flashcards-staging
+          exit 1
+        fi
+
         sleep 2
       done
     - |
