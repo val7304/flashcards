@@ -8,10 +8,10 @@ prod-build:
   image: $MAVEN_IMAGE
   script:
     - chmod +x mvnw
-    - chmod +x ci-scripts/coverage.sh
+    - chmod +x ci-scripts/test.sh
     - ./mvnw spotless:check
     - sleep 10
-    - ./ci-scripts/coverage.sh coverage-main
+    - ./ci-scripts/test.sh coverage-main
   artifacts:
     when: always
     paths:

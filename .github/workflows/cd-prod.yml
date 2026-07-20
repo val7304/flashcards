@@ -71,8 +71,8 @@ jobs:
 
       - name: Run Tests + JaCoCo
         run: |
-          chmod +x ci-scripts/coverage.sh
-          ./ci-scripts/coverage.sh coverage-main
+          chmod +x ci-scripts/test.sh
+          ./ci-scripts/test.sh coverage-main
   
       - name: Upload JaCoCo XML
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
