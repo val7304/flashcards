@@ -1,20 +1,23 @@
 prod-build:
   stage: test
   extends:
+    - .postgres-it
     - .maven
     - .artifacts
     - .main_rules
   image: $MAVEN_IMAGE
   script:
     - chmod +x mvnw
+    - chmod +x ci-scripts/test.sh
     - ./mvnw spotless:check
-    - ./mvnw -B clean test
+    - sleep 10
+    - ./ci-scripts/test.sh coverage-main
   artifacts:
     when: always
     paths:
       - target/site/jacoco/
       - target/*.jar
-      - target/failsafe-reports/
+      - target/failsafe-reports/ 
 
 prod-package:
   stage: package
@@ -26,7 +29,7 @@ prod-package:
   script:
   - chmod +x mvnw
   - chmod +x ci-scripts/package.sh
-  - ./ci-scripts/package.sh coverage-main true
+  - ./ci-scripts/package.sh "" true
   artifacts:
     paths:
       - target/*.jar

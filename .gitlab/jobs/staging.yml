@@ -13,12 +13,38 @@ staging-build:
     when: always
     paths:
       - target/site/jacoco/
+      - target/classes
+      - target/test-classes/
       - target/*.jar
       - target/failsafe-reports/
 
-staging-package:
+staging-it:
+  stage: test
+  extends:
+    - .postgres-it
+    - .maven
+    - .artifacts
+    - .staging_rules
+  image: $MAVEN_IMAGE
+  variables:
+    SPRING_PROFILES_ACTIVE: it
   needs:
     - staging-build
+  script:
+    - chmod +x mvnw
+    - sleep 10
+    - ./mvnw -B verify -DskipUnitTests=true -Pcoverage-staging
+  artifacts:
+    when: always
+    paths:
+      - target/site/jacoco/
+      - target/site/jacoco/jacoco.xml
+      - target/failsafe-reports/
+      
+staging-package:
+  needs:
+  - job: staging-it
+    artifacts: true
   extends:
     - .maven
     - .artifacts
@@ -28,12 +54,12 @@ staging-package:
   script:
     - chmod +x mvnw
     - chmod +x ci-scripts/package.sh
-    - ./ci-scripts/package.sh coverage-staging
+    - ./ci-scripts/package.sh "" true
   artifacts:
     paths:
       - target/*.jar
       - target/site/jacoco/
-    
+
 staging-trivy:
   stage: security
   needs:
@@ -204,8 +230,16 @@ staging-load-test:
     - |
       for i in $(seq 1 30); do
         if docker logs flashcards-staging 2>&1 | grep -q "Started FlashcardsApplication"; then
+          echo "Application ready after ${i} attempt(s)"
           break
         fi
+
+        if [ "$i" -eq 30 ]; then
+          echo "Application failed to start after 60 seconds"
+          docker logs flashcards-staging
+          exit 1
+        fi
+
         sleep 2
       done
     - |
