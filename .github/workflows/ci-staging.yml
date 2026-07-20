@@ -77,8 +77,8 @@ jobs:
   
       - name: Verify Coverage 70%
         run: |
-          chmod +x ci-scripts/coverage.sh
-          ./ci-scripts/coverage.sh coverage-staging
+          chmod +x ci-scripts/test.sh
+          ./ci-scripts/test.sh coverage-staging
   
       - name: Upload JaCoCo artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
