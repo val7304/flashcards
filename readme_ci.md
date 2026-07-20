@@ -44,7 +44,6 @@ FLASHCARDS/
 ├── ci-scripts/
 │   ├── .distroless-java17-debian13.digest
 │   ├── check-docker-image-latest.sh      
-│   ├── coverage.sh                       
 │   ├── docker-build.sh                   
 │   ├── install-crane.sh                  
 │   ├── install-trivy.sh                  # Fallback if trivy-action cannot be used
@@ -542,11 +541,10 @@ vulnerabilities and unsafe coding patterns at source code level.
 
 | Script          | GitHub | GitLab |
 | --------------- | ------ | ------ |
-| package.sh      | ✅      | ✅      |
-| test.sh         | ✅      | ✅      |
-| sonar.sh        | ✅      | ✅      |
-| coverage.sh     | ✅      | ✅      |
-| docker-build.sh | ✅      | ✅      |
+| package.sh      | ✅      | ✅   |
+| test.sh         | ✅      | ✅   |
+| sonar.sh        | ✅      | ✅   |
+| docker-build.sh | ✅      | ✅   |
 
 ---
 
