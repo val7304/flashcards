@@ -110,7 +110,7 @@ jobs:
             trivy-db-${{ runner.os }}-
 
       - name: Trivy Filesystem Scan
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        uses: aquasecurity/trivy-action@8a32853686209a428179bb3a1688802b25691564 # v0.36.0
         with:
           version: "0.72.0"
           scan-type: fs
@@ -132,7 +132,7 @@ jobs:
         run: docker image ls
 
       - name: Trivy Image Scan
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        uses: aquasecurity/trivy-action@8a32853686209a428179bb3a1688802b25691564 # v0.36.0
         with:
           version: "0.72.0"
           scan-type: image
