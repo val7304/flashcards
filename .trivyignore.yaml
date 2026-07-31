@@ -1,14 +1,43 @@
 vulnerabilities:
+  # ------------------------------------------------------------------------
+  # Distroless Debian (libexpat)
+  # Waiting for a Distroless image rebuilt with libexpat >= 2.8.2.
+  # ------------------------------------------------------------------------
+
+  - id: CVE-2025-59375
+    expired_at: 2026-10-31
+    statement: Waiting for a Distroless image rebuilt with patched libexpat.
+
+  - id: CVE-2026-25210
+    expired_at: 2026-10-31
+    statement: Waiting for a Distroless image rebuilt with patched libexpat.
+
+  - id: CVE-2026-45186
+    expired_at: 2026-10-31
+    statement: Waiting for a Distroless image rebuilt with patched libexpat.
+
+  - id: CVE-2026-56131
+    expired_at: 2026-10-31
+    statement: Waiting for a Distroless image rebuilt with patched libexpat.
+
+  - id: CVE-2026-56408
+    expired_at: 2026-10-31
+    statement: Waiting for a Distroless image rebuilt with patched libexpat.
+
+  # ------------------------------------------------------------------------
+  # Spring Framework
+  # Waiting for Spring Boot to include Spring Framework 6.2.19 or later.
+  # ------------------------------------------------------------------------
+
   - id: CVE-2026-41842
-    expired_at: 2026-09-30
-    statement: Waiting for Spring Boot release including Spring Framework 6.2.19.
+    expired_at: 2026-10-31
+    statement: Waiting for Spring Boot to upgrade to Spring Framework 6.2.19 or later.
 
   - id: CVE-2026-41845
-    expired_at: 2026-09-30
-    statement: Waiting for Spring Boot release including Spring Framework 6.2.19.
+    expired_at: 2026-10-31
+    statement: Waiting for Spring Boot to upgrade to Spring Framework 6.2.19 or later.
 
   - id: CVE-2026-41850
-    expired_at: 2026-09-30
-    statement: Waiting for Spring Boot release including Spring Framework 6.2.19.
-
+    expired_at: 2026-10-31
+    statement: Waiting for Spring Boot to upgrade to Spring Framework 6.2.19 or later.
     
