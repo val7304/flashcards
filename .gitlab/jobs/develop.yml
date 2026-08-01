@@ -16,8 +16,6 @@ develop-build:
     - ./mvnw spotless:check
     - chmod +x ci-scripts/test.sh
     - ./ci-scripts/test.sh
-    - echo "$MAVEN_OPTS"
-    - ./mvnw help:evaluate -Dexpression=settings.localRepository -q -DforceStdout
   artifacts:
     when: always
     paths:
