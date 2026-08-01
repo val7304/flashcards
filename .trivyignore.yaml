@@ -23,21 +23,3 @@ vulnerabilities:
   - id: CVE-2026-56408
     expired_at: 2026-10-31
     statement: Waiting for a Distroless image rebuilt with patched libexpat.
-
-  # ------------------------------------------------------------------------
-  # Spring Framework
-  # Waiting for Spring Boot to include Spring Framework 6.2.19 or later.
-  # ------------------------------------------------------------------------
-
-  - id: CVE-2026-41842
-    expired_at: 2026-10-31
-    statement: Waiting for Spring Boot to upgrade to Spring Framework 6.2.19 or later.
-
-  - id: CVE-2026-41845
-    expired_at: 2026-10-31
-    statement: Waiting for Spring Boot to upgrade to Spring Framework 6.2.19 or later.
-
-  - id: CVE-2026-41850
-    expired_at: 2026-10-31
-    statement: Waiting for Spring Boot to upgrade to Spring Framework 6.2.19 or later.
-    
