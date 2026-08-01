@@ -1,8 +1,12 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 FROM gcr.io/distroless/java17-debian13:nonroot@sha256:9a1ef1a994f57b543fb09b5a2d7ec5c8de638e310650d076998c9559eaeb6255
 =======
 FROM gcr.io/distroless/java17-debian13:nonroot@sha256:0be8a887d880a9a2b4734f3cef50c5c4f594d983db4dae5878eb6c218bfb3d7e
 >>>>>>> 42e9877 (chore: update distroless digest)
+=======
+FROM gcr.io/distroless/java17-debian13:nonroot@sha256:9a1ef1a994f57b543fb09b5a2d7ec5c8de638e310650d076998c9559eaeb6255
+>>>>>>> 17d73ab (chore: distroless image updated (#398))
 
 WORKDIR /app
 COPY target/flashcards-*.jar app.jar
