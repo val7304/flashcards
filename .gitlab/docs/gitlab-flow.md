@@ -148,14 +148,14 @@ The merge still requires approval and conflict resolution when necessary.
 
 The pipeline relies on reusable templates to avoid duplicated configuration.
 
-| Template      | Purpose             |
-| ------------- | ------------------- |
-| maven.yml     | Maven configuration |
-| docker.yml    | Docker jobs         |
+| Template        | Purpose             |
+| -------------   | ------------------- |
+| maven.yml       | Maven configuration |
+| docker.yml      | Docker jobs         |
+| postgres-it.yml | postgress           |
 | security.yml  | Trivy & Semgrep     |
 | rules.yml     | Branch rules        |
 | artifacts.yml | Shared artifacts    |
-
 
 #### Issue & Merge Request Templates
 

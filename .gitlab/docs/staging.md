@@ -5,28 +5,32 @@ The `staging` branch represents the pre-production environment.
 Every successful promotion from `develop` triggers the staging pipeline.
 
 ```text
-staging
+staging:
+   ▼
+Build (UT - H2)
    │
    ▼
-Build & Unit Tests
+Integration Tests (PostgreSQL) (JAR produced)
    │
-   ▼
-Package + JaCoCo
+   ├───────────────┐    (security)
+   ▼               ▼
+Trivy Filesystem   Semgrep SAST
    │
-   ▼
-Semgrep
-   │
-   ▼
-Trivy Filesystem Scan
-   │
-   ▼
-Docker Build
-   │
-   ▼
-Functional Tests
-   │
-   ▼
-Performance Tests
+   └──────────────┐
+                  ▼
+            Docker Build
+                  │
+                  ▼
+            Trivy Image (security-image)
+                  │
+                  ▼
+         Functional Tests
+                  │
+                  ▼
+         Performance Tests
+                  │
+                  ▼
+            Auto Promote
 ```
 
 ---
@@ -82,14 +86,9 @@ Artifacts:
 
 ---
 
-### staging-semgrep
+### semgrep-sast
 
-Runs static security analysis.
-
-Purpose:
-
-- Detect insecure coding patterns
-- Identify common vulnerabilities
+Runs static code security analysis.
 
 ---
 
