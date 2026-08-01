@@ -5,22 +5,16 @@ The `develop` branch is the Continuous Integration (CI) environment.
 Every commit pushed to `develop` triggers the pipeline below.
 
 ```text
-develop
+develop:
+   ▼   
+Build  (test)
+   │
+   ├──────────────────┐   (security)
+   ▼                  ▼
+Trivy Filesystem     Semgrep SAST
    │
    ▼
-Spotless
-   │
-   ▼
-Build & Unit Tests
-   │
-   ▼
-Package
-   │
-   ▼
-Semgrep
-   │
-   ▼
-Trivy Filesystem Scan
+auto-promote
 ```
 
 ---
@@ -29,12 +23,17 @@ Trivy Filesystem Scan
 
 The objective of the `develop` pipeline is to validate every code change before it can be promoted to the next environment.
 
+| Job             | Purpose                                    |
+| --------------- | ------------------------------------------ |
+| `develop-build` | Spotless validation, compilation and tests |
+| `Semgrep`       | Static Application Security Testing (SAST) |
+| `develop-trivy` | Filesystem dependency vulnerability scan   |
+
 It performs:
 
 - Code formatting validation (Spotless)
 - Project compilation
 - Unit tests
-- Package generation
 - Static Application Security Testing (Semgrep)
 - Filesystem vulnerability scanning (Trivy)
 
@@ -50,7 +49,7 @@ Responsibilities:
 
 - Validate formatting with Spotless
 - Compile the application
-- Execute unit tests
+- Execute unit tests and IT tests in H2 base memory
 - Generate the application package
 
 Artifacts:
@@ -61,15 +60,9 @@ Artifacts:
 
 ---
 
-### develop-semgrep
+### semgrep-sast
 
-Runs static security analysis on the source code.
-
-Purpose:
-
-- Detect insecure coding patterns
-- Identify common vulnerabilities
-- Enforce secure coding practices
+Runs static code security analysis.
 
 ---
 
@@ -81,20 +74,3 @@ Purpose:
 
 - Detect vulnerable dependencies
 - Report HIGH and CRITICAL vulnerabilities
-
----
-
-## Pipeline summary
-
-| Stage | Purpose |
-|--------|---------|
-| Spotless | Code formatting validation |
-| Build | Compile the application |
-| Tests | Execute unit tests |
-| Package | Build the JAR |
-| Semgrep | Static code security analysis |
-| Trivy | Dependency vulnerability scanning |
-
----
-
-The `develop` pipeline focuses on fast feedback for developers before code reaches the pre-production environment.

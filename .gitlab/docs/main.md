@@ -5,34 +5,29 @@ The `main` branch represents the production environment.
 Only validated code from the `staging` branch should reach this pipeline.
 
 ```text
-main
-   │
+main: 
    ▼
-Build & Unit Tests
+Build & Unit Tests   (test)
    │
+   ├─────────────────┐ (security)
+   ▼                 ▼
+Trivy Filesystem     Semgrep SAST
+   │             
    ▼
-Package + JaCoCo
-   │
-   ▼
-Semgrep
-   │
-   ▼
-Trivy Filesystem Scan
-   │
-   ▼
-SonarCloud Quality Gate
+Publish sonarCloud      (quality)
    │
    ▼
 Docker Build
    │
    ▼
-Trivy Image Scan
+Trivy Image      (security-image)
    │
    ▼
-Smoke Tests
-   │
+prod-smoke
+
+(  │
    ▼
-Docker Hub Publish
+prod-publish)        as soon as possible
 ```
 
 ---
@@ -91,7 +86,7 @@ Artifacts:
 
 ---
 
-### prod-semgrep
+### semgrep-sast
 
 Runs static code security analysis.
 

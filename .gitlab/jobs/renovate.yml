@@ -1,0 +1,13 @@
+renovate:
+  stage: quality
+  image: renovate/renovate:latest
+  variables:
+    RENOVATE_PLATFORM: gitlab
+    RENOVATE_ENDPOINT: https://gitlab.com/api/v4
+    RENOVATE_REPOSITORIES: val7304/flashcards
+    LOG_LEVEL: info
+  script:
+    - renovate
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  

@@ -11,17 +11,15 @@ The GitLab implementation includes:
 * Functional, performance and smoke testing
 * Reusable GitLab CI templates
 
+---
 
-## GitLab Documentation
+## GitLab Documentations
 
 - [GitLab Flow](https://gitlab.com/val7304/flashcards/-/blob/main/.gitlab/docs/gitlab-flow.md)
-
 - [Automatic promotion](https://gitlab.com/val7304/flashcards/-/blob/main/.gitlab/docs/gitlab-flow.md#automatic-promotion)
-
 - [Develop pipeline](https://gitlab.com/val7304/flashcards/-/blob/main/.gitlab/docs/develop.md)
 - [Staging pipeline](https://gitlab.com/val7304/flashcards/-/blob/main/.gitlab/docs/staging.md)
 - [Production pipeline](https://gitlab.com/val7304/flashcards/-/blob/main/.gitlab/docs/main.md)
-
 - [GitHub Actions vs GitLab CI](https://gitlab.com/val7304/flashcards/-/blob/main/.gitlab/docs/github-vs-gitlab.md)
 
 ---
@@ -48,17 +46,18 @@ feature/* ─────► develop
                     ▼
                   main
 ```
-Each environment has its own pipeline with quality gates, security checks and deployment strategy.
 
+Each environment has its own pipeline with quality gates, security checks and deployment strategy.
 Each environment has its own dedicated pipeline adapted to its purpose.
 
-| Branch    | Purpose |
-|---------  |---------|
-| `develop` | Continuous Integration |
-| `staging` | Pre-production validation |
-| `main`    | Production release |
+| Pipeline      | Goal                      |
+| ------------- | ------------------------- |
+| develop       | Continuous Integration    |
+| staging       | Pre-production validation |
+| main          | Production release        |
+| auto-promote  | Between branches          |
 
-Each pipeline progressively increases the validation level before code reaches production.
+Each pipeline increases the validation level before promoting the application to the next environment.
 
 ---
 
@@ -66,7 +65,8 @@ Each pipeline progressively increases the validation level before code reaches p
 
 ```text
 FLASHCARDS
-├───.gitlab
+├──.github
+├──.gitlab
 │   ├─── docs
 │   ├─── issue_templates
 │   ├─── jobs
@@ -76,19 +76,27 @@ FLASHCARDS
 │   │    └─── auto-promote.yml
 │   ├─── merge_request_templates
 │   │    └─── Default.md
-│   ├───templates
+│   ├─── templates
 │   │    ├─── artifacts.yml
 │   │    ├─── docker.yml
 │   │    ├─── maven.yml
 │   │    ├─── rules.yml
 │   │    └─── security.yml
-│   ├───variables
+│   ├─── variables
 │   │    ├─── global.yml
 │   │    ├─── develop.yml
 │   │    ├─── staging.yml
 │   │    └─── main.yml
 │   └─── Labels.md
-├───.gitlab-ci.yml   
+├── ci-scripts/  
+│   ├── docker-build.sh      ← shared
+│   ├── docker-push.sh       ← shared 
+│   ├── sonar.sh             ← shared
+│   ├── test.sh              ← shared
+│   ├── package.sh           ← Gitlab only
+│   ├── trivy-fs.sh          ← Gitlab only
+│   └── trivy-image.sh       ← Gitlab only
+└── .gitlab-ci.yml   
 ```
 
 * `.gitlab/jobs` : Contains all environment pipelines.
@@ -96,10 +104,32 @@ FLASHCARDS
 * `.gitlab/variables`: Global CI variables.
 * `.gitlab/merge_request_templates`: Merge request templates.
 * `.gitlab/issue_templates`: Issue templates.
-
 * `.gitlab/Labels.md`: labels used in Gitlab.
 
+* `ci-scripts/`: Shared shell scripts reused by GitHub Actions and GitLab CI whenever possible.
+
 ---
+
+### semgrep-sast
+
+Provided by the GitLab `Security/SAST.gitlab-ci.yml` template and launched automatically on all branches during the `security` stage.
+
+Rules and excluded paths are configured in the `global variables` file:
+
+  * Enable `INFO` log level.
+  * Exclude the "SpotBugs" analyser (already executed during the *-build stage).
+  * Exclude the "target/" and "load-test/" directories.
+ 
+Runs static security analysis on the source code.
+
+Purpose:
+
+- Detect insecure coding patterns
+- Identify common vulnerabilities
+- Enforce secure coding practices
+
+---
+
 ## Maintainer
 
 **Valérie Hermans**

@@ -15,40 +15,16 @@ prod-build:
   artifacts:
     when: always
     paths:
-      - target/site/jacoco/
-      - target/*.jar
-      - target/failsafe-reports/ 
-
-prod-package:
-  stage: package
-  extends:
-    - .maven
-    - .artifacts
-    - .main_rules
-  image: $MAVEN_IMAGE
-  script:
-  - chmod +x mvnw
-  - chmod +x ci-scripts/package.sh
-  - ./ci-scripts/package.sh "" true
-  artifacts:
-    paths:
       - target/*.jar
       - target/classes/
       - target/test-classes/
       - target/site/jacoco/
+      - target/failsafe-reports/ 
 
-prod-semgrep:
-  stage: security
-  needs:
-    - prod-package
-  extends:
-    - .semgrep
-    - .main_rules
-    
 prod-trivy-fs:
   stage: security
   needs:
-    - prod-package
+    - prod-build
   extends:
     - .trivy
     - .main_rules
@@ -62,9 +38,7 @@ prod-sonarqube:
   stage: quality
   image: $MAVEN_IMAGE_JAVA21
   needs:
-    - prod-semgrep
-    - prod-trivy-fs
-    - job: prod-package
+    - job: prod-build
       artifacts: true
   script:
     - chmod +x mvnw
@@ -72,25 +46,12 @@ prod-sonarqube:
     - ./ci-scripts/sonar.sh
   extends: .main_rules
 
-prod-trivy-image:
-  stage: security-image
-  needs:
-    - job: prod-docker-build
-      artifacts: true
-  extends:
-    - .trivy
-    - .main_rules
-  script:
-    - chmod +x ci-scripts/trivy-image.sh
-    - ./ci-scripts/trivy-image.sh flashcards-prod.tar 1
-
 prod-docker-build: 
   stage: docker
   needs:
-    - job: prod-package
+    - job: prod-build
       artifacts: true
     - prod-sonarqube
-    - prod-semgrep
     - prod-trivy-fs
   extends:
     - .docker
@@ -103,6 +64,18 @@ prod-docker-build:
   artifacts:
     paths:
       - flashcards-prod.tar
+
+prod-trivy-image:
+  stage: security-image
+  needs:
+    - job: prod-docker-build
+      artifacts: true
+  extends:
+    - .trivy
+    - .main_rules
+  script:
+    - chmod +x ci-scripts/trivy-image.sh
+    - ./ci-scripts/trivy-image.sh flashcards-prod.tar 1 .trivyignore.yaml
 
 prod-smoke:
   stage: smoke
@@ -190,15 +163,9 @@ prod-publish:
     - .push_rules
   script:
     - docker load -i flashcards-prod.tar
-    - echo "$DOCKERHUB_TOKEN" | docker login \
-        -u "$DOCKERHUB_USERNAME" \
-        --password-stdin
-
-    - IMAGE_SHA=$CI_COMMIT_SHORT_SHA
-    - docker tag flashcards:prod $DOCKERHUB_USERNAME/flashcards:sha-$IMAGE_SHA
-    - docker tag flashcards:prod $DOCKERHUB_USERNAME/flashcards:$CI_COMMIT_TAG
-    - docker tag flashcards:prod $DOCKERHUB_USERNAME/flashcards:latest
-
-    - docker push $DOCKERHUB_USERNAME/flashcards:sha-$IMAGE_SHA
-    - docker push $DOCKERHUB_USERNAME/flashcards:$CI_COMMIT_TAG
-    - docker push $DOCKERHUB_USERNAME/flashcards:latest
+    - chmod +x ci-scripts/docker-push.sh
+    - ./ci-scripts/docker-push.sh \
+        flashcards \
+        prod \
+        "$CI_COMMIT_SHORT_SHA" \
+        "$CI_COMMIT_TAG"
