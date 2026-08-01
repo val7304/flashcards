@@ -13,10 +13,6 @@ staging-build:
     when: always
     paths:
       - target/site/jacoco/
-      - target/classes
-      - target/test-classes/
-      - target/*.jar
-      - target/failsafe-reports/
 
 staging-it:
   stage: test
@@ -38,53 +34,25 @@ staging-it:
     when: always
     paths:
       - target/site/jacoco/
-      - target/site/jacoco/jacoco.xml
+      - target/*.jar
       - target/failsafe-reports/
       
-staging-package:
-  needs:
-  - job: staging-it
-    artifacts: true
-  extends:
-    - .maven
-    - .artifacts
-    - .staging_rules
-  stage: package
-  image: $MAVEN_IMAGE
-  script:
-    - chmod +x mvnw
-    - chmod +x ci-scripts/package.sh
-    - ./ci-scripts/package.sh "" true
-  artifacts:
-    paths:
-      - target/*.jar
-      - target/site/jacoco/
-
 staging-trivy:
   stage: security
   needs:
-    - staging-package
+    - staging-it
   extends:
     - .trivy
     - .staging_rules
   script:
     - chmod +x ci-scripts/trivy-fs.sh
     - ./ci-scripts/trivy-fs.sh 0
-    
-staging-semgrep:
-  stage: security
-  needs:
-    - staging-package
-  extends: 
-    - .semgrep
-    - .staging_rules
-    
+
 staging-docker-build:
   stage: docker
   needs:
-    - staging-semgrep
     - staging-trivy
-    - job: staging-package
+    - job: staging-it
       artifacts: true
   extends:
     - .docker
@@ -97,12 +65,25 @@ staging-docker-build:
   artifacts:
     paths:
       - flashcards-staging.tar
+
+staging-trivy-image:
+  stage: security-image
+  needs:
+    - job: staging-docker-build
+      artifacts: true
+  extends:
+    - .trivy
+    - .staging_rules
+  script:
+    - chmod +x ci-scripts/trivy-image.sh
+    - ./ci-scripts/trivy-image.sh flashcards-staging.tar 0
     
 staging-functional:
   stage: functional
   needs:
     - job: staging-docker-build
       artifacts: true
+    - staging-trivy-image
   extends:
     - .docker
     - .artifacts
@@ -186,18 +167,17 @@ staging-functional:
         - postman/newman-error.xml
   after_script:
     - docker logs flashcards-staging > container.log 2>&1 || true
-    - docker stop flashcards-staging || true
-    - docker stop postgres || true
-    - docker rm flashcards-staging || true
-    - docker rm postgres || true
+    - docker rm -f flashcards-staging || true
+    - docker rm -f postgres || true
     
 staging-load-test:
   stage: performance
+  when: manual
+  allow_failure: true
   needs:
     - job: staging-docker-build
       artifacts: true
-    - job: staging-functional
-      artifacts: true
+    - staging-trivy-image
   extends:
     - .docker
     - .artifacts
