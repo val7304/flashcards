@@ -9,14 +9,16 @@ on:
 
 permissions:
   contents: read
-  security-events: write
-  id-token: write
+
 env:
   DB_PASSWORD: ${{ github.actor == 'dependabot[bot]' && 'postgres' || secrets.POSTGRES_PASSWORD }}
 
 jobs:
   build-test-static-analysis:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      security-events: write
     services:
       postgres:
         image: postgres:16@sha256:42b8b8b29c8a4e933d88943e5b03001a78794905cf786e6e7634e9f2abd5a0d3
