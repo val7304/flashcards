@@ -72,12 +72,12 @@ class FlashcardServiceTest {
   @Test
   void testUpdateFlashcard_NotFound() {
     when(flashcardRepository.findById(1L)).thenReturn(Optional.empty());
-
+  
+    Flashcard flashcard = new Flashcard();
+  
     assertThrows(
         RuntimeException.class,
-        () -> {
-          flashcardService.updateFlashcard(1L, new Flashcard());
-        });
+        () -> flashcardService.updateFlashcard(1L, flashcard));
   }
 
   @Test
