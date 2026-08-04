@@ -167,6 +167,8 @@ jobs:
           exit-code: "0"
           
       - name: Run container
+        env:
+          SPRING_DATASOURCE_PASSWORD: ${{ github.actor == 'dependabot[bot]' && 'postgres' || secrets.POSTGRES_PASSWORD }}
         run: >
           docker run -d --name flashcards-staging \
             --add-host=host.docker.internal:host-gateway \
@@ -174,7 +176,7 @@ jobs:
             -e SPRING_PROFILES_ACTIVE=staging \
             -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/flashcardsdb \
             -e SPRING_DATASOURCE_USERNAME=postgres \
-            -e SPRING_DATASOURCE_PASSWORD=${{ github.actor == 'dependabot[bot]' && 'postgres' || secrets.POSTGRES_PASSWORD }} \
+            -e SPRING_DATASOURCE_PASSWORD=$SPRING_DATASOURCE_PASSWORD \
             flashcards:staging
 
       - name: Wait for healthcheck
@@ -194,10 +196,10 @@ jobs:
       - name: Set up Node.js (for Newman)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install Newman
-        run: npm install -g newman
+        run: npm install -g --ignore-scripts newman@6.2.2
 
       - name: Run API Tests - Functional
         run: |
