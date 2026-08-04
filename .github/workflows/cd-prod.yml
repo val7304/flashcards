@@ -92,8 +92,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
-          SONAR_ORGANIZATION: val7304
-          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
         run: |
             chmod +x ci-scripts/sonar.sh
             ./ci-scripts/sonar.sh
@@ -185,17 +183,15 @@ jobs:
           docker stop flashcards-smoke || true
           docker rm flashcards-smoke || true
 
-      - name: Log in to Docker Hub
-        if: env.IS_RELEASE == 'true'
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
       - name: Push image to Docker Hub
         if: env.IS_RELEASE == 'true'
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
-          docker tag $IMAGE_NAME:$IMAGE_TAG ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
-          docker tag $IMAGE_NAME:$IMAGE_TAG ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:${RELEASE_TAG}
-          docker tag $IMAGE_NAME:$IMAGE_TAG ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:$IMAGE_TAG
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:${RELEASE_TAG}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME:latest
-          
+          chmod +x ci-scripts/docker-push.sh
+          ./ci-scripts/docker-push.sh \
+            $IMAGE_NAME \
+            $IMAGE_TAG \
+            $IMAGE_TAG \
+            $RELEASE_TAG
