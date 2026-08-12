@@ -299,8 +299,31 @@ jobs:
             done
             nc -z localhost 8081 || exit 1
 
-      - name: Setup k6
-        uses: grafana/setup-k6-action@ffe7d7290dfa715e48c2ccc924d068444c94bde2      #v1.1.0
+      - n- name: Install k6 (pinned)
+        run: |
+          K6_VERSION="2.2.0"
+
+          sudo apt-get update
+          sudo apt-get install -y wget gnupg
+
+          wget -qO - https://dl.k6.io/key.gpg \
+            | gpg --dearmor \
+            | sudo tee /usr/share/keyrings/k6-archive-keyring.gpg > /dev/null
+
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+
+          sudo apt-get update
+
+          if apt-cache madison k6 | grep -q "$K6_VERSION"; then
+            sudo apt-get install -y k6="$K6_VERSION"
+          else
+            echo "[ERROR] k6 version $K6_VERSION not found"
+            apt-cache madison k6
+            exit 1
+          fi
+
+          k6 version
   
       - name: Run k6 LOCAL (staging)
         env:
