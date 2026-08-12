@@ -1,38 +1,44 @@
 auto-promote:
   stage: release
-  image: alpine:3.24
-  allow_failure: true
+  image: $ALPINE_IMAGE
+  allow_failure: false
+
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "staging"'
+    - when: never
+
   before_script:
     - apk add --no-cache curl jq
+
   script:
     - |
+      set -e
+
       case "$CI_COMMIT_BRANCH" in
         develop)
           TARGET_BRANCH="staging"
           MR_LABELS="automated,promote,staging"
+          ENABLE_AUTO_MERGE="true"
           ;;
+
         staging)
           TARGET_BRANCH="main"
           MR_LABELS="automated,release,production"
+          ENABLE_AUTO_MERGE="false"
           ;;
+
         *)
           echo "No promotion required."
           exit 0
           ;;
       esac
 
-      echo "=========================================="
-      echo "Source Branch : ${CI_COMMIT_BRANCH}"
-      echo "Target Branch : ${TARGET_BRANCH}"
-      echo "Commit        : ${CI_COMMIT_SHORT_SHA}"
-      echo "Pipeline      : ${CI_PIPELINE_URL}"
-      echo "=========================================="
-
       PROJECT_ID="$CI_PROJECT_ID"
 
       DESCRIPTION=$(cat <<EOF
-      ## Automatic Promotion
 
+      ## Automatic Promotion
       **Source branch:** ${CI_COMMIT_BRANCH}
 
       **Target branch:** ${TARGET_BRANCH}
@@ -48,24 +54,168 @@ auto-promote:
       EOF
       )
 
-      EXISTING_MR=$(curl --silent \
-        --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-        "$CI_API_V4_URL/projects/$PROJECT_ID/merge_requests?state=opened&source_branch=$CI_COMMIT_BRANCH&target_branch=$TARGET_BRANCH" \
-        | jq 'length')
+      echo "=========================================="
+      echo "Automatic promotion"
+      echo "Source : ${CI_COMMIT_BRANCH}"
+      echo "Target : ${TARGET_BRANCH}"
+      echo "Project: ${CI_PROJECT_PATH}"
+      echo "=========================================="
 
-      if [ "$EXISTING_MR" -gt 0 ]; then
-        echo "Merge Request already exists."
+      echo "Checking for existing merge request..."
+
+      EXISTING_MR=$(curl --silent --show-error --fail-with-body \
+        --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+        "$CI_API_V4_URL/projects/$PROJECT_ID/merge_requests?state=opened&source_branch=$CI_COMMIT_BRANCH&target_branch=$TARGET_BRANCH")
+
+      if ! echo "$EXISTING_MR" | jq -e 'type == "array"' >/dev/null; then
+        echo "ERROR: GitLab API did not return a merge request array."
+        echo "$EXISTING_MR"
+        exit 1
+      fi
+
+      COUNT=$(echo "$EXISTING_MR" | jq 'length')
+
+      if [ "$COUNT" -gt 0 ]; then
+        STATUS="Existing Merge Request"
+        MR_IID=$(echo "$EXISTING_MR" | jq -r '.[0].iid')
+        MR_URL=$(echo "$EXISTING_MR" | jq -r '.[0].web_url')
+      else
+        STATUS="Merge Request created"
+
+        RESPONSE=$(curl --silent --show-error --fail-with-body \
+          --request POST \
+          --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+          --data-urlencode "source_branch=${CI_COMMIT_BRANCH}" \
+          --data-urlencode "target_branch=${TARGET_BRANCH}" \
+          --data-urlencode "title=Promote ${CI_COMMIT_BRANCH} → ${TARGET_BRANCH} (${CI_COMMIT_SHORT_SHA})" \
+          --data-urlencode "description=${DESCRIPTION}" \
+          --data-urlencode "labels=${MR_LABELS}" \
+          --data "remove_source_branch=false" \
+          --data "squash=false" \
+          "$CI_API_V4_URL/projects/$PROJECT_ID/merge_requests")
+
+        if ! echo "$RESPONSE" | jq -e '.iid' >/dev/null; then
+          echo "ERROR: Failed to create merge request."
+          echo "$RESPONSE"
+          exit 1
+        fi
+
+        MR_IID=$(echo "$RESPONSE" | jq -r '.iid')
+        MR_URL=$(echo "$RESPONSE" | jq -r '.web_url')
+      fi
+
+      echo "=========================================="
+      echo "Project       : ${CI_PROJECT_PATH}"
+      echo "Status        : ${STATUS}"
+      echo "Source Branch : ${CI_COMMIT_BRANCH}"
+      echo "Target Branch : ${TARGET_BRANCH}"
+      echo "Commit        : ${CI_COMMIT_SHORT_SHA}"
+      echo "MR            : !${MR_IID}"
+      echo "URL           : ${MR_URL}"
+      echo "Pipeline      : ${CI_PIPELINE_URL}"
+      echo "Auto-merge    : ${ENABLE_AUTO_MERGE}"
+      echo "=========================================="
+
+      if [ "$ENABLE_AUTO_MERGE" != "true" ]; then
+        echo "Auto-merge: disabled"
+        echo "Manual merge is required for ${CI_COMMIT_BRANCH} → ${TARGET_BRANCH}."
         exit 0
       fi
 
-      curl --request POST \
-           --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-           --data-urlencode "source_branch=${CI_COMMIT_BRANCH}" \
-           --data-urlencode "target_branch=${TARGET_BRANCH}" \
-           --data-urlencode "title=Promote ${CI_COMMIT_BRANCH} → ${TARGET_BRANCH} (${CI_COMMIT_SHORT_SHA})" \
-           --data-urlencode "description=${DESCRIPTION}" \
-           --data-urlencode "labels=${MR_LABELS}" \
-           --data "remove_source_branch=false" \
-           --data "squash=false" \
-           "$CI_API_V4_URL/projects/$PROJECT_ID/merge_requests"
-          
+      echo "Checking merge request status before enabling auto-merge..."
+
+      MAX_ATTEMPTS=24
+      ATTEMPT=1
+
+      while [ "$ATTEMPT" -le "$MAX_ATTEMPTS" ]; do
+        MR_DETAILS=$(curl --silent --show-error --fail-with-body \
+          --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+          "$CI_API_V4_URL/projects/$PROJECT_ID/merge_requests/$MR_IID?with_merge_status_recheck=true")
+
+        MERGE_STATUS=$(echo "$MR_DETAILS" | jq -r '.detailed_merge_status // empty')
+        SIMPLE_MERGE_STATUS=$(echo "$MR_DETAILS" | jq -r '.merge_status // empty')
+        PIPELINE_STATUS=$(echo "$MR_DETAILS" | jq -r '.head_pipeline.status // "none"')
+
+        echo "Attempt ${ATTEMPT}/${MAX_ATTEMPTS}"
+        echo "Merge status: ${SIMPLE_MERGE_STATUS}"
+        echo "Detailed merge status: ${MERGE_STATUS}"
+        echo "Pipeline status: ${PIPELINE_STATUS}"
+
+        case "$MERGE_STATUS" in
+          checking|unchecked|approvals_syncing)
+            echo "GitLab is still preparing the merge request."
+            sleep 10
+            ATTEMPT=$((ATTEMPT + 1))
+            ;;
+
+          ci_still_running|ci_must_pass|can_be_merged)
+            echo "Merge request is prepared."
+            echo "Pipeline may still be running; enabling auto-merge."
+            break
+            ;;
+
+          not_approved|blocked_status|conflict|cannot_be_merged|not_open)
+            echo "ERROR: Merge request cannot be auto-merged."
+
+            echo "$MR_DETAILS" | jq '{
+              iid,
+              state,
+              draft,
+              merge_status,
+              detailed_merge_status,
+              has_conflicts,
+              blocking_discussions_resolved,
+              head_pipeline: .head_pipeline.status
+            }'
+
+            exit 1
+            ;;
+
+          *)
+            echo "Merge request status is ready for auto-merge."
+            break
+            ;;
+        esac
+      done
+
+      if [ "$ATTEMPT" -gt "$MAX_ATTEMPTS" ]; then
+        echo "ERROR: Merge request !${MR_IID} is still being prepared."
+        exit 1
+      fi
+
+      echo "Enabling auto-merge for !${MR_IID}..."
+
+      AUTO_MERGE_RESPONSE_FILE="$(mktemp)"
+
+      HTTP_STATUS=$(curl --silent --show-error \
+        --output "$AUTO_MERGE_RESPONSE_FILE" \
+        --write-out "%{http_code}" \
+        --request PUT \
+        --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+        --data-urlencode "auto_merge=true" \
+        --data-urlencode "sha=${CI_COMMIT_SHA}" \
+        "$CI_API_V4_URL/projects/$PROJECT_ID/merge_requests/$MR_IID/merge" || true)
+
+      echo "HTTP status: ${HTTP_STATUS}"
+      echo "GitLab response:"
+
+      if ! jq . "$AUTO_MERGE_RESPONSE_FILE" 2>/dev/null; then
+        cat "$AUTO_MERGE_RESPONSE_FILE"
+      fi
+
+      if [ "$HTTP_STATUS" != "200" ]; then
+        echo "ERROR: Failed to enable auto-merge."
+        exit 1
+      fi
+
+      AUTO_MERGE_ENABLED=$(jq -r '
+        ((.merge_when_pipeline_succeeds // false) or
+         (.auto_merge // false))
+      ' "$AUTO_MERGE_RESPONSE_FILE")
+
+      if [ "$AUTO_MERGE_ENABLED" = "true" ]; then
+        echo "Auto-merge: enabled"
+      else
+        echo "ERROR: GitLab returned HTTP 200 but auto-merge is not enabled."
+        exit 1
+      fi
