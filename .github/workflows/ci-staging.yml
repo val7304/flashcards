@@ -299,7 +299,7 @@ jobs:
             done
             nc -z localhost 8081 || exit 1
 
-      - n- name: Install k6 (pinned)
+      - name: Install k6 (pinned)
         run: |
           K6_VERSION="2.2.0"
 
