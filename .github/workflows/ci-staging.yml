@@ -306,23 +306,22 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y wget gnupg
 
-          wget -qO - https://dl.k6.io/key.gpg \
-            | gpg --dearmor \
-            | sudo tee /usr/share/keyrings/k6-archive-keyring.gpg > /dev/null
+          wget --https-only -qO - https://dl.k6.io/key.gpg |
+            gpg --dearmor |
+            sudo tee /usr/share/keyrings/k6-archive-keyring.gpg > /dev/null
 
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \
-            | sudo tee /etc/apt/sources.list.d/k6.list
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" |
+            sudo tee /etc/apt/sources.list.d/k6.list
 
           sudo apt-get update
 
           if apt-cache madison k6 | grep -q "$K6_VERSION"; then
-            sudo apt-get install -y k6="$K6_VERSION"
+            sudo apt-get install -y "k6=$K6_VERSION"
           else
             echo "[ERROR] k6 version $K6_VERSION not found"
             apt-cache madison k6
             exit 1
           fi
-
           k6 version
   
       - name: Run k6 LOCAL (staging)
