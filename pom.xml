@@ -31,6 +31,9 @@
         <jacoco.check.skip>false</jacoco.check.skip>
         <spotless.plugin.version>2.43.0</spotless.plugin.version>
         <tomcat.version>10.1.55</tomcat.version>
+
+        <!-- fix CVE-2026-40983 -->
+        <micrometer.version>1.15.12</micrometer.version>
         
         <!-- Sonar -->
         <sonar.plugin.version>5.5.0.6356</sonar.plugin.version>
