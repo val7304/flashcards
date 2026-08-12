@@ -304,9 +304,10 @@ jobs:
           K6_VERSION="2.2.0"
 
           sudo apt-get update
-          sudo apt-get install -y wget gnupg
+          sudo apt-get install -y curl gnupg
 
-          wget --https-only -qO - https://dl.k6.io/key.gpg |
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            https://dl.k6.io/key.gpg |
             gpg --dearmor |
             sudo tee /usr/share/keyrings/k6-archive-keyring.gpg > /dev/null
 
