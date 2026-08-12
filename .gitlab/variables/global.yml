@@ -2,14 +2,16 @@ variables:
   JAVA_VERSION: "17"
 
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
-  MAVEN_IMAGE: "maven:3.9.11-eclipse-temurin-17@sha256:e4a7ace3dc0d645ed97f8d9ad0b0d3f0b14fa8d150138f27f116d7105a639b82"
-  MAVEN_IMAGE_JAVA21: "maven:3.9.11-eclipse-temurin-21@sha256:6fdc855a6ed81d288ca7ca37ac6ff5e9308b612485c0801d70b25a858c83d237"
+  MAVEN_IMAGE: "maven:3.9.16-eclipse-temurin-17@sha256:4015718012bbf1113ec6cfae2b950be328d90265ceb60f92b26c3ea7c4d14ee8"
+  MAVEN_IMAGE_JAVA21: "maven:3.9.16-eclipse-temurin-21@sha256:c07f7ccfb8ca6c9fa29ee523f00afa7d2ca6132c92f8652c4aebb5ee3491f502"
 
+  ALPINE_IMAGE: "alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b"
+  
   POSTGRES_IMAGE: "postgres:16.14-alpine3.23@sha256:42b8b8b29c8a4e933d88943e5b03001a78794905cf786e6e7634e9f2abd5a0d3"
 
   DOCKER_IMAGE: "docker:29.6.1@sha256:66d292e5c26bd33a6f6f61cacb880de2186339a524ecba1ce098dbbaceed6515"
   DOCKER_DIND_IMAGE: "docker:29.6.1-dind"
 
-  TRIVY_IMAGE: "aquasec/trivy:0.72.0@sha256:cffe3f5161a47a6823fbd23d985795b3ed72a4c806da4c4df16266c02accdd6f"
+  TRIVY_IMAGE: "aquasec/trivy:0.73.0@sha256:7cced7cae583819fc7806d4cbc0dbbc7cad18b99f7d3e235192e6da8c091045c"
 
   K6_IMAGE: "grafana/k6:2.1.0@sha256:65c920dc067d5e2e00befbf982af6ad6ad0117034e8b1c65817c7975c52d4669"
