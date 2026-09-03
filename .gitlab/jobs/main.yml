@@ -24,9 +24,10 @@ prod-build:
 prod-trivy-fs:
   stage: security
   needs:
-    - prod-build
+    - job: prod-build
+      artifacts: true
   extends:
-    - .trivy
+    - .trivy-with-maven
     - .main_rules
   script:
     - chmod +x ci-scripts/trivy-fs.sh
@@ -125,7 +126,7 @@ prod-smoke:
         docker logs flashcards-prod
         exit 1
       fi
-    - docker ps
+      
     - |
       for i in $(seq 1 30); do
         if docker run --rm \

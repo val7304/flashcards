@@ -15,7 +15,9 @@ include:
   - local: '.gitlab/jobs/develop.yml'
   - local: '.gitlab/jobs/staging.yml'
   - local: '.gitlab/jobs/main.yml'
+  
   - local: '.gitlab/jobs/auto-promote.yml'
+  - local: '.gitlab/jobs/renovate.yml'
 
   - local: .gitlab/templates/artifacts.yml
   - local: .gitlab/templates/docker.yml
@@ -25,5 +27,13 @@ include:
   - local: .gitlab/templates/security.yml
   
   - local: .gitlab/variables/global.yml
-  
-  - template: Security/SAST.gitlab-ci.yml
+
+  - component: gitlab.com/components/sast/sast@0a29cf13041d2693472a2ce536c126df209b1cd4   #3.4.0
+
+semgrep-sast:
+  stage: security
+  variables:
+    SAST_EXCLUDED_PATHS: "spec,test,tests,tmp,target,load-test"
+    SAST_EXCLUDED_ANALYZERS: "spotbugs"
+    SECURE_LOG_LEVEL: "info"
+   
