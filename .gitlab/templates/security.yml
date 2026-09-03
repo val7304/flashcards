@@ -3,13 +3,12 @@
     name: $TRIVY_IMAGE
     entrypoint: [""]
   cache:
-    - key: maven
-      paths:
-        - .m2/repository
-      policy: pull
     - key: trivy-db
       paths:
-        - .trivycache
+        - .trivycache/
       policy: pull-push
   variables:
-    TRIVY_CACHE_DIR: ".trivycache"
+    TRIVY_CACHE_DIR: "$CI_PROJECT_DIR/.trivycache"
+
+.trivy-with-maven:
+  extends: .trivy

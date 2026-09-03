@@ -25,7 +25,8 @@ staging-it:
   variables:
     SPRING_PROFILES_ACTIVE: it
   needs:
-    - staging-build
+    - job: staging-build
+      artifacts: true
   script:
     - chmod +x mvnw
     - sleep 10
@@ -36,18 +37,25 @@ staging-it:
       - target/site/jacoco/
       - target/*.jar
       - target/failsafe-reports/
-      
+      - .m2/repository/
+    expire_in: 30 mins
+
 staging-trivy:
   stage: security
   needs:
-    - staging-it
+    - job: staging-it
+      artifacts: true
   extends:
-    - .trivy
+    - .trivy-with-maven
     - .staging_rules
+  before_script:
+    - trivy version
+    - test -d .m2/repository
+    - du -sh .m2/repository
   script:
     - chmod +x ci-scripts/trivy-fs.sh
     - ./ci-scripts/trivy-fs.sh 0
-
+    
 staging-docker-build:
   stage: docker
   needs:
@@ -77,7 +85,7 @@ staging-trivy-image:
   script:
     - chmod +x ci-scripts/trivy-image.sh
     - ./ci-scripts/trivy-image.sh flashcards-staging.tar 0
-    
+
 staging-functional:
   stage: functional
   needs:
@@ -89,7 +97,6 @@ staging-functional:
     - .artifacts
     - .staging_rules
   script:
-    - docker version
     - docker load -i flashcards-staging.tar
     - docker network create flashcards-net
     - |
@@ -102,7 +109,6 @@ staging-functional:
         $POSTGRES_IMAGE
     - |
       until docker exec postgres pg_isready -U postgres; do
-        docker logs postgres || true
         echo "Waiting for PostgreSQL..."
         sleep 2
       done
@@ -117,6 +123,7 @@ staging-functional:
         flashcards:staging
     - |
       started=false
+
       for i in $(seq 1 30); do
         if docker logs flashcards-staging 2>&1 | grep -q "Started FlashcardsApplication"; then
           echo "Application started"
@@ -132,8 +139,6 @@ staging-functional:
         exit 1
       fi
 
-    - docker ps
-    - docker network inspect flashcards-net
     - |
       docker run --rm \
         --network flashcards-net \
@@ -169,7 +174,7 @@ staging-functional:
     - docker logs flashcards-staging > container.log 2>&1 || true
     - docker rm -f flashcards-staging || true
     - docker rm -f postgres || true
-    
+
 staging-load-test:
   stage: performance
   when: manual
@@ -222,6 +227,7 @@ staging-load-test:
 
         sleep 2
       done
+
     - |
       docker run --rm \
         --network flashcards-net \

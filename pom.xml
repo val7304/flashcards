@@ -30,7 +30,8 @@
         <jacoco.minimum.coverage>0.0</jacoco.minimum.coverage>
         <jacoco.check.skip>false</jacoco.check.skip>
         <spotless.plugin.version>2.43.0</spotless.plugin.version>
-        <tomcat.version>10.1.55</tomcat.version>
+        <!-- fix CVE-2026-65182 -->
+        <tomcat.version>11.0.25</tomcat.version>
 
         <!-- fix CVE-2026-40983 -->
         <micrometer.version>1.15.12</micrometer.version>
