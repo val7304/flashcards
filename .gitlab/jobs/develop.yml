@@ -4,15 +4,16 @@ develop-build:
     - .maven
     - .artifacts
     - .develop_rules
-  image: $MAVEN_IMAGE 
+  image: $MAVEN_IMAGE
   variables:
     SPRING_PROFILES_ACTIVE: dev
-    SPRING_DATASOURCE_URL: jdbc:h2:mem:itdb;DB_CLOSE_DELAY=-1
+    SPRING_DATASOURCE_URL: "jdbc:h2:mem:itdb;DB_CLOSE_DELAY=-1"
     SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
     SPRING_DATASOURCE_USERNAME: sa
     SPRING_DATASOURCE_PASSWORD: ""
   script:
-    - chmod +x mvnw
+    - ./mvnw -B dependency:resolve
+    - ./mvnw -B dependency:go-offline
     - ./mvnw spotless:check
     - chmod +x ci-scripts/test.sh
     - ./ci-scripts/test.sh
@@ -20,16 +21,22 @@ develop-build:
     when: always
     paths:
       - target/site/jacoco/
+      - .m2/repository/
+    expire_in: 1 hour
 
 develop-trivy:
   stage: security
   needs:
-    - develop-build
-  image:
-    name: $TRIVY_IMAGE
-    entrypoint: [""]
+    - job: develop-build
+      artifacts: true
+  extends:
+    - .artifacts
+    - .trivy-with-maven
+    - .develop_rules
   script:
     - chmod +x ci-scripts/trivy-fs.sh
     - ./ci-scripts/trivy-fs.sh 0
-  extends: .develop_rules
-  
+  artifacts:
+    when: always
+    paths:
+      - trivy-report.json

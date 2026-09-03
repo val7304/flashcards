@@ -1,6 +1,9 @@
 .maven:
   cache:
-    key: maven
+    key:
+      files:
+        - pom.xml
+        - .mvn/wrapper/maven-wrapper.properties
     paths:
-      - .m2/repository
+      - .m2/repository/
     policy: pull-push

@@ -1,6 +1,6 @@
 renovate:
   stage: quality
-  image: renovate/renovate:latest
+  image: $RENOVATE_IMAGE
   variables:
     RENOVATE_PLATFORM: gitlab
     RENOVATE_ENDPOINT: "https://gitlab.com/api/v4"
