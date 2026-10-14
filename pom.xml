@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.14</version>
+        <version>4.0.8</version>
         <relativePath/>
     </parent>
 
@@ -32,6 +32,7 @@
         <spotless.plugin.version>2.43.0</spotless.plugin.version>
         <!-- fix CVE-2026-65182 -->
         <tomcat.version>11.0.25</tomcat.version>
+        <jackson-bom.version>3.1.7</jackson-bom.version>
 
         <!-- fix CVE-2026-40983 -->
         <micrometer.version>1.15.12</micrometer.version>
@@ -51,8 +52,7 @@
         <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
-
-   <dependencyManagement>
+    <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
@@ -61,32 +61,10 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-    
-         <!-- temporary fix for CVE-2026-41842 -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-framework-bom</artifactId>
-            <version>6.2.19</version>
-            <type>pom</type>
-            <scope>import</scope>
-        </dependency>
-
-        <!-- temporary fix for CVE-2026-41695 -->
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-commons</artifactId>
-            <version>3.5.12</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-jpa</artifactId>
-            <version>3.5.12</version>
-        </dependency>
-    </dependencies>
+        </dependencies>
     </dependencyManagement>
 
-     <dependencies>
+    <dependencies>
         <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -142,8 +120,10 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
+            <version>4.8.6</version>
             <scope>provided</scope>
         </dependency>
+
 
         <!-- Tests -->
         <dependency>
@@ -152,11 +132,16 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-                       <!-- Compiler (avec Lombok annotation processing) -->
+            <!-- Compiler (avec Lombok annotation processing) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
