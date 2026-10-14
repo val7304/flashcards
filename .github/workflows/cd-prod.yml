@@ -191,8 +191,8 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
-          chmod +x ci-scripts/docker-push.sh
-          ./ci-scripts/docker-push.sh \
+          chmod +x ci-scripts/docker_push.sh
+          ./ci-scripts/docker_push.sh \
             $IMAGE_NAME \
             $IMAGE_TAG \
             $IMAGE_TAG \
