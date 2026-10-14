@@ -20,7 +20,7 @@ import com.example.flashcards.entity.Category;
 import com.example.flashcards.entity.Flashcard;
 import com.example.flashcards.service.CategoryService;
 import com.example.flashcards.service.FlashcardService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
