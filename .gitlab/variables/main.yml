@@ -1,3 +1,0 @@
-variables:
-  SPRING_PROFILE: prod
-  SERVER_PORT: 8080
