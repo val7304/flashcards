@@ -58,7 +58,7 @@ jobs:
         run: ./mvnw -B spotless:check
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2
+        uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d
         with:
           languages: java
 
@@ -75,7 +75,7 @@ jobs:
           ./ci-scripts/test.sh coverage-main
   
       - name: Upload JaCoCo XML
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: jacoco-xml
           path: target/site/jacoco/jacoco.xml
@@ -97,7 +97,7 @@ jobs:
             ./ci-scripts/sonar.sh
 
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2
+        uses: github/codeql-action/analyze@24c54180a607b1449ed407dd24f251e4e9147c8d
 
       - name: Cache Trivy DB
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9    #v5.0
