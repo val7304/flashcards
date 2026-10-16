@@ -1,3 +1,0 @@
-variables:
-  SPRING_PROFILE: develop
-  SERVER_PORT: 8080
