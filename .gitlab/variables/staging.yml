@@ -1,3 +1,0 @@
-variables:
-  SPRING_PROFILE: staging
-  SERVER_PORT: 8081
