@@ -1,0 +1,4 @@
+vulnerabilities:
+  - id: CVE-2026-111497
+    expired_at: 2026-11-07
+    statement: Temporary ignore while waiting for a Distroless image containing the fixed libbrotli1 version. Recheck the image digest and remove this exception once resolved.
