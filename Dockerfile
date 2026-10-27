@@ -1,4 +1,4 @@
-FROM gcr.io/distroless/java17-debian13:nonroot@sha256:c163251b62cd635e85d19014ce7b6bbf769146b576c69fc220a05c3d3c99d94b
+FROM gcr.io/distroless/java21-debian13:nonroot@sha256:a2aeb5a7a714cfe928b31fdf67b2d23f503ea6b9612705af062de22e0c50ba77
 
 WORKDIR /app
 COPY target/flashcards-*.jar app.jar
