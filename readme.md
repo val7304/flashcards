@@ -49,7 +49,7 @@ Each branch represents a fully isolated environment with its own Spring profile,
 
 | Layer    | Technology                                                             |
 |----------|------------------------------------------------------------------------|
-| Backend  | Java 17, Spring Boot 3                                                 |
+| Backend  | Java 21, Spring Boot 4                                                 |
 | Build    | Maven Wrapper (`./mvnw`)                                               |
 | Database | PostgreSQL 16 (app, integration tests), H2 (unit tests)                |
 | Testing  | JUnit 5, Mockito, Postman (Newman CLI), Grafana k6 (load tests)        |
@@ -102,6 +102,7 @@ FLASHCARDS/
 │           ├─ application-it.properties                # it profile
 │           └─ application-test.properties            # test profile 
 ├── init-db.sh
+├── lombok.config
 └── pom.xml
 ```
 **profile:** `dev`/`staging`/`prod`
@@ -113,7 +114,7 @@ Tests reach [![Coverage](https://sonarcloud.io/api/project_badges/measure?projec
 ## Installation & Setup
 
 ### Requirements
-- Java 17+
+- Java 21 (17+)
 - Maven Wrapper (included)
 - PostgreSQL 16 
 - Git

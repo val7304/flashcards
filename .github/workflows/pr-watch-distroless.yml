@@ -56,10 +56,10 @@ jobs:
           git checkout -b $BRANCH
           DIGEST="${{ steps.check.outputs.digest_value }}"
 
-          echo "$DIGEST" > ci-scripts/.distroless-java17-debian13.digest
-          sed -i "s|FROM gcr.io/distroless/java17-debian13:nonroot.*|FROM gcr.io/distroless/java17-debian13:nonroot@$DIGEST|" Dockerfile
+          echo "$DIGEST" > ci-scripts/.distroless-java21-debian13.digest
+          sed -i "s|FROM gcr.io/distroless/java21-debian13:nonroot.*|FROM gcr.io/distroless/java21-debian13:nonroot@$DIGEST|" Dockerfile
           git add \
-            ci-scripts/.distroless-java17-debian13.digest \
+            ci-scripts/.distroless-java21-debian13.digest \
             Dockerfile
 
             git diff --cached --quiet && {
