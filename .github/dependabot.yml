@@ -6,8 +6,20 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-
     groups:
       github-actions:
         patterns:
           - "*"
+
+  - package-ecosystem: "maven"
+    target-branch: develop
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      maven-development:
+        dependency-type: "development"
+        update-types:
+          - "patch"
+          - "minor"
