@@ -24,8 +24,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <lombok.version>1.18.36</lombok.version>
-        <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
-        <jacoco.plugin.version>0.8.12</jacoco.plugin.version>
+        <maven.compiler.plugin.version>3.16.0</maven.compiler.plugin.version>
+        <jacoco.plugin.version>0.8.15</jacoco.plugin.version>
         <jacoco.minimum.coverage>0.0</jacoco.minimum.coverage>
         <jacoco.check.skip>false</jacoco.check.skip>
         <spotless.plugin.version>2.43.0</spotless.plugin.version>
@@ -158,7 +158,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.3.1</version>
+                <version>3.6.0</version>
                 <configuration>
                     <configLocation>config/checkstyle/checkstyle.xml</configLocation>
                     <suppressionsLocation>config/checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
@@ -179,7 +179,7 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>4.8.6.2</version>
+                <version>4.10.5.0</version>
                 <configuration>
                     <effort>Max</effort>
                     <threshold>Low</threshold>
