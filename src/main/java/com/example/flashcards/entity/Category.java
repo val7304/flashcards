@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @SuppressFBWarnings(
-    value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"},
+    value = "EI_EXPOSE_REP",
     justification = "JPA entity - relations must expose references for ORM")
 
 /**
