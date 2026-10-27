@@ -37,7 +37,7 @@
         <micrometer.version>1.15.12</micrometer.version>
         
         <!-- Sonar -->
-        <sonar.plugin.version>5.5.0.6356</sonar.plugin.version>
+        <sonar.plugin.version>5.8.0.7211</sonar.plugin.version>
         <sonar.projectKey>val7304_flashcards</sonar.projectKey>
         <sonar.organization>val7304</sonar.organization>
         <sonar.projectName>flashcards</sonar.projectName>
@@ -291,7 +291,7 @@
             <!-- unit tests -->
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.3</version>
+                <version>3.6.1</version>
                 <configuration>
                     <skipTests>${skipUnitTests}</skipTests>
                     <argLine>@{jacocoArgLine}</argLine>  <!-- ← @{} = résolution tardive -->
@@ -301,7 +301,7 @@
             <!-- test IT -->
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.5.3</version>
+                <version>3.6.1</version>
                 <configuration>
                     <argLine>@{jacocoArgLine}</argLine>  <!-- ← @{} = résolution tardive -->
                 </configuration>
