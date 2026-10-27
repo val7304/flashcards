@@ -42,12 +42,12 @@ FLASHCARDS/
 │       ├── pr-watch-distroless.yml             # auto PR watch digest image
 │       └── pr-staging-to-main.yml              # auto PR
 ├── ci-scripts/
-│   ├── .distroless-java17-debian13.digest
+│   ├── .distroless-java21-debian13.digest
 │   ├── check-docker-image-latest.sh      
-│   ├── docker-build.sh                   
+│   ├── docker-push.sh                    # shared script                   
+│   ├── docker-build.sh                   # shared script                   
 │   ├── install-crane.sh                  
 │   ├── install-trivy.sh                  # Fallback if trivy-action cannot be used
-│   ├── package.sh                        
 │   ├── sonar.sh                          
 │   ├── test.sh                           
 │   ├── trivy-fs.sh                       # GitLab filesystem scan
@@ -394,7 +394,7 @@ The project uses a pinned distroless base image with automated digest tracking t
 
 ### Mechanism
 
-- The Dockerfile uses a pinned distroless digest: `FROM gcr.io/distroless/java17-debian13:nonroot@sha256:...`
+- The Dockerfile uses a pinned distroless digest: `FROM gcr.io/distroless/java21-debian13:nonroot@sha256:...`
 
 - A dedicated workflow (`pr-watch-distroless.yml`) runs daily:
     - Continuously monitors the upstream distroless digest
