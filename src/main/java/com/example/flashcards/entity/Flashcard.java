@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @SuppressFBWarnings(
-    value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"},
+    value = "EI_EXPOSE_REP",
     justification = "JPA entity - mutable by design for Hibernate")
 
 /** Représente une carte mémoire (flashcard). Chaque flashcard appartient à une {@link Category}. */
