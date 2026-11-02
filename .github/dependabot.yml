@@ -11,6 +11,13 @@ updates:
         patterns:
           - "*"
 
+  # Distroless
+  - package-ecosystem: "docker"
+    target-branch: develop
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
   - package-ecosystem: "maven"
     target-branch: develop
     directory: "/"
