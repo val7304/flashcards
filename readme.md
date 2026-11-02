@@ -216,19 +216,37 @@ SPRING_SECURITY_PSWD=your-secret ./mvnw spring-boot:run
 
 ## Access the Application
 
+
+<table border="0">
+  <tr>
+    <td>
+
 | Profile | Port |
 | ------- | ---- |
 | dev     | 8080 |
 | staging | 8081 |
 | prod    | 8080 |
 
-### Web Interface
 
-Simple UI to list, search, create, update, and delete categories and flashcards: http://localhost:8080
+  </td>
+    <td>
 
 > use the default port for the active profile
 
+   </td>
+  </tr>
+</table>
+
+
+### New Web Interface is available now
+
+![Flashcards app](docs/img/logo_readme.png)
+
+Simple UI to list, search, create, update, and delete categories and flashcards: http://localhost:8080
+
 > This UI is intentionally framework-free (no React/Angular).
+
+> For more information, visit the [user guide](docs/user_guide.md)
 
 ### API Base Urls
 
