@@ -3,64 +3,245 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Flashcards API Explorer</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Flashcards Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
 
-    <h1>Flashcards API Explorer</h1>
-    <p>Interactive UI to explore the Flashcards REST API.</p>
+    <nav class="navbar navbar-light shadow-sm mb-4 mt-0">
+        <div class="container-fluid p-0">
+            <a class="navbar-brand logo-container mb-0" href="/" aria-label="Flashcards home">
+                <img src="/img/Logo_top.png" class="img-fluid" alt="Flashcards: Your cards. Your knowledge.">
+            </a>
+            <div class="navbar-text-container">
+                <span>Categories and flashcards management</span>
+            </div>
+        </div>
+    </nav>
 
-    <hr>
+    <main class="container-fluid px-4">
+        <div id="message" class="alert d-none" role="alert"></div>
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <section class="card shadow-sm mb-4">
 
-    <section>
-        <h2>Categories</h2>
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
 
-        <button onclick="loadCategories()">List categories</button>
+                        <h5 class="mb-0">Categories</h5>
 
-        <input id="searchCategory" placeholder="Search by name">
-        <button onclick="searchCategory()">Search</button>
+                        <button class="btn btn-sm btn-outline-primary" type="button" onclick="loadCategories()">
+                            <i class="fa-solid fa-rotate-right me-1"></i>
+                            Refresh
+                        </button>
 
-        <h3>Create / Update</h3>
-        <input id="categoryId" placeholder="ID (for update)">
-        <input id="categoryName" placeholder="Category name">
-        <button onclick="createCategory()">Create</button>
-        <button onclick="updateCategory()">Update</button>
+                    </div>
 
-        <h3>Delete</h3>
-        <input id="deleteCategoryId" placeholder="Category ID">
-        <button onclick="deleteCategory()">Delete</button>
-        <small>* Note: if you delete a category, all associated flashcards will also be deleted</small>
-        <ul id="categories"></ul>
-    </section>
+                    <div class="card-body">
 
-    <hr>
+                        <form id="categoryForm" class="mb-4">
 
-    <section>
-        <h2>Flashcards</h2>
+                            <input type="hidden" id="categoryId">
 
-        <button onclick="loadFlashcards()">List flashcards</button>
+                            <label for="categoryName" class="form-label">
+                                Category name
+                            </label>
 
-        <input id="searchFlashcard" placeholder="Search by question">
-        <button onclick="searchFlashcard()">Search</button>
+                            <div class="input-group">
 
-        <h3>Create / Update</h3>
-        <input id="flashcardId" placeholder="ID (for update)">
-        <input id="flashcardQuestion" placeholder="Question">
-        <input id="flashcardAnswer" placeholder="Answer">
-        <input id="flashcardCategoryId" placeholder="Category ID">
-        <button onclick="createFlashcard()">Create</button>
-        <button onclick="updateFlashcard()">Update</button>
+                                <input type="text" id="categoryName" class="form-control"
+                                    placeholder="e.g. Java, English..." required>
 
-        <h3>Delete</h3>
-        <input id="deleteFlashcardId" placeholder="Flashcard ID">
-        <button onclick="deleteFlashcard()">Delete</button>
+                                <button type="submit" class="btn btn-primary" id="categorySubmit">
+                                    Create
+                                </button>
 
-        <ul id="flashcards"></ul>
-    </section>
+                            </div>
 
-    <script src="app.js"></script>
+                            <button type="button" class="btn btn-sm btn-link text-secondary d-none"
+                                id="cancelCategoryEdit" onclick="resetCategoryForm()">
+                                Cancel editing
+                            </button>
+
+                        </form>
+                        <div id="categories" class="list-group">
+
+                            <div class="text-muted small">
+                                Loading categories...
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <section class="card shadow-sm">
+
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Create Flashcard</h5>
+                    </div>
+
+                    <div class="card-body">
+                        <form id="flashcardForm">
+                            <div class="mb-3">
+                                <label for="flashcardQuestion" class="form-label">
+                                    Question
+                                </label>
+
+                                <textarea id="flashcardQuestion" class="form-control" rows="2"
+                                    placeholder="Enter the question" required></textarea>
+
+                            </div>
+                            <div class="mb-3">
+                                <label for="flashcardAnswer" class="form-label">
+                                    Answer
+                                </label>
+                                <textarea id="flashcardAnswer" class="form-control" rows="3"
+                                    placeholder="Enter the answer" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="flashcardCategoryId" class="form-label">
+                                    Category
+                                </label>
+                                <select id="flashcardCategoryId" class="form-select" required>
+                                    <option value="">
+                                        Select a category
+                                    </option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="flashcardSubmit">
+                                <i class="fa-solid fa-plus me-1"></i>
+                                Create Flashcard
+                            </button>
+                        </form>
+                    </div>
+                </section>
+            </div>
+            <div class="col-lg-7">
+                <section class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Search</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="searchForm" class="mb-3">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="searchFlashcard" class="form-label">
+                                        Flashcard keyword
+                                    </label>
+                                    <input type="search" id="searchFlashcard" class="form-control"
+                                        placeholder="e.g. branch">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="searchCategory" class="form-label">
+                                        Category
+                                    </label>
+
+                                    <input type="search" id="searchCategory" class="form-control" placeholder="e.g. Git"
+                                        list="categorySuggestions" autocomplete="off">
+
+                                    <datalist id="categorySuggestions">
+                                    </datalist>
+                                </div>
+
+                            </div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fa-solid fa-magnifying-glass me-1"></i>
+                                    Search
+                                </button>
+                                <button class="btn btn-outline-secondary" type="button" id="showAllButton">
+                                    Show All
+                                </button>
+                            </div>
+                        </form>
+                        <p class="text-muted small mb-0">
+                            Search by keyword, category, or combine both filters.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- results -->
+                <section class="card shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Flashcards</h5>
+                        <div class="d-flex align-items-center gap-3">
+                            <p class="text-muted small mb-0 d-none d-md-block">
+                                Click on a question to reveal its answer.
+                            </p>
+                            <span id="flashcardCount" class="badge rounded-pill count-badge">
+                                0
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="flashcards">
+                            <div class="text-muted">
+                                Loading flashcards...
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer mt-5">
+        <div class="container-fluid px-4">
+            <div class="row align-items-center g-4">
+                <div class="col-md-4 text-center text-md-start">
+                    <img src="/img/Logo_footerapp.png" alt="Flashcards - Your cards. Your knowledge"
+                        class="footer-logo">
+                </div>
+                <div class="col-md-4 footer-links">
+
+                    <small class="mb-2">
+                        This app is powered by
+                        <a href="https://www.thisval.be/" target="_blank" rel="noopener noreferrer">
+                            thisval.be
+                        </a>
+                    </small>
+
+                    <hr>
+                    The application and its CI/CD setup can be found on
+                    <ul class="mb-0">
+                        <li>
+                            <i class="fa-brands fa-github me-1" aria-hidden="true"></i>
+                            <a href="https://github.com/val7304/flashcards" target="_blank" rel="noopener noreferrer">
+                                GitHub Actions
+                            </a>
+                            <span class="mx-1">·</span>
+                            <i class="fa-regular fa-newspaper me-1"></i>
+                            <a href="https://www.thisval.be/espace-tech-devops/projets/github-actions/list-subject"
+                                target="_blank" rel="noopener noreferrer">The series of articles on GitHub Actions</a>
+                        </li>
+                        <li>
+                            <i class="fa-brands fa-gitlab me-1" aria-hidden="true"></i>
+                            <a href="https://gitlab.com/val7304/flashcards" target="_blank"
+                                rel="noopener noreferrer">GitLab CI</a>
+                            <span class="mx-1">·</span>
+                            <i class="fa-regular fa-newspaper me-1"></i>
+                            <a href="https://www.thisval.be/espace-tech-devops/projets/gitlab-flashcards/list-subject"
+                                target="_blank" rel="noopener noreferrer">The series of articles on GitLab CI</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-4 text-center text-md-end">
+                    <img src="/img/footer_learn_at_yourOwnPace.png" alt="Learn at your own pace"
+                        class="img-fluid footer-tagline">
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+    </script>
+    <script src="/app.js"></script>
 </body>
 
 </html>
