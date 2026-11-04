@@ -60,8 +60,22 @@ jobs:
           fi
           echo "PR number: $PR_NUMBER"
 
-          gh pr merge "$PR_NUMBER" \
-            --auto \
-            --merge
+          MAX_ATTEMPTS=4
+          
+          for ATTEMPT in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Enabling auto-merge (attempt $ATTEMPT/$MAX_ATTEMPTS)..."
 
+            if gh pr merge "$PR_NUMBER" --auto --merge; then
+              echo "Auto-merge enabled successfully for PR #$PR_NUMBER"
+              exit 0
+            fi
 
+            if [ "$ATTEMPT" -lt "$MAX_ATTEMPTS" ]; then
+              DELAY=$((5 * ATTEMPT))
+              echo "Merge request failed. Retrying in ${DELAY}s..."
+              sleep "$DELAY"
+            fi
+          done
+
+          echo "::error::Unable to enable auto-merge for PR #$PR_NUMBER"
+          exit 1
