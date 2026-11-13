@@ -25,9 +25,9 @@ public interface FlashcardRepository extends JpaRepository<Flashcard, Long> {
 
   @Query(
       """
-                select f
-                from Flashcard f
-                join fetch f.category
-            """)
+          select f
+          from Flashcard f
+          join fetch f.category
+      """)
   List<Flashcard> findAllWithCategory();
 }
