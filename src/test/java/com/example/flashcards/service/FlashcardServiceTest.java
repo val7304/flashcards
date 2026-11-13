@@ -84,12 +84,11 @@ class FlashcardServiceTest {
     Flashcard entity = FlashcardMapper.toEntity(dto, category);
 
     when(flashcardRepository.save(any(Flashcard.class)))
-        .thenAnswer(
-            inv -> {
-              Flashcard saved = inv.getArgument(0);
-              saved.setId(1L);
-              return saved;
-            });
+        .thenAnswer(inv -> {
+          Flashcard saved = inv.getArgument(0);
+          saved.setId(1L);
+          return saved;
+        });
 
     Flashcard saved = flashcardService.createFlashcard(entity);
     FlashcardDto savedDTO = FlashcardMapper.toDto(saved);

@@ -69,11 +69,10 @@ public class CategoryService {
   public Category updateCategory(final Long id, final Category category) {
     return categoryRepository
         .findById(id)
-        .map(
-            c -> {
-              c.setName(category.getName());
-              return categoryRepository.save(c);
-            })
+        .map(c -> {
+          c.setName(category.getName());
+          return categoryRepository.save(c);
+        })
         .orElseThrow(() -> new RuntimeException("Category not found"));
   }
 

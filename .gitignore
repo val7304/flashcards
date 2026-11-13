@@ -1,3 +1,5 @@
+ci-scripts/.distroless-java21-debian13.digest
+
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
