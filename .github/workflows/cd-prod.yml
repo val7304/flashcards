@@ -48,7 +48,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
@@ -58,7 +58,7 @@ jobs:
         run: ./mvnw -B spotless:check
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370
+        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066
         with:
           languages: java
 
@@ -81,7 +81,7 @@ jobs:
           path: target/site/jacoco/jacoco.xml
 
       - name: Set up JDK ${{ env.SONAR_JAVA_VERSION }} for Sonar
-        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78
         with:
           distribution: temurin
           java-version: ${{ env.SONAR_JAVA_VERSION }}
@@ -97,7 +97,7 @@ jobs:
             ./ci-scripts/sonar.sh
 
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370
+        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066
 
       - name: Cache Trivy DB
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9    #v5.0
