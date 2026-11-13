@@ -31,29 +31,28 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) {
-    http.authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers(EndpointRequest.to("health", "info"))
-                    .permitAll()
-                    .requestMatchers(EndpointRequest.toAnyEndpoint())
-                    .hasRole("ADMIN")
-                    .requestMatchers(
-                        "/",
-                        "/index.html",
-                        "/favicon.ico",
-                        "/error",
-                        "/style.css",
-                        "/img/**",
-                        "/app.js",
-                        "/static/**",
-                        "/css/**",
-                        "/js/**",
-                        "/webjars/**")
-                    .permitAll()
-                    .requestMatchers("/api/**")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated())
+    http.authorizeHttpRequests(auth ->
+            auth.requestMatchers(EndpointRequest.to("health", "info"))
+                .permitAll()
+                .requestMatchers(EndpointRequest.toAnyEndpoint())
+                .hasRole("ADMIN")
+                .requestMatchers(
+                    "/",
+                    "/index.html",
+                    "/favicon.ico",
+                    "/error",
+                    "/style.css",
+                    "/img/**",
+                    "/app.js",
+                    "/static/**",
+                    "/css/**",
+                    "/js/**",
+                    "/webjars/**")
+                .permitAll()
+                .requestMatchers("/api/**")
+                .permitAll()
+                .anyRequest()
+                .authenticated())
         .httpBasic(Customizer.withDefaults())
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

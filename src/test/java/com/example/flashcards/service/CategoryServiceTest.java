@@ -60,12 +60,11 @@ class CategoryServiceTest {
     Category entity = CategoryMapper.toEntity(dto);
 
     when(categoryRepository.save(any(Category.class)))
-        .thenAnswer(
-            inv -> {
-              Category saved = inv.getArgument(0);
-              saved.setId(1L);
-              return saved;
-            });
+        .thenAnswer(inv -> {
+          Category saved = inv.getArgument(0);
+          saved.setId(1L);
+          return saved;
+        });
 
     Category saved = categoryService.createCategory(entity);
     CategoryDto savedDTO = CategoryMapper.toDto(saved);

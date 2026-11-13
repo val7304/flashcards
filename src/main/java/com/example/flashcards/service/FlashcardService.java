@@ -69,13 +69,12 @@ public class FlashcardService {
   public Flashcard updateFlashcard(final Long id, final Flashcard flashcard) {
     return flashcardRepository
         .findById(id)
-        .map(
-            f -> {
-              f.setQuestion(flashcard.getQuestion());
-              f.setAnswer(flashcard.getAnswer());
-              f.setCategory(flashcard.getCategory());
-              return flashcardRepository.save(f);
-            })
+        .map(f -> {
+          f.setQuestion(flashcard.getQuestion());
+          f.setAnswer(flashcard.getAnswer());
+          f.setCategory(flashcard.getCategory());
+          return flashcardRepository.save(f);
+        })
         .orElseThrow(() -> new RuntimeException("Flashcard not found"));
   }
 
