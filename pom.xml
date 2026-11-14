@@ -8,13 +8,13 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.8</version>
+        <version>4.1.2</version>
         <relativePath/>
     </parent>
 
     <groupId>com.example</groupId>
     <artifactId>flashcards</artifactId>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
     <name>flashcards</name>
     <description>Flashcards Application - Spring Boot</description>
 
@@ -33,9 +33,6 @@
         <tomcat.version>11.0.25</tomcat.version>
         <jackson-bom.version>3.1.7</jackson-bom.version>
 
-        <!-- fix CVE-2026-40983 -->
-        <micrometer.version>1.15.12</micrometer.version>
-        
         <!-- Sonar -->
         <sonar.plugin.version>5.8.0.7211</sonar.plugin.version>
         <sonar.projectKey>val7304_flashcards</sonar.projectKey>
@@ -196,6 +193,22 @@
                 </executions>
             </plugin>
 
+
+            <!-- Expose le chemin du JAR Mockito comme propriété Maven -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>get-mockito-agent</id>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+
             <!-- JaCoCo -->
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -294,16 +307,16 @@
                 <version>3.6.1</version>
                 <configuration>
                     <skipTests>${skipUnitTests}</skipTests>
-                    <argLine>@{jacocoArgLine}</argLine>  <!-- ← @{} = résolution tardive -->
+                    <argLine>@{jacocoArgLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
                 </configuration>
             </plugin>
-            
+
             <!-- test IT -->
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.6.1</version>
                 <configuration>
-                    <argLine>@{jacocoArgLine}</argLine>  <!-- ← @{} = résolution tardive -->
+                    <argLine>@{jacocoArgLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
                 </configuration>
                 <executions>
                     <execution>
