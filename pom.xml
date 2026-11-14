@@ -33,9 +33,6 @@
         <tomcat.version>11.0.25</tomcat.version>
         <jackson-bom.version>3.1.7</jackson-bom.version>
 
-        <!-- fix CVE-2026-40983 -->
-        <micrometer.version>1.15.12</micrometer.version>
-        
         <!-- Sonar -->
         <sonar.plugin.version>5.8.0.7211</sonar.plugin.version>
         <sonar.projectKey>val7304_flashcards</sonar.projectKey>
