@@ -193,6 +193,22 @@
                 </executions>
             </plugin>
 
+
+            <!-- Expose le chemin du JAR Mockito comme propriété Maven -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>get-mockito-agent</id>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+
             <!-- JaCoCo -->
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -291,16 +307,16 @@
                 <version>3.6.1</version>
                 <configuration>
                     <skipTests>${skipUnitTests}</skipTests>
-                    <argLine>@{jacocoArgLine}</argLine>  <!-- ← @{} = résolution tardive -->
+                    <argLine>@{jacocoArgLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
                 </configuration>
             </plugin>
-            
+
             <!-- test IT -->
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.6.1</version>
                 <configuration>
-                    <argLine>@{jacocoArgLine}</argLine>  <!-- ← @{} = résolution tardive -->
+                    <argLine>@{jacocoArgLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
                 </configuration>
                 <executions>
                     <execution>
