@@ -34,7 +34,7 @@
         <jackson-bom.version>3.1.7</jackson-bom.version>
 
         <!-- Sonar -->
-        <sonar.plugin.version>5.8.0.7211</sonar.plugin.version>
+        <sonar.plugin.version>5.9.0.7382</sonar.plugin.version>
         <sonar.projectKey>val7304_flashcards</sonar.projectKey>
         <sonar.organization>val7304</sonar.organization>
         <sonar.projectName>flashcards</sonar.projectName>
